@@ -1,5 +1,5 @@
 {
-    "name": "nestjs-react-turborepo-template",
+    "name": "izticket",
     "private": true,
     "scripts": {
         "build": "turbo run build",

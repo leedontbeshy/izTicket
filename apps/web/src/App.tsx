@@ -3,12 +3,12 @@ import './App.css';
 function App() {
     return (
         <main className="app-shell">
-            <section className="placeholder">
-                <p className="eyebrow">Monorepo template</p>
-                <h1>NestJS + React</h1>
+            <section className="intro">
+                <p className="eyebrow">izTicket MVP</p>
+                <h1>Event ticketing starts here.</h1>
                 <p>
-                    Replace this placeholder with your application UI when you
-                    start a new project.
+                    Customer, organizer, and admin flows will be built here as
+                    the product moves through the implementation milestones.
                 </p>
             </section>
         </main>

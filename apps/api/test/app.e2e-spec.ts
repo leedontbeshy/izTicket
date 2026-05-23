@@ -39,7 +39,7 @@ describe('AppController (e2e)', () => {
         return request(server)
             .get('/')
             .expect(200)
-            .expect('API template is running.');
+            .expect('izTicket API is running.');
     });
 
     it('/health/live (GET)', () => {

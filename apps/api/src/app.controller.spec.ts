@@ -15,8 +15,8 @@ describe('AppController', () => {
     });
 
     describe('root', () => {
-        it('should return the template status message', () => {
-            expect(appController.getHello()).toBe('API template is running.');
+        it('should return the izTicket status message', () => {
+            expect(appController.getHello()).toBe('izTicket API is running.');
         });
     });
 });
