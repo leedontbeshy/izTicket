@@ -59,11 +59,6 @@ For a 2-3 person team:
 | Frontend | React routes, screens, forms, API client integration | Backend dev provides mock/seed data |
 | Architecture/report/demo | Diagrams, report chapters, deployment notes, demo script | Everyone contributes screenshots and trade-off notes |
 
-If the team has only 2 people:
-
-- Person A: backend + database + deploy API.
-- Person B: frontend + report + deploy frontend.
-- Both: test checkout flow and prepare demo.
 
 If the team has 3 people:
 
