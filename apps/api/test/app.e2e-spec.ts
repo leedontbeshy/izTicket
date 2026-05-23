@@ -3,6 +3,7 @@ import type { INestApplication } from '@nestjs/common';
 import type { Server } from 'node:http';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
+import { configureApp } from './../src/common/utils/configure-app';
 import { PrismaService } from './../src/prisma/prisma.service';
 
 describe('AppController (e2e)', () => {
@@ -26,6 +27,7 @@ describe('AppController (e2e)', () => {
             .compile();
 
         app = moduleFixture.createNestApplication();
+        configureApp(app);
         await app.init();
     });
 
@@ -37,25 +39,25 @@ describe('AppController (e2e)', () => {
         const server = app.getHttpServer() as Server;
 
         return request(server)
-            .get('/')
+            .get('/api/v1')
             .expect(200)
             .expect('izTicket API is running.');
     });
 
-    it('/health/live (GET)', () => {
+    it('/api/v1/health/live (GET)', () => {
         const server = app.getHttpServer() as Server;
 
-        return request(server).get('/health/live').expect(200).expect({
+        return request(server).get('/api/v1/health/live').expect(200).expect({
             status: 'ok',
         });
     });
 
-    it('/health/ready (GET) returns ok when the database responds', () => {
+    it('/api/v1/health/ready (GET) returns ok when the database responds', () => {
         queryRaw = () => Promise.resolve([{ '?column?': 1 }]);
         const server = app.getHttpServer() as Server;
 
         return request(server)
-            .get('/health/ready')
+            .get('/api/v1/health/ready')
             .expect(200)
             .expect({
                 status: 'ok',
@@ -65,18 +67,35 @@ describe('AppController (e2e)', () => {
             });
     });
 
-    it('/health/ready (GET) returns 503 when the database fails', () => {
+    it('/api/v1/health/ready (GET) returns 503 when the database fails', () => {
         queryRaw = () => Promise.reject(new Error('database down'));
         const server = app.getHttpServer() as Server;
 
         return request(server)
-            .get('/health/ready')
+            .get('/api/v1/health/ready')
             .expect(503)
             .expect({
                 status: 'error',
                 checks: {
                     database: 'error',
                 },
+            });
+    });
+
+    it('returns the common error response shape for unknown routes', () => {
+        const server = app.getHttpServer() as Server;
+
+        return request(server)
+            .get('/api/v1/does-not-exist')
+            .expect(404)
+            .expect(({ body }) => {
+                expect(body).toEqual({
+                    statusCode: 404,
+                    error: 'Not Found',
+                    message: 'Cannot GET /api/v1/does-not-exist',
+                    code: 'NOT_FOUND',
+                    details: null,
+                });
             });
     });
 });
