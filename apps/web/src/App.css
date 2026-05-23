@@ -1,0 +1,43 @@
+.app-shell {
+    min-height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: 32px;
+}
+
+.placeholder {
+    width: min(100%, 560px);
+}
+
+.eyebrow {
+    margin: 0 0 12px;
+    color: #4f46e5;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+h1 {
+    margin: 0 0 16px;
+    color: #111827;
+    font-size: 48px;
+    line-height: 1.05;
+}
+
+p {
+    margin: 0;
+    color: #4b5563;
+    font-size: 18px;
+    line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+    .app-shell {
+        padding: 24px;
+    }
+
+    h1 {
+        font-size: 36px;
+    }
+}

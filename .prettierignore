@@ -1,0 +1,16 @@
+node_modules
+apps/api/src/generated/prisma
+.env
+.env.*
+dist
+build
+out
+coverage
+.turbo
+.vite
+.next
+.vercel
+.cache
+.temp
+.tmp
+pnpm-lock.yaml
