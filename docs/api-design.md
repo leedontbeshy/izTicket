@@ -27,11 +27,11 @@ General conventions:
 
 ## 2. Roles
 
-| Role | Capabilities |
-| --- | --- |
-| `CUSTOMER` | Browse events, reserve tickets, create orders, pay, view own tickets. |
+| Role        | Capabilities                                                                                              |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| `CUSTOMER`  | Browse events, reserve tickets, create orders, pay, view own tickets.                                     |
 | `ORGANIZER` | Create and edit own events, configure ticket types, submit events for review, view orders for own events. |
-| `ADMIN` | Review, approve, and reject submitted events. |
+| `ADMIN`     | Review, approve, and reject submitted events.                                                             |
 
 ## 3. Common Error Response
 
@@ -47,16 +47,16 @@ General conventions:
 
 Suggested status code usage:
 
-| Status | Meaning |
-| --- | --- |
-| `200` | Successful read or update. |
-| `201` | Resource created. |
-| `400` | Invalid request or business rule violation. |
-| `401` | Missing or invalid token. |
-| `403` | Authenticated but not allowed. |
-| `404` | Resource not found. |
-| `409` | Conflict, such as stale state or duplicate webhook. |
-| `422` | Valid JSON but semantically invalid checkout/payment state. |
+| Status | Meaning                                                     |
+| ------ | ----------------------------------------------------------- |
+| `200`  | Successful read or update.                                  |
+| `201`  | Resource created.                                           |
+| `400`  | Invalid request or business rule violation.                 |
+| `401`  | Missing or invalid token.                                   |
+| `403`  | Authenticated but not allowed.                              |
+| `404`  | Resource not found.                                         |
+| `409`  | Conflict, such as stale state or duplicate webhook.         |
+| `422`  | Valid JSON but semantically invalid checkout/payment state. |
 
 ## 4. Authentication APIs
 
@@ -636,14 +636,14 @@ INITIATED -> REQUIRES_REVIEW
 
 ## 15. Authorization Summary
 
-| API group | Public | Customer | Organizer | Admin |
-| --- | --- | --- | --- | --- |
-| Public event browse | Yes | Yes | Yes | Yes |
-| Reservation/order checkout | No | Own resources | No | Read for support if implemented |
-| Organizer event management | No | No | Own events | Optional read |
-| Admin review | No | No | No | Yes |
-| Payment webhook | Provider only | No | No | No |
-| Ticket viewing | No | Own tickets | Tickets for own events | Yes |
+| API group                  | Public        | Customer      | Organizer              | Admin                           |
+| -------------------------- | ------------- | ------------- | ---------------------- | ------------------------------- |
+| Public event browse        | Yes           | Yes           | Yes                    | Yes                             |
+| Reservation/order checkout | No            | Own resources | No                     | Read for support if implemented |
+| Organizer event management | No            | No            | Own events             | Optional read                   |
+| Admin review               | No            | No            | No                     | Yes                             |
+| Payment webhook            | Provider only | No            | No                     | No                              |
+| Ticket viewing             | No            | Own tickets   | Tickets for own events | Yes                             |
 
 ## 16. Open Implementation Notes
 

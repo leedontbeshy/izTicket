@@ -469,12 +469,11 @@ For future scale:
 
 ## 14. Flow-Level Risks and Mitigations
 
-| Risk | Flow affected | Mitigation |
-| --- | --- | --- |
-| Overselling tickets | Reservation creation | Transaction and conditional inventory update. |
-| Duplicate ticket issuing | Payment webhook, ticket issuing | Idempotent payment and ticket creation. |
-| Late payment after expiry | Payment webhook | Move order to `PAYMENT_REVIEW`; do not auto-issue tickets. |
-| Public event appears before approval | Event creation | Require `PUBLISHED` status in public listing queries. |
-| Organizer edits another organizer's event | Organizer dashboard | Scope all organizer queries by authenticated organizer id. |
-| Webhook spoofing | Payment integration | Verify SePay webhook signature/token/reference during implementation. |
-
+| Risk                                      | Flow affected                   | Mitigation                                                            |
+| ----------------------------------------- | ------------------------------- | --------------------------------------------------------------------- |
+| Overselling tickets                       | Reservation creation            | Transaction and conditional inventory update.                         |
+| Duplicate ticket issuing                  | Payment webhook, ticket issuing | Idempotent payment and ticket creation.                               |
+| Late payment after expiry                 | Payment webhook                 | Move order to `PAYMENT_REVIEW`; do not auto-issue tickets.            |
+| Public event appears before approval      | Event creation                  | Require `PUBLISHED` status in public listing queries.                 |
+| Organizer edits another organizer's event | Organizer dashboard             | Scope all organizer queries by authenticated organizer id.            |
+| Webhook spoofing                          | Payment integration             | Verify SePay webhook signature/token/reference during implementation. |

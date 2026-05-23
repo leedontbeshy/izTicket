@@ -1,4 +1,5 @@
-# ĐỀ TÀI TIỂU LUẬN  
+# ĐỀ TÀI TIỂU LUẬN
+
 ## THIẾT KẾ KIẾN TRÚC PHẦN MỀM
 
 ---
@@ -9,7 +10,7 @@ Sinh viên sẽ tự chọn một lĩnh vực ứng dụng (domain) và phát tr
 
 Mục tiêu là áp dụng các khái niệm trong sách:
 
-> *Fundamentals of Software Architecture – Mark Richards & Neal Ford*
+> _Fundamentals of Software Architecture – Mark Richards & Neal Ford_
 
 ---
 
@@ -20,18 +21,18 @@ Mục tiêu là áp dụng các khái niệm trong sách:
 Sinh viên (cá nhân hoặc nhóm tối đa 3 người) cần:
 
 - Chọn một hệ thống phần mềm cụ thể (ví dụ):
-  - Thương mại điện tử (e-commerce)
-  - Hệ thống quản lý bệnh viện
-  - Ứng dụng học trực tuyến
-  - Hệ thống đặt vé (booking)
-  - Mạng xã hội mini
-  - ...
+    - Thương mại điện tử (e-commerce)
+    - Hệ thống quản lý bệnh viện
+    - Ứng dụng học trực tuyến
+    - Hệ thống đặt vé (booking)
+    - Mạng xã hội mini
+    - ...
 
 - Thực hiện các bước:
-  1. Phân tích yêu cầu
-  2. Xác định kiến trúc
-  3. Thiết kế chi tiết
-  4. Triển khai một phần hệ thống
+    1. Phân tích yêu cầu
+    2. Xác định kiến trúc
+    3. Thiết kế chi tiết
+    4. Triển khai một phần hệ thống
 
 ---
 
@@ -43,11 +44,11 @@ Sinh viên (cá nhân hoặc nhóm tối đa 3 người) cần:
 - Stakeholders
 - Functional requirements
 - Non-functional requirements (theo kiến thức trong sách):
-  - Scalability
-  - Performance
-  - Availability
-  - Security
-  - Maintainability
+    - Scalability
+    - Performance
+    - Availability
+    - Security
+    - Maintainability
 
 ---
 
@@ -56,19 +57,19 @@ Sinh viên (cá nhân hoặc nhóm tối đa 3 người) cần:
 Sinh viên phải:
 
 - Chọn một hoặc nhiều architecture style:
-  - Layered Architecture
-  - Microservices Architecture
-  - Event-driven Architecture
-  - Services-based Architecture
-  - Space-based Architecture
-  - Microkernel Architecture
-  - Pipeline Architecture
-  - Orchestration Driven Architecture
+    - Layered Architecture
+    - Microservices Architecture
+    - Event-driven Architecture
+    - Services-based Architecture
+    - Space-based Architecture
+    - Microkernel Architecture
+    - Pipeline Architecture
+    - Orchestration Driven Architecture
 
 - Giải thích:
-  - Tại sao chọn kiến trúc này
-  - Trade-offs (**rất quan trọng**)
-  - So sánh với phương án khác
+    - Tại sao chọn kiến trúc này
+    - Trade-offs (**rất quan trọng**)
+    - So sánh với phương án khác
 
 ---
 
@@ -101,28 +102,28 @@ Bao gồm:
 
 - Cài đặt tối thiểu một phần quan trọng của hệ thống
 - Có thể chọn (tùy theo kiến trúc):
-  - Backend APIs
-  - Một số microservices
-  - Prototype hệ thống
-  - ...
+    - Backend APIs
+    - Một số microservices
+    - Prototype hệ thống
+    - ...
 
 - Công nghệ tự chọn:
-  - Java
-  - .NET
-  - Node.js
-  - Python
-  - ...
+    - Java
+    - .NET
+    - Node.js
+    - Python
+    - ...
 
 ---
 
 ### 🔹 (6) Đánh giá & Trade-off
 
 - Đánh giá:
-  - Điểm mạnh và yếu của kiến trúc
-  - Các rủi ro kiến trúc
+    - Điểm mạnh và yếu của kiến trúc
+    - Các rủi ro kiến trúc
 
 - Nêu rõ:
-  - Kiến trúc có thể thay đổi như thế nào khi scale
+    - Kiến trúc có thể thay đổi như thế nào khi scale
 
 ---
 
@@ -178,16 +179,16 @@ Bao gồm:
 
 # 4. Rubrics đánh giá (100 điểm)
 
-| Tiêu chí | Mô tả | Điểm |
-|---|---|---|
-| 1. Phân tích yêu cầu | Rõ ràng, đầy đủ functional & non-functional requirements | 15 |
-| 2. Lựa chọn kiến trúc | Phù hợp, có giải thích và trade-off đúng theo lý thuyết | 15 |
-| 3. Thiết kế kiến trúc | Sơ đồ rõ ràng, hợp lý, có tính thực tiễn | 20 |
-| 4. Áp dụng kiến thức từ sách | Sử dụng đúng concepts (modularity, coupling, scalability...) | 15 |
-| 5. Implementation | Có code, triển khai hợp lý, chạy được | 10 |
-| 6. Đánh giá & trade-offs | Phân tích sâu, hiểu rõ kiến trúc | 10 |
-| 7. Báo cáo & trình bày | Viết rõ ràng, logic, trình bày đẹp | 10 |
-| 8. Sáng tạo & mở rộng | Ý tưởng mới, cải tiến, mở rộng | 5 |
+| Tiêu chí                     | Mô tả                                                        | Điểm |
+| ---------------------------- | ------------------------------------------------------------ | ---- |
+| 1. Phân tích yêu cầu         | Rõ ràng, đầy đủ functional & non-functional requirements     | 15   |
+| 2. Lựa chọn kiến trúc        | Phù hợp, có giải thích và trade-off đúng theo lý thuyết      | 15   |
+| 3. Thiết kế kiến trúc        | Sơ đồ rõ ràng, hợp lý, có tính thực tiễn                     | 20   |
+| 4. Áp dụng kiến thức từ sách | Sử dụng đúng concepts (modularity, coupling, scalability...) | 15   |
+| 5. Implementation            | Có code, triển khai hợp lý, chạy được                        | 10   |
+| 6. Đánh giá & trade-offs     | Phân tích sâu, hiểu rõ kiến trúc                             | 10   |
+| 7. Báo cáo & trình bày       | Viết rõ ràng, logic, trình bày đẹp                           | 10   |
+| 8. Sáng tạo & mở rộng        | Ý tưởng mới, cải tiến, mở rộng                               | 5    |
 
 ---
 

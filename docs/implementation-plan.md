@@ -53,12 +53,11 @@ Implement these carefully before adding visual polish.
 
 For a 2-3 person team:
 
-| Role | Main owner | Backup |
-| --- | --- | --- |
-| Backend/domain | Prisma schema, NestJS modules, business rules, tests | Frontend dev reviews API contracts |
-| Frontend | React routes, screens, forms, API client integration | Backend dev provides mock/seed data |
+| Role                     | Main owner                                               | Backup                                               |
+| ------------------------ | -------------------------------------------------------- | ---------------------------------------------------- |
+| Backend/domain           | Prisma schema, NestJS modules, business rules, tests     | Frontend dev reviews API contracts                   |
+| Frontend                 | React routes, screens, forms, API client integration     | Backend dev provides mock/seed data                  |
 | Architecture/report/demo | Diagrams, report chapters, deployment notes, demo script | Everyone contributes screenshots and trade-off notes |
-
 
 If the team has 3 people:
 
@@ -72,15 +71,15 @@ Recommended Git workflow:
 
 - Main branch: stable demo-ready code.
 - Feature branches:
-  - `feature/db-schema`
-  - `feature/auth-rbac`
-  - `feature/events-admin-review`
-  - `feature/reservation-order`
-  - `feature/payment-sepay`
-  - `feature/tickets-notifications`
-  - `feature/web-customer`
-  - `feature/web-organizer-admin`
-  - `feature/deploy`
+    - `feature/db-schema`
+    - `feature/auth-rbac`
+    - `feature/events-admin-review`
+    - `feature/reservation-order`
+    - `feature/payment-sepay`
+    - `feature/tickets-notifications`
+    - `feature/web-customer`
+    - `feature/web-organizer-admin`
+    - `feature/deploy`
 
 Before merging:
 
@@ -104,41 +103,41 @@ Before implementation, ask for approval to add production dependencies if needed
 
 Likely backend dependencies:
 
-| Dependency | Why it may be needed | Can be delayed? |
-| --- | --- | --- |
-| `@nestjs/jwt` | JWT issuing and verification | No, needed for real auth |
-| `bcrypt` or `argon2` | Password hashing | No, needed for secure auth |
-| `@nestjs/schedule` | Reservation expiry scheduled job | Yes, can start with manual expiry endpoint/job |
-| `qrcode` | Generate QR images or QR payloads | Yes, MVP can store signed text payload first |
-| `nanoid` or similar | Human-friendly ticket/order codes | Yes, UUID is enough for MVP |
+| Dependency           | Why it may be needed              | Can be delayed?                                |
+| -------------------- | --------------------------------- | ---------------------------------------------- |
+| `@nestjs/jwt`        | JWT issuing and verification      | No, needed for real auth                       |
+| `bcrypt` or `argon2` | Password hashing                  | No, needed for secure auth                     |
+| `@nestjs/schedule`   | Reservation expiry scheduled job  | Yes, can start with manual expiry endpoint/job |
+| `qrcode`             | Generate QR images or QR payloads | Yes, MVP can store signed text payload first   |
+| `nanoid` or similar  | Human-friendly ticket/order codes | Yes, UUID is enough for MVP                    |
 
 Likely frontend dependencies:
 
-| Dependency | Why it may be needed | Can be delayed? |
-| --- | --- | --- |
-| Router library | Multi-page app navigation | No if building realistic routes |
-| Form helper library | Complex forms | Yes, can use React state first |
-| UI/icon library | Faster UI polish | Yes, can build basic components first |
+| Dependency          | Why it may be needed      | Can be delayed?                       |
+| ------------------- | ------------------------- | ------------------------------------- |
+| Router library      | Multi-page app navigation | No if building realistic routes       |
+| Form helper library | Complex forms             | Yes, can use React state first        |
+| UI/icon library     | Faster UI polish          | Yes, can build basic components first |
 
 Keep dependency additions minimal. The demo can be successful without a large UI kit.
 
 ## 6. Milestone Overview
 
-| Milestone | Name | Main output | Risk |
-| --- | --- | --- | --- |
-| M0 | Project setup | Env files, naming cleanup, dev sanity check | Low |
-| M1 | Database foundation | Prisma schema, migrations, seed data | High |
-| M2 | Backend foundation | Shared module structure, errors, validation, API prefix | Medium |
-| M3 | Auth and RBAC | Register, login, JWT, role guards | High |
-| M4 | Events and admin review | Organizer creates events, admin approves | Medium |
-| M5 | Ticket types and inventory | Ticket capacities, sale window, availability | High |
-| M6 | Reservation and orders | Hold tickets, create orders, expire reservations | Very high |
-| M7 | SePay payment | Payment request, webhook, idempotency | Very high |
-| M8 | Ticket issuing | Issue tickets, QR payload, notification logs | Medium |
-| M9 | Frontend MVP | Customer, Organizer, Admin screens | Medium |
-| M10 | Tests and hardening | Unit/e2e tests for core flows | High |
-| M11 | Deployment | Vercel, Render, environment config | Medium |
-| M12 | Report/demo | Report content, screenshots, demo script | Medium |
+| Milestone | Name                       | Main output                                             | Risk      |
+| --------- | -------------------------- | ------------------------------------------------------- | --------- |
+| M0        | Project setup              | Env files, naming cleanup, dev sanity check             | Low       |
+| M1        | Database foundation        | Prisma schema, migrations, seed data                    | High      |
+| M2        | Backend foundation         | Shared module structure, errors, validation, API prefix | Medium    |
+| M3        | Auth and RBAC              | Register, login, JWT, role guards                       | High      |
+| M4        | Events and admin review    | Organizer creates events, admin approves                | Medium    |
+| M5        | Ticket types and inventory | Ticket capacities, sale window, availability            | High      |
+| M6        | Reservation and orders     | Hold tickets, create orders, expire reservations        | Very high |
+| M7        | SePay payment              | Payment request, webhook, idempotency                   | Very high |
+| M8        | Ticket issuing             | Issue tickets, QR payload, notification logs            | Medium    |
+| M9        | Frontend MVP               | Customer, Organizer, Admin screens                      | Medium    |
+| M10       | Tests and hardening        | Unit/e2e tests for core flows                           | High      |
+| M11       | Deployment                 | Vercel, Render, environment config                      | Medium    |
+| M12       | Report/demo                | Report content, screenshots, demo script                | Medium    |
 
 ## 7. Milestone M0: Project Setup
 
@@ -152,18 +151,18 @@ Make the template clearly become `izTicket` and ensure local development works.
 - Update `README.md` with project name, stack, and basic commands.
 - Confirm `pnpm install` works.
 - Confirm API and web can run separately:
-  - `pnpm dev:api`
-  - `pnpm dev:web`
+    - `pnpm dev:api`
+    - `pnpm dev:web`
 - Create/copy environment files:
-  - `apps/api/.env` from `apps/api/.env.example`
-  - root `.env` only if repo-wide tooling needs it
+    - `apps/api/.env` from `apps/api/.env.example`
+    - root `.env` only if repo-wide tooling needs it
 - Define local API URL for frontend:
-  - example: `VITE_API_URL=http://localhost:3000/api/v1`
+    - example: `VITE_API_URL=http://localhost:3000/api/v1`
 - Confirm Prettier and TypeScript commands are known:
-  - `pnpm format:check`
-  - `pnpm lint`
-  - `pnpm check-types`
-  - `pnpm build`
+    - `pnpm format:check`
+    - `pnpm lint`
+    - `pnpm check-types`
+    - `pnpm build`
 
 ### Files likely touched
 
@@ -188,62 +187,62 @@ Convert [Database Design](./database-design.md) into Prisma schema and seed data
 
 - Replace placeholder `ExampleItem` model in `apps/api/prisma/schema.prisma`.
 - Add Prisma enums:
-  - `UserRole`
-  - `UserStatus`
-  - `EventStatus`
-  - `ReservationStatus`
-  - `OrderStatus`
-  - `PaymentStatus`
-  - `TicketStatus`
-  - `NotificationStatus`
+    - `UserRole`
+    - `UserStatus`
+    - `EventStatus`
+    - `ReservationStatus`
+    - `OrderStatus`
+    - `PaymentStatus`
+    - `TicketStatus`
+    - `NotificationStatus`
 - Add Prisma models:
-  - `User`
-  - `Venue`
-  - `Event`
-  - `EventReview`
-  - `TicketType`
-  - `Reservation`
-  - `ReservationItem`
-  - `Order`
-  - `OrderItem`
-  - `Payment`
-  - `PaymentEvent`
-  - `Ticket`
-  - `NotificationLog`
+    - `User`
+    - `Venue`
+    - `Event`
+    - `EventReview`
+    - `TicketType`
+    - `Reservation`
+    - `ReservationItem`
+    - `Order`
+    - `OrderItem`
+    - `Payment`
+    - `PaymentEvent`
+    - `Ticket`
+    - `NotificationLog`
 - Add indexes and unique constraints from `database-design.md`.
 - Decide which advanced constraints need raw SQL migrations:
-  - `ends_at > starts_at`
-  - quantity non-negative checks
-  - partial unique indexes for nullable payment provider ids
+    - `ends_at > starts_at`
+    - quantity non-negative checks
+    - partial unique indexes for nullable payment provider ids
 - Run:
-  - `pnpm --dir apps/api exec prisma validate`
-  - `pnpm --dir apps/api exec prisma format`
-  - `pnpm --dir apps/api exec prisma generate`
+    - `pnpm --dir apps/api exec prisma validate`
+    - `pnpm --dir apps/api exec prisma format`
+    - `pnpm --dir apps/api exec prisma generate`
 - Create first migration:
-  - `pnpm --dir apps/api exec prisma migrate dev --name init_izticket_schema`
+    - `pnpm --dir apps/api exec prisma migrate dev --name init_izticket_schema`
 
 ### Seed data tasks
 
 Create seed data for demo:
 
 - Admin user:
-  - email: `admin@izticket.local`
-  - role: `ADMIN`
+    - email: `admin@izticket.local`
+    - role: `ADMIN`
 - Organizer user:
-  - email: `organizer@izticket.local`
-  - role: `ORGANIZER`
+    - email: `organizer@izticket.local`
+    - role: `ORGANIZER`
 - Customer user:
-  - email: `customer@izticket.local`
-  - role: `CUSTOMER`
+    - email: `customer@izticket.local`
+    - role: `CUSTOMER`
 - 2-3 venues.
 - 3-5 events:
-  - one `PUBLISHED`
-  - one `PENDING_REVIEW`
-  - one `DRAFT`
-  - one `REJECTED` if time allows
+    - one `PUBLISHED`
+    - one `PENDING_REVIEW`
+    - one `DRAFT`
+    - one `REJECTED` if time allows
 - Ticket types for published event:
-  - Standard
-  - VIP
+    - Standard
+    - VIP
 
 ### Important design decisions
 
@@ -275,26 +274,26 @@ Create reusable backend structure before implementing business modules.
 ### Backend tasks
 
 - Set global API prefix:
-  - `/api/v1`
+    - `/api/v1`
 - Confirm global validation pipe:
-  - whitelist unknown fields
-  - transform primitive DTO fields if needed
+    - whitelist unknown fields
+    - transform primitive DTO fields if needed
 - Define common error response shape:
-  - `statusCode`
-  - `error`
-  - `message`
-  - `code`
-  - `details`
+    - `statusCode`
+    - `error`
+    - `message`
+    - `code`
+    - `details`
 - Create shared folder structure:
-  - `src/common/errors`
-  - `src/common/guards`
-  - `src/common/decorators`
-  - `src/common/pagination`
-  - `src/common/events`
-  - `src/common/utils`
+    - `src/common/errors`
+    - `src/common/guards`
+    - `src/common/decorators`
+    - `src/common/pagination`
+    - `src/common/events`
+    - `src/common/utils`
 - Create domain event bus abstraction:
-  - MVP can be synchronous/in-process.
-  - Keep API simple so it can later move to queue.
+    - MVP can be synchronous/in-process.
+    - Keep API simple so it can later move to queue.
 - Create pagination DTO/helper.
 - Create current user decorator.
 - Create role decorator.
@@ -347,16 +346,16 @@ Implement secure login and role-based access control.
 - Add JWT auth guard.
 - Add RBAC guard.
 - Add decorators:
-  - `@CurrentUser()`
-  - `@Roles(UserRole.ADMIN)`
+    - `@CurrentUser()`
+    - `@Roles(UserRole.ADMIN)`
 - Implement endpoints:
-  - `POST /auth/register`
-  - `POST /auth/login`
-  - `GET /auth/me`
+    - `POST /auth/register`
+    - `POST /auth/login`
+    - `GET /auth/me`
 - Restrict self-registration:
-  - allow `CUSTOMER`
-  - allow `ORGANIZER`
-  - do not allow public registration as `ADMIN`
+    - allow `CUSTOMER`
+    - allow `ORGANIZER`
+    - do not allow public registration as `ADMIN`
 - Add seed/admin path for admin account.
 
 ### Security rules
@@ -419,12 +418,12 @@ Implement `AdminReviewModule`:
 - Organizer can only see/edit own events.
 - Organizer can edit `DRAFT` or `REJECTED` events.
 - Submit transitions:
-  - `DRAFT -> PENDING_REVIEW`
-  - `REJECTED -> PENDING_REVIEW`
+    - `DRAFT -> PENDING_REVIEW`
+    - `REJECTED -> PENDING_REVIEW`
 - Admin approve transitions:
-  - `PENDING_REVIEW -> PUBLISHED`
+    - `PENDING_REVIEW -> PUBLISHED`
 - Admin reject transitions:
-  - `PENDING_REVIEW -> REJECTED`
+    - `PENDING_REVIEW -> REJECTED`
 - Reject reason is required.
 - Published events should not be edited freely in MVP.
 
@@ -645,18 +644,18 @@ Create infrastructure adapter:
 - Process idempotently.
 - If duplicate success webhook arrives, return success and do not issue duplicate tickets.
 - If payment succeeds before reservation expiry:
-  - mark payment `SUCCEEDED`
-  - mark order `PAID`
-  - mark reservation `CONFIRMED`
-  - increment `soldQuantity`
-  - emit `PaymentSucceeded`
+    - mark payment `SUCCEEDED`
+    - mark order `PAID`
+    - mark reservation `CONFIRMED`
+    - increment `soldQuantity`
+    - emit `PaymentSucceeded`
 - If payment succeeds after reservation expiry:
-  - mark payment `SUCCEEDED`
-  - mark order `PAYMENT_REVIEW`
-  - do not issue tickets automatically
+    - mark payment `SUCCEEDED`
+    - mark order `PAYMENT_REVIEW`
+    - do not issue tickets automatically
 - If payment fails:
-  - mark payment `FAILED`
-  - cancel or wait for reservation expiry based on provider behavior
+    - mark payment `FAILED`
+    - cancel or wait for reservation expiry based on provider behavior
 
 ### Tests
 
@@ -699,9 +698,9 @@ Implement `TicketsModule`:
 Implement `NotificationsModule`:
 
 - Write notification logs for:
-  - event approved
-  - event rejected
-  - ticket issued
+    - event approved
+    - event rejected
+    - ticket issued
 - Real email can be skipped for MVP if notification log is visible in DB or admin/debug output.
 
 ### Ticket issuing rules
@@ -710,9 +709,9 @@ Implement `NotificationsModule`:
 - One ticket row per purchased quantity.
 - Ticket issuing must be idempotent.
 - Each ticket gets:
-  - unique `ticketCode`
-  - signed or unique `qrPayload`
-  - status `ISSUED`
+    - unique `ticketCode`
+    - signed or unique `qrPayload`
+    - status `ISSUED`
 - Customer sees only own tickets.
 - Organizer can see tickets/orders for own events if needed.
 
@@ -761,23 +760,23 @@ Build a usable frontend, not just isolated API testing.
 
 - Create API client with base URL from env.
 - Create auth state:
-  - token storage
-  - current user
-  - logout
-  - protected routes
+    - token storage
+    - current user
+    - logout
+    - protected routes
 - Create layout shell:
-  - customer/public layout
-  - organizer dashboard layout
-  - admin dashboard layout
+    - customer/public layout
+    - organizer dashboard layout
+    - admin dashboard layout
 - Create common UI components:
-  - buttons
-  - inputs
-  - select
-  - status badge
-  - table
-  - empty state
-  - loading state
-  - error message
+    - buttons
+    - inputs
+    - select
+    - status badge
+    - table
+    - empty state
+    - loading state
+    - error message
 
 ### Customer screens
 
@@ -820,10 +819,10 @@ Routes:
 Organizer tasks:
 
 - Dashboard summary:
-  - total events
-  - pending review events
-  - published events
-  - paid orders
+    - total events
+    - pending review events
+    - published events
+    - paid orders
 - Create event form.
 - Edit draft/rejected event.
 - Add ticket types.
@@ -842,8 +841,8 @@ Routes:
 Admin tasks:
 
 - Dashboard summary:
-  - pending events
-  - recent review decisions
+    - pending events
+    - recent review decisions
 - Pending event list.
 - Review event detail.
 - Approve event.
@@ -972,17 +971,17 @@ Deploy frontend to Vercel and backend to Render.
 - Configure build command.
 - Configure start command.
 - Configure environment variables:
-  - `DATABASE_URL`
-  - `JWT_SECRET`
-  - `SEPAY_*`
-  - `CORS_ORIGIN`
-  - `NODE_ENV=production`
+    - `DATABASE_URL`
+    - `JWT_SECRET`
+    - `SEPAY_*`
+    - `CORS_ORIGIN`
+    - `NODE_ENV=production`
 - Configure PostgreSQL database.
 - Run Prisma migration on deploy or manually:
-  - `pnpm --dir apps/api exec prisma migrate deploy`
+    - `pnpm --dir apps/api exec prisma migrate deploy`
 - Confirm health endpoint works.
 - Confirm API base URL:
-  - `https://your-api.onrender.com/api/v1`
+    - `https://your-api.onrender.com/api/v1`
 
 ### Frontend deployment tasks on Vercel
 
@@ -990,7 +989,7 @@ Deploy frontend to Vercel and backend to Render.
 - Configure build command.
 - Configure output directory.
 - Configure env:
-  - `VITE_API_URL=https://your-api.onrender.com/api/v1`
+    - `VITE_API_URL=https://your-api.onrender.com/api/v1`
 - Confirm deployed frontend can call backend.
 - Configure CORS on backend to allow Vercel domain.
 
@@ -1020,40 +1019,40 @@ Prepare the final submission for the software architecture course.
 Follow `SA-requirements.md`:
 
 1. Introduction
-   - System overview.
-   - Project motivation.
-   - Scope.
+    - System overview.
+    - Project motivation.
+    - Scope.
 2. System Requirements
-   - Stakeholders.
-   - Functional requirements.
-   - Non-functional requirements.
+    - Stakeholders.
+    - Functional requirements.
+    - Non-functional requirements.
 3. Architecture Selection
-   - Considered options.
-   - Chosen architecture.
-   - Trade-offs.
+    - Considered options.
+    - Chosen architecture.
+    - Trade-offs.
 4. Architecture Design
-   - Architecture diagram.
-   - Component diagram.
-   - Data flow diagram.
-   - ERD.
+    - Architecture diagram.
+    - Component diagram.
+    - Data flow diagram.
+    - ERD.
 5. Technical Design
-   - API design.
-   - Data model.
-   - SePay integration.
-   - Reservation consistency strategy.
+    - API design.
+    - Data model.
+    - SePay integration.
+    - Reservation consistency strategy.
 6. Implementation
-   - What was implemented.
-   - Tech stack.
-   - Screenshots.
-   - Demo URLs.
+    - What was implemented.
+    - Tech stack.
+    - Screenshots.
+    - Demo URLs.
 7. Evaluation
-   - Strengths.
-   - Weaknesses.
-   - Risks.
-   - How architecture scales.
+    - Strengths.
+    - Weaknesses.
+    - Risks.
+    - How architecture scales.
 8. Conclusion
-   - Summary.
-   - Future work.
+    - Summary.
+    - Future work.
 
 ### Demo script
 
@@ -1412,19 +1411,19 @@ Use stable demo data so the presentation does not depend on random setup.
 
 ### Users
 
-| Role | Email | Purpose |
-| --- | --- | --- |
-| Admin | `admin@izticket.local` | Approve/reject events |
-| Organizer | `organizer@izticket.local` | Create events |
-| Customer | `customer@izticket.local` | Buy tickets |
+| Role      | Email                      | Purpose               |
+| --------- | -------------------------- | --------------------- |
+| Admin     | `admin@izticket.local`     | Approve/reject events |
+| Organizer | `organizer@izticket.local` | Create events         |
+| Customer  | `customer@izticket.local`  | Buy tickets           |
 
 ### Events
 
-| Event | Status | Purpose |
-| --- | --- | --- |
-| UEH Music Night | `PUBLISHED` | Customer purchase demo |
-| Tech Career Workshop | `PENDING_REVIEW` | Admin approval demo |
-| Startup Pitch Day | `DRAFT` | Organizer editing demo |
+| Event                | Status           | Purpose                |
+| -------------------- | ---------------- | ---------------------- |
+| UEH Music Night      | `PUBLISHED`      | Customer purchase demo |
+| Tech Career Workshop | `PENDING_REVIEW` | Admin approval demo    |
+| Startup Pitch Day    | `DRAFT`          | Organizer editing demo |
 
 ### Ticket types
 
@@ -1439,15 +1438,15 @@ For Tech Career Workshop:
 
 ## 26. Risk Management
 
-| Risk | When it appears | Mitigation |
-| --- | --- | --- |
-| SePay integration takes longer than expected | M7 | Build provider adapter interface and allow controlled webhook simulation for demo. |
-| Inventory bug causes oversell | M6 | Prioritize transaction tests and conditional update logic. |
-| Frontend scope becomes too large | M9 | Build happy paths first, dashboard metrics later. |
-| Team members block each other | All milestones | Backend publishes API contract and seed data early. |
-| Deployment is unstable on demo day | M11/M12 | Keep local demo fallback ready. |
-| Auth dependencies delay implementation | M3 | Get dependency approval before starting Auth. |
-| Report is rushed | M12 | Add screenshots and notes after each milestone, not only at the end. |
+| Risk                                         | When it appears | Mitigation                                                                         |
+| -------------------------------------------- | --------------- | ---------------------------------------------------------------------------------- |
+| SePay integration takes longer than expected | M7              | Build provider adapter interface and allow controlled webhook simulation for demo. |
+| Inventory bug causes oversell                | M6              | Prioritize transaction tests and conditional update logic.                         |
+| Frontend scope becomes too large             | M9              | Build happy paths first, dashboard metrics later.                                  |
+| Team members block each other                | All milestones  | Backend publishes API contract and seed data early.                                |
+| Deployment is unstable on demo day           | M11/M12         | Keep local demo fallback ready.                                                    |
+| Auth dependencies delay implementation       | M3              | Get dependency approval before starting Auth.                                      |
+| Report is rushed                             | M12             | Add screenshots and notes after each milestone, not only at the end.               |
 
 ## 27. MVP Cut Line
 
@@ -1498,4 +1497,3 @@ The project is implementation-complete when:
 - Quality checks have been run or documented if blocked.
 - Vercel/Render deployment works or local fallback is ready.
 - Report includes architecture diagrams, trade-offs, API design, database design, and implementation screenshots.
-

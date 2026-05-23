@@ -241,20 +241,20 @@ Typical payload fields:
 
 Field mapping for izTicket:
 
-| SePay field | izTicket mapping | Notes |
-| --- | --- | --- |
-| `id` | `payment_events.providerEventId` | Use as unique idempotency key. |
-| `gateway` | payload only or audit field | Bank name. |
-| `transactionDate` | payload only or parsed audit timestamp | Vietnam local time string. |
-| `accountNumber` | validation against env | Must match configured receiving account. |
-| `subAccount` | payload only | VA if used. |
-| `code` | `payments.providerReference` | Main order matching key. |
-| `content` | payload only | Original bank transfer content. |
-| `transferType` | validation | Must be `in` for customer payment. |
-| `description` | payload only | Bank description. |
-| `transferAmount` | validation against `payments.amountVnd` | Must equal expected amount. |
-| `accumulated` | payload only | Do not rely on it for order matching. |
-| `referenceCode` | `payments.providerTransactionId` | Bank reference; may be useful for reconciliation. |
+| SePay field       | izTicket mapping                        | Notes                                             |
+| ----------------- | --------------------------------------- | ------------------------------------------------- |
+| `id`              | `payment_events.providerEventId`        | Use as unique idempotency key.                    |
+| `gateway`         | payload only or audit field             | Bank name.                                        |
+| `transactionDate` | payload only or parsed audit timestamp  | Vietnam local time string.                        |
+| `accountNumber`   | validation against env                  | Must match configured receiving account.          |
+| `subAccount`      | payload only                            | VA if used.                                       |
+| `code`            | `payments.providerReference`            | Main order matching key.                          |
+| `content`         | payload only                            | Original bank transfer content.                   |
+| `transferType`    | validation                              | Must be `in` for customer payment.                |
+| `description`     | payload only                            | Bank description.                                 |
+| `transferAmount`  | validation against `payments.amountVnd` | Must equal expected amount.                       |
+| `accumulated`     | payload only                            | Do not rely on it for order matching.             |
+| `referenceCode`   | `payments.providerTransactionId`        | Bank reference; may be useful for reconciliation. |
 
 ## 7. Environment Variables
 
@@ -453,40 +453,44 @@ Algorithm:
 1. Verify webhook authentication.
 2. Parse payload.
 3. Validate required fields:
-   - `id`
-   - `transferType`
-   - `transferAmount`
-   - `accountNumber`
-   - `code`
+    - `id`
+    - `transferType`
+    - `transferAmount`
+    - `accountNumber`
+    - `code`
 4. Reject or ignore non-inbound transactions:
-   - `transferType !== "in"`
+    - `transferType !== "in"`
 5. Validate receiving account:
-   - `payload.accountNumber === SEPAY_BANK_ACCOUNT_NUMBER`
+    - `payload.accountNumber === SEPAY_BANK_ACCOUNT_NUMBER`
 6. Insert `payment_events` with unique key:
-   - `provider = "SEPAY"`
-   - `providerEventId = String(payload.id)`
-   - `providerTransactionId = payload.referenceCode`
-   - `payload = raw payload`
+    - `provider = "SEPAY"`
+    - `providerEventId = String(payload.id)`
+    - `providerTransactionId = payload.referenceCode`
+    - `payload = raw payload`
 7. If insert hits unique constraint:
-   - return `{"success": true}`
-   - do not repeat business side effects
+    - return `{"success": true}`
+    - do not repeat business side effects
 8. Find payment:
-   - `provider = "SEPAY"`
-   - `providerReference = payload.code`
-   - `status = "INITIATED"` or already final
+    - `provider = "SEPAY"`
+    - `providerReference = payload.code`
+    - `status = "INITIATED"` or already final
 9. Validate amount:
-   - `payload.transferAmount === payment.amountVnd`
+    - `payload.transferAmount === payment.amountVnd`
 10. Load order and reservation.
 11. If reservation is `ACTIVE` and not expired:
-   - mark payment `SUCCEEDED`
-   - mark order `PAID`
-   - mark reservation `CONFIRMED`
-   - increment `ticket_types.soldQuantity`
-   - emit `PaymentSucceeded`
+
+- mark payment `SUCCEEDED`
+- mark order `PAID`
+- mark reservation `CONFIRMED`
+- increment `ticket_types.soldQuantity`
+- emit `PaymentSucceeded`
+
 12. If reservation is expired/cancelled:
-   - mark payment `SUCCEEDED`
-   - mark order `PAYMENT_REVIEW`
-   - do not issue tickets automatically
+
+- mark payment `SUCCEEDED`
+- mark order `PAYMENT_REVIEW`
+- do not issue tickets automatically
+
 13. Return `{"success": true}`.
 
 ## 12. Transaction Boundary
@@ -513,17 +517,17 @@ Why emit after commit:
 
 ## 13. Matching and Failure Rules
 
-| Condition | Action |
-| --- | --- |
-| Duplicate SePay `id` | Return success, no side effects. |
-| `transferType !== "in"` | Store audit if desired, return success or ignore. |
-| `accountNumber` mismatch | Store event as suspicious, return success only if you do not want retries; otherwise reject. |
-| `code` missing | Cannot match order. Store event, return success, review manually. |
-| `code` not found in payments | Store event, return success, review manually. |
-| Amount lower than expected | Mark payment/order `REQUIRES_REVIEW` or keep pending; do not issue tickets. |
-| Amount higher than expected | Mark `REQUIRES_REVIEW`; do not auto-issue unless business rule explicitly allows. |
-| Order already `PAID` | Return success. Do not issue tickets again. |
-| Reservation expired before webhook | Mark order `PAYMENT_REVIEW`; do not issue tickets automatically. |
+| Condition                          | Action                                                                                       |
+| ---------------------------------- | -------------------------------------------------------------------------------------------- |
+| Duplicate SePay `id`               | Return success, no side effects.                                                             |
+| `transferType !== "in"`            | Store audit if desired, return success or ignore.                                            |
+| `accountNumber` mismatch           | Store event as suspicious, return success only if you do not want retries; otherwise reject. |
+| `code` missing                     | Cannot match order. Store event, return success, review manually.                            |
+| `code` not found in payments       | Store event, return success, review manually.                                                |
+| Amount lower than expected         | Mark payment/order `REQUIRES_REVIEW` or keep pending; do not issue tickets.                  |
+| Amount higher than expected        | Mark `REQUIRES_REVIEW`; do not auto-issue unless business rule explicitly allows.            |
+| Order already `PAID`               | Return success. Do not issue tickets again.                                                  |
+| Reservation expired before webhook | Mark order `PAYMENT_REVIEW`; do not issue tickets automatically.                             |
 
 For the course MVP, the safest rule is exact amount matching.
 
@@ -541,26 +545,26 @@ Recommended field usage:
 
 ### `payments`
 
-| Field | Value |
-| --- | --- |
-| `provider` | `SEPAY` |
-| `providerReference` | izTicket-generated payment code, e.g. `IZT9K3F7Q2A` |
-| `providerTransactionId` | SePay `referenceCode` after webhook |
-| `status` | `INITIATED`, `SUCCEEDED`, `FAILED`, `REQUIRES_REVIEW` |
-| `amountVnd` | Expected order amount |
-| `paymentUrl` | QR image URL or null if generated dynamically |
-| `rawProviderPayload` | Last webhook payload snapshot |
+| Field                   | Value                                                 |
+| ----------------------- | ----------------------------------------------------- |
+| `provider`              | `SEPAY`                                               |
+| `providerReference`     | izTicket-generated payment code, e.g. `IZT9K3F7Q2A`   |
+| `providerTransactionId` | SePay `referenceCode` after webhook                   |
+| `status`                | `INITIATED`, `SUCCEEDED`, `FAILED`, `REQUIRES_REVIEW` |
+| `amountVnd`             | Expected order amount                                 |
+| `paymentUrl`            | QR image URL or null if generated dynamically         |
+| `rawProviderPayload`    | Last webhook payload snapshot                         |
 
 ### `payment_events`
 
-| Field | Value |
-| --- | --- |
-| `provider` | `SEPAY` |
-| `providerEventId` | `String(payload.id)` |
-| `providerTransactionId` | `payload.referenceCode` |
-| `eventType` | `bank.transfer.in` or similar internal label |
-| `payload` | Full webhook payload |
-| `processedAt` | Set after processing is complete |
+| Field                   | Value                                        |
+| ----------------------- | -------------------------------------------- |
+| `provider`              | `SEPAY`                                      |
+| `providerEventId`       | `String(payload.id)`                         |
+| `providerTransactionId` | `payload.referenceCode`                      |
+| `eventType`             | `bank.transfer.in` or similar internal label |
+| `payload`               | Full webhook payload                         |
+| `processedAt`           | Set after processing is complete             |
 
 ## 15. NestJS Module Structure
 
@@ -587,13 +591,13 @@ apps/api/src/modules/payments/
 
 Suggested service responsibilities:
 
-| Service | Responsibility |
-| --- | --- |
-| `PaymentsService` | Create payments, confirm payments, expose payment status. |
-| `SepayPaymentReferenceService` | Generate unique payment code. |
-| `SepayQrService` | Build QR image URL and transfer instructions. |
-| `SepayWebhookVerifierService` | Verify HMAC/API key. |
-| `SepayWebhookMapper` | Normalize SePay payload to internal command. |
+| Service                        | Responsibility                                            |
+| ------------------------------ | --------------------------------------------------------- |
+| `PaymentsService`              | Create payments, confirm payments, expose payment status. |
+| `SepayPaymentReferenceService` | Generate unique payment code.                             |
+| `SepayQrService`               | Build QR image URL and transfer instructions.             |
+| `SepayWebhookVerifierService`  | Verify HMAC/API key.                                      |
+| `SepayWebhookMapper`           | Normalize SePay payload to internal command.              |
 
 ## 16. Controller Sketch
 
@@ -805,4 +809,3 @@ Do not skip:
 - Amount validation.
 - Reservation expiry handling.
 - Manual handling path for late payment.
-

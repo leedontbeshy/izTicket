@@ -10,9 +10,341 @@ datasource db {
   provider = "postgresql"
 }
 
-model ExampleItem {
+enum UserRole {
+  CUSTOMER
+  ORGANIZER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum EventStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  REJECTED
+  CANCELLED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  EXPIRED
+  CANCELLED
+  PAYMENT_REVIEW
+}
+
+enum PaymentStatus {
+  INITIATED
+  SUCCEEDED
+  FAILED
+  REQUIRES_REVIEW
+}
+
+enum TicketStatus {
+  ISSUED
+  VOIDED
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id               String            @id @default(uuid()) @db.Uuid
+  email            String            @unique @db.VarChar(255)
+  passwordHash     String            @map("password_hash")
+  name             String            @db.VarChar(120)
+  role             UserRole
+  status           UserStatus        @default(ACTIVE)
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  events           Event[]
+  eventReviews     EventReview[]
+  reservations     Reservation[]
+  orders           Order[]
+  tickets          Ticket[]
+  notificationLogs NotificationLog[]
+
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}
+
+model Venue {
   id        String   @id @default(uuid()) @db.Uuid
-  name      String   @db.VarChar(100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name      String   @db.VarChar(160)
+  address   String
+  city      String   @db.VarChar(100)
+  district  String?  @db.VarChar(100)
+  mapUrl    String?  @map("map_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  events    Event[]
+
+  @@index([city])
+  @@map("venues")
+}
+
+model Event {
+  id           String        @id @default(uuid()) @db.Uuid
+  organizerId  String        @map("organizer_id") @db.Uuid
+  venueId      String        @map("venue_id") @db.Uuid
+  title        String        @db.VarChar(180)
+  slug         String        @unique @db.VarChar(220)
+  description  String
+  category     String        @db.VarChar(80)
+  status       EventStatus   @default(DRAFT)
+  thumbnailUrl String?       @map("thumbnail_url")
+  startsAt     DateTime      @map("starts_at")
+  endsAt       DateTime      @map("ends_at")
+  submittedAt  DateTime?     @map("submitted_at")
+  publishedAt  DateTime?     @map("published_at")
+  cancelledAt  DateTime?     @map("cancelled_at")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  organizer    User          @relation(fields: [organizerId], references: [id])
+  venue        Venue         @relation(fields: [venueId], references: [id])
+  reviews      EventReview[]
+  ticketTypes  TicketType[]
+  reservations Reservation[]
+  orders       Order[]
+  tickets      Ticket[]
+
+  @@index([organizerId])
+  @@index([status])
+  @@index([category])
+  @@index([startsAt])
+  @@index([status, startsAt])
+  @@map("events")
+}
+
+model EventReview {
+  id         String   @id @default(uuid()) @db.Uuid
+  eventId    String   @map("event_id") @db.Uuid
+  reviewerId String   @map("reviewer_id") @db.Uuid
+  decision   String   @db.VarChar(20)
+  reason     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  event      Event    @relation(fields: [eventId], references: [id])
+  reviewer   User     @relation(fields: [reviewerId], references: [id])
+
+  @@index([eventId])
+  @@index([reviewerId])
+  @@index([createdAt])
+  @@map("event_reviews")
+}
+
+model TicketType {
+  id                String            @id @default(uuid()) @db.Uuid
+  eventId           String            @map("event_id") @db.Uuid
+  name              String            @db.VarChar(120)
+  description       String?
+  priceVnd          Int               @map("price_vnd")
+  totalQuantity     Int               @map("total_quantity")
+  availableQuantity Int               @map("available_quantity")
+  soldQuantity      Int               @default(0) @map("sold_quantity")
+  maxPerOrder       Int?              @map("max_per_order")
+  saleStartsAt      DateTime          @map("sale_starts_at")
+  saleEndsAt        DateTime          @map("sale_ends_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  event             Event             @relation(fields: [eventId], references: [id])
+  reservationItems  ReservationItem[]
+  orderItems        OrderItem[]
+  tickets           Ticket[]
+
+  @@index([eventId])
+  @@index([eventId, saleStartsAt, saleEndsAt])
+  @@map("ticket_types")
+}
+
+model Reservation {
+  id          String            @id @default(uuid()) @db.Uuid
+  customerId  String            @map("customer_id") @db.Uuid
+  eventId     String            @map("event_id") @db.Uuid
+  status      ReservationStatus @default(ACTIVE)
+  expiresAt   DateTime          @map("expires_at")
+  confirmedAt DateTime?         @map("confirmed_at")
+  cancelledAt DateTime?         @map("cancelled_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  customer    User              @relation(fields: [customerId], references: [id])
+  event       Event             @relation(fields: [eventId], references: [id])
+  items       ReservationItem[]
+  order       Order?
+
+  @@index([customerId])
+  @@index([eventId])
+  @@index([status, expiresAt])
+  @@map("reservations")
+}
+
+model ReservationItem {
+  id            String      @id @default(uuid()) @db.Uuid
+  reservationId String      @map("reservation_id") @db.Uuid
+  ticketTypeId  String      @map("ticket_type_id") @db.Uuid
+  quantity      Int
+  unitPriceVnd  Int         @map("unit_price_vnd")
+  subtotalVnd   Int         @map("subtotal_vnd")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+  ticketType    TicketType  @relation(fields: [ticketTypeId], references: [id])
+
+  @@unique([reservationId, ticketTypeId])
+  @@index([reservationId])
+  @@index([ticketTypeId])
+  @@map("reservation_items")
+}
+
+model Order {
+  id             String            @id @default(uuid()) @db.Uuid
+  customerId     String            @map("customer_id") @db.Uuid
+  eventId        String            @map("event_id") @db.Uuid
+  reservationId  String            @unique @map("reservation_id") @db.Uuid
+  status         OrderStatus       @default(PENDING_PAYMENT)
+  totalAmountVnd Int               @map("total_amount_vnd")
+  expiresAt      DateTime          @map("expires_at")
+  paidAt         DateTime?         @map("paid_at")
+  cancelledAt    DateTime?         @map("cancelled_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  customer       User              @relation(fields: [customerId], references: [id])
+  event          Event             @relation(fields: [eventId], references: [id])
+  reservation    Reservation       @relation(fields: [reservationId], references: [id])
+  items          OrderItem[]
+  payments       Payment[]
+  tickets        Ticket[]
+  notifications  NotificationLog[]
+
+  @@index([customerId])
+  @@index([eventId])
+  @@index([status])
+  @@index([status, expiresAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String     @id @default(uuid()) @db.Uuid
+  orderId      String     @map("order_id") @db.Uuid
+  ticketTypeId String     @map("ticket_type_id") @db.Uuid
+  quantity     Int
+  unitPriceVnd Int        @map("unit_price_vnd")
+  subtotalVnd  Int        @map("subtotal_vnd")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  order        Order      @relation(fields: [orderId], references: [id])
+  ticketType   TicketType @relation(fields: [ticketTypeId], references: [id])
+  tickets      Ticket[]
+
+  @@unique([orderId, ticketTypeId])
+  @@index([orderId])
+  @@index([ticketTypeId])
+  @@map("order_items")
+}
+
+model Payment {
+  id                    String         @id @default(uuid()) @db.Uuid
+  orderId               String         @map("order_id") @db.Uuid
+  provider              String         @default("SEPAY") @db.VarChar(40)
+  providerTransactionId String?        @map("provider_transaction_id") @db.VarChar(160)
+  providerReference     String?        @map("provider_reference") @db.VarChar(160)
+  status                PaymentStatus  @default(INITIATED)
+  amountVnd             Int            @map("amount_vnd")
+  paymentUrl            String?        @map("payment_url")
+  rawProviderPayload    Json?          @map("raw_provider_payload")
+  succeededAt           DateTime?      @map("succeeded_at")
+  failedAt              DateTime?      @map("failed_at")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+  order                 Order          @relation(fields: [orderId], references: [id])
+  events                PaymentEvent[]
+
+  @@index([orderId])
+  @@index([status])
+  @@index([provider, providerTransactionId])
+  @@index([provider, providerReference])
+  @@map("payments")
+}
+
+model PaymentEvent {
+  id                    String    @id @default(uuid()) @db.Uuid
+  paymentId             String?   @map("payment_id") @db.Uuid
+  provider              String    @db.VarChar(40)
+  providerEventId       String?   @map("provider_event_id") @db.VarChar(180)
+  providerTransactionId String?   @map("provider_transaction_id") @db.VarChar(160)
+  eventType             String    @map("event_type") @db.VarChar(80)
+  payload               Json
+  processedAt           DateTime? @map("processed_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  payment               Payment?  @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+  @@index([providerTransactionId])
+  @@index([provider, providerEventId])
+  @@map("payment_events")
+}
+
+model Ticket {
+  id               String            @id @default(uuid()) @db.Uuid
+  orderId          String            @map("order_id") @db.Uuid
+  orderItemId      String            @map("order_item_id") @db.Uuid
+  ticketTypeId     String            @map("ticket_type_id") @db.Uuid
+  customerId       String            @map("customer_id") @db.Uuid
+  eventId          String            @map("event_id") @db.Uuid
+  ticketCode       String            @unique @map("ticket_code") @db.VarChar(80)
+  qrPayload        String            @map("qr_payload")
+  status           TicketStatus      @default(ISSUED)
+  issuedAt         DateTime          @default(now()) @map("issued_at")
+  voidedAt         DateTime?         @map("voided_at")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  order            Order             @relation(fields: [orderId], references: [id])
+  orderItem        OrderItem         @relation(fields: [orderItemId], references: [id])
+  ticketType       TicketType        @relation(fields: [ticketTypeId], references: [id])
+  customer         User              @relation(fields: [customerId], references: [id])
+  event            Event             @relation(fields: [eventId], references: [id])
+  notificationLogs NotificationLog[]
+
+  @@index([orderId])
+  @@index([customerId])
+  @@index([eventId])
+  @@index([ticketTypeId])
+  @@index([customerId, eventId])
+  @@map("tickets")
+}
+
+model NotificationLog {
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String?            @map("user_id") @db.Uuid
+  orderId   String?            @map("order_id") @db.Uuid
+  ticketId  String?            @map("ticket_id") @db.Uuid
+  type      String             @db.VarChar(80)
+  channel   String             @db.VarChar(40)
+  status    NotificationStatus @default(PENDING)
+  recipient String?            @db.VarChar(255)
+  payload   Json?
+  sentAt    DateTime?          @map("sent_at")
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+  user      User?              @relation(fields: [userId], references: [id])
+  order     Order?             @relation(fields: [orderId], references: [id])
+  ticket    Ticket?            @relation(fields: [ticketId], references: [id])
+
+  @@index([userId])
+  @@index([orderId])
+  @@index([ticketId])
+  @@index([status])
+  @@index([type])
+  @@map("notification_logs")
 }
