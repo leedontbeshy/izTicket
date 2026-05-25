@@ -1,6 +1,6 @@
 # izTicket API Design
 
-Last updated: 2026-05-23
+Last updated: 2026-05-25
 
 ## 1. API Style
 
@@ -15,7 +15,11 @@ Recommended base path:
 General conventions:
 
 - Request and response body format: JSON.
-- Authentication: `Authorization: Bearer <jwt>`.
+- Authentication: short-lived access token in
+  `Authorization: Bearer <jwt>`.
+- Refresh token: HttpOnly cookie named `izticket_refresh_token`, scoped to
+  `/api/v1/auth`.
+- Frontend requests to refresh/logout must include cookies.
 - Validation: DTO validation at controller boundary.
 - Pagination: `page`, `limit`.
 - Sorting: `sortBy`, `sortOrder`.
@@ -59,6 +63,10 @@ Suggested status code usage:
 | `422`  | Valid JSON but semantically invalid checkout/payment state. |
 
 ## 4. Authentication APIs
+
+Access tokens are returned in JSON and default to a 15-minute lifetime. Refresh
+tokens are opaque random tokens stored only in the `izticket_refresh_token`
+HttpOnly cookie and default to a 7-day lifetime.
 
 ### `POST /auth/register`
 
@@ -104,7 +112,7 @@ Request:
 }
 ```
 
-Response:
+Response body:
 
 ```json
 {
@@ -118,11 +126,58 @@ Response:
 }
 ```
 
+Response also sets a refresh-token cookie:
+
+```http
+Set-Cookie: izticket_refresh_token=<opaque_token>; HttpOnly; Path=/api/v1/auth; SameSite=Lax; Max-Age=604800
+```
+
+The refresh token is not returned in the JSON body.
+
+### `POST /auth/refresh`
+
+Rotates the current refresh token and returns a new access token.
+
+Auth: valid `izticket_refresh_token` cookie.
+
+Request body: none.
+
+Response body:
+
+```json
+{
+    "accessToken": "new_jwt_token",
+    "user": {
+        "id": "user_uuid",
+        "name": "Nguyen Van A",
+        "email": "customer@example.com",
+        "role": "CUSTOMER"
+    }
+}
+```
+
+Response also sets a new `izticket_refresh_token` cookie. The previous refresh
+token is revoked and cannot be reused.
+
+Returns `401` when the cookie is missing, malformed, expired, already revoked,
+or belongs to a disabled user.
+
+### `POST /auth/logout`
+
+Revokes the current refresh-token session and clears the refresh cookie.
+
+Auth: optional `izticket_refresh_token` cookie.
+
+Response: `204 No Content`.
+
+Logout is idempotent. Missing or already-revoked refresh cookies do not cause an
+error.
+
 ### `GET /auth/me`
 
 Returns the current authenticated user.
 
-Auth: any authenticated role.
+Auth: any authenticated role using `Authorization: Bearer <jwt>`.
 
 ## 5. Public Event APIs
 

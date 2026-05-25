@@ -14,7 +14,7 @@ describe('RolesGuard', () => {
         expect(guard.canActivate(createContext())).toBe(true);
     });
 
-    it('allows users with one of the required roles', () => {
+    it('allows a user with one of the required roles', () => {
         const reflector = {
             getAllAndOverride: () => [UserRole.ADMIN],
         } as unknown as Reflector;
@@ -33,7 +33,7 @@ describe('RolesGuard', () => {
         ).toBe(true);
     });
 
-    it('rejects users without a required role', () => {
+    it('rejects a user without a required role', () => {
         const reflector = {
             getAllAndOverride: () => [UserRole.ADMIN],
         } as unknown as Reflector;
@@ -50,6 +50,15 @@ describe('RolesGuard', () => {
                 }),
             ),
         ).toThrow(AppException);
+    });
+
+    it('rejects a missing authenticated user when a role is required', () => {
+        const reflector = {
+            getAllAndOverride: () => [UserRole.ADMIN],
+        } as unknown as Reflector;
+        const guard = new RolesGuard(reflector);
+
+        expect(() => guard.canActivate(createContext())).toThrow(AppException);
     });
 });
 

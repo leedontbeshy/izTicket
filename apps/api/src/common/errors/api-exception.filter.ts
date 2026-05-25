@@ -16,6 +16,7 @@ const StatusCode = {
     Forbidden: 403,
     NotFound: 404,
     Conflict: 409,
+    TooManyRequests: 429,
     InternalServerError: 500,
 } as const;
 
@@ -128,6 +129,8 @@ function defaultError(statusCode: number) {
             return 'Not Found';
         case StatusCode.Conflict:
             return 'Conflict';
+        case StatusCode.TooManyRequests:
+            return 'Too Many Requests';
         default:
             return statusCode >= StatusCode.InternalServerError
                 ? 'Internal Server Error'
@@ -147,6 +150,8 @@ function defaultCode(statusCode: number) {
             return ErrorCode.NotFound;
         case StatusCode.Conflict:
             return ErrorCode.Conflict;
+        case StatusCode.TooManyRequests:
+            return ErrorCode.TooManyRequests;
         default:
             return statusCode >= StatusCode.InternalServerError
                 ? ErrorCode.InternalServerError
