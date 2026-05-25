@@ -2,18 +2,18 @@ import { jest } from '@jest/globals';
 import { UserRole, UserStatus } from '../../generated/prisma/enums';
 import { AppException } from '../../common/errors/app.exception';
 import type { PrismaService } from '../../prisma/prisma.service';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 
-describe('UsersService', () => {
+describe('UserService', () => {
     let prismaService: ReturnType<typeof createPrismaServiceMock>;
-    let service: UsersService;
+    let service: UserService;
 
     beforeEach(() => {
         prismaService = createPrismaServiceMock();
-        service = new UsersService(prismaService as unknown as PrismaService);
+        service = new UserService(prismaService as unknown as PrismaService);
     });
 
-    it('normalizes email when creating users and hides password hashes', async () => {
+    it('normalizes email when creating a user and hides password hashes', async () => {
         prismaService.user.findUnique.mockResolvedValue(null);
         prismaService.user.create.mockImplementation(({ data }) =>
             Promise.resolve({

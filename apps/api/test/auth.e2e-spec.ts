@@ -10,7 +10,7 @@ import { RolesGuard } from '../src/common/guards/roles.guard';
 import { configureApp } from '../src/common/utils/configure-app';
 import { UserRole } from '../src/generated/prisma/enums';
 import { AuthModule } from '../src/modules/auth/auth.module';
-import { UsersModule } from '../src/modules/users/users.module';
+import { UserModule } from '../src/modules/user/user.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 @Controller('test-only')
@@ -24,7 +24,7 @@ class TestOnlyController {
 }
 
 @Module({
-    imports: [AuthModule, UsersModule],
+    imports: [AuthModule, UserModule],
     controllers: [TestOnlyController],
 })
 class TestOnlyAuthModule {}
@@ -50,11 +50,11 @@ describe('Auth (e2e)', () => {
 
         prismaService = app.get(PrismaService);
         server = app.getHttpServer() as Server;
-        await cleanupTestUsers();
+        await cleanupTestUser();
     });
 
     afterAll(async () => {
-        await cleanupTestUsers();
+        await cleanupTestUser();
         await app?.close();
     });
 
@@ -108,14 +108,14 @@ describe('Auth (e2e)', () => {
         await request(server).get('/api/v1/auth/me').expect(401);
     });
 
-    it('rejects users without the required role', async () => {
+    it('rejects a user without the required role', async () => {
         await request(server)
             .get('/api/v1/test-only/admin')
             .set('Authorization', `Bearer ${accessToken}`)
             .expect(403);
     });
 
-    async function cleanupTestUsers() {
+    async function cleanupTestUser() {
         if (!prismaService) {
             return;
         }

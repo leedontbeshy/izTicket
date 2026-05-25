@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
 import { UserRole, UserStatus } from '../../generated/prisma/enums';
-import { UsersService } from '../../modules/users/users.service';
+import { UserService } from '../../modules/user/user.service';
 import type { AuthTokenPayload } from '../../modules/auth/auth.types';
 import type { AuthenticatedRequest } from '../decorators/current-user.decorator';
 import { AppException } from '../errors/app.exception';
@@ -16,7 +16,7 @@ import { AppException } from '../errors/app.exception';
 export class JwtAuthGuard implements CanActivate {
     constructor(
         private readonly jwtService: JwtService,
-        private readonly usersService: UsersService,
+        private readonly userService: UserService,
     ) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -30,7 +30,7 @@ export class JwtAuthGuard implements CanActivate {
         }
 
         const payload = await this.verifyToken(token);
-        const user = await this.usersService.findAuthUserById(payload.sub);
+        const user = await this.userService.findAuthUserById(payload.sub);
 
         if (!user || user.status === UserStatus.DISABLED) {
             throw AppException.unauthorized('Invalid or expired token.');

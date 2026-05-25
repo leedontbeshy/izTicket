@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole, UserStatus } from '../../generated/prisma/enums';
 import { AppException } from '../../common/errors/app.exception';
-import type { PublicUser } from '../users/users.service';
-import { UsersService } from '../users/users.service';
+import type { PublicUser } from '../user/user.service';
+import { UserService } from '../user/user.service';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
 import { PasswordHasher } from './password-hasher.service';
@@ -12,7 +12,7 @@ import type { AuthTokenPayload, LoginResponse } from './auth.types';
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly usersService: UsersService,
+        private readonly userService: UserService,
         private readonly passwordHasher: PasswordHasher,
         private readonly jwtService: JwtService,
     ) {}
@@ -26,7 +26,7 @@ export class AuthService {
 
         const passwordHash = await this.passwordHasher.hash(dto.password);
 
-        return this.usersService.createUser({
+        return this.userService.createUser({
             name: dto.name,
             email: dto.email,
             passwordHash,
@@ -35,7 +35,7 @@ export class AuthService {
     }
 
     async login(dto: LoginDto): Promise<LoginResponse> {
-        const user = await this.usersService.findAuthUserByEmail(dto.email);
+        const user = await this.userService.findAuthUserByEmail(dto.email);
 
         if (!user) {
             throw invalidCredentials();
@@ -56,12 +56,12 @@ export class AuthService {
 
         return {
             accessToken: await this.signAccessToken(user),
-            user: this.usersService.toPublicUser(user),
+            user: this.userService.toPublicUser(user),
         };
     }
 
     getMe(userId: string): Promise<PublicUser> {
-        return this.usersService.findPublicUserById(userId);
+        return this.userService.findPublicUserById(userId);
     }
 
     private signAccessToken(user: PublicUser) {

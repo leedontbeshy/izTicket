@@ -32,7 +32,7 @@ const authUserSelect = {
 } as const;
 
 @Injectable()
-export class UsersService {
+export class UserService {
     constructor(private readonly prismaService: PrismaService) {}
 
     normalizeEmail(email: string) {

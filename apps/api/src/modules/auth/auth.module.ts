@@ -3,7 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { UsersModule } from '../users/users.module';
+import { UserModule } from '../user/user.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PasswordHasher } from './password-hasher.service';
@@ -23,7 +23,7 @@ type JwtExpiresIn =
     providers: [AuthService, PasswordHasher, JwtAuthGuard, RolesGuard],
     imports: [
         ConfigModule,
-        UsersModule,
+        UserModule,
         JwtModule.registerAsync({
             inject: [ConfigService],
             useFactory: (configService: ConfigService) => ({

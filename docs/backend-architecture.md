@@ -74,7 +74,7 @@ flowchart TB
     Web --> API["NestJS API<br/>Render"]
 
     API --> Auth["Auth Module"]
-    API --> Users["Users Module"]
+    API --> User["User Module"]
     API --> Events["Events Module"]
     API --> TicketTypes["Ticket Types Module"]
     API --> Reservations["Reservations Module"]
@@ -85,7 +85,7 @@ flowchart TB
     API --> Notifications["Notifications Module"]
 
     Auth --> DB[("PostgreSQL")]
-    Users --> DB
+    User --> DB
     Events --> DB
     TicketTypes --> DB
     Reservations --> DB
@@ -104,7 +104,7 @@ flowchart TB
 | Module                 | Main responsibilities                                            | Owns data                                 | Emits or handles events                                                 |
 | ---------------------- | ---------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
 | `Auth Module`          | Register, login, JWT issuing, password hashing, RBAC guards      | Credentials/auth-related user data        | Handles none initially                                                  |
-| `Users Module`         | User profile, role management, organizer/customer/admin identity | Users, roles                              | Handles user lifecycle events if needed                                 |
+| `User Module`          | User profile, role management, organizer/customer/admin identity | User profiles, roles                      | Handles user lifecycle events if needed                                 |
 | `Events Module`        | Event creation, editing, publishing status, event public listing | Events, venues, schedules                 | Emits `EventSubmitted`, handles `EventApproved`                         |
 | `TicketTypes Module`   | Ticket categories, prices, sale windows, capacity per event      | Ticket types, inventory counters          | Handles event status changes if ticket sale rules depend on publication |
 | `Reservations Module`  | Temporary ticket holds, expiration, inventory locking            | Reservations, reservation items           | Emits `ReservationCreated`, `ReservationExpired`                        |
@@ -157,7 +157,7 @@ The MVP uses one PostgreSQL database. However, ownership is still defined at mod
 
 Suggested ownership:
 
-- `Users Module`: `users`
+- `User Module`: `users`
 - `Events Module`: `events`, `venues`, `event_schedules`
 - `TicketTypes Module`: `ticket_types`
 - `Reservations Module`: `reservations`, `reservation_items`

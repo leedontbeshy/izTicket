@@ -38,7 +38,7 @@ flowchart TB
 
     subgraph Backend["Backend Modules inside NestJS API"]
         Auth["Auth Module<br/>JWT, RBAC"]
-        Users["Users Module"]
+        User["User Module"]
         Events["Events Module"]
         TicketTypes["Ticket Types Module"]
         Reservations["Reservations Module"]
@@ -51,7 +51,7 @@ flowchart TB
     end
 
     API --> Auth
-    API --> Users
+    API --> User
     API --> Events
     API --> TicketTypes
     API --> Reservations
@@ -62,7 +62,7 @@ flowchart TB
     API --> Notifications
 
     Auth --> DB
-    Users --> DB
+    User --> DB
     Events --> DB
     TicketTypes --> DB
     Reservations --> DB

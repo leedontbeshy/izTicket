@@ -312,7 +312,7 @@ apps/api/src/
     utils/
   modules/
     auth/
-    users/
+    user/
     events/
     ticket-types/
     reservations/
@@ -339,7 +339,7 @@ Implement secure login and role-based access control.
 
 ### Backend tasks
 
-- Implement `UsersModule`.
+- Implement `UserModule`.
 - Implement `AuthModule`.
 - Add password hashing.
 - Add JWT issuing.
@@ -1107,7 +1107,7 @@ Recommended script:
 - [ ] Add validation pipe.
 - [ ] Add common error format.
 - [ ] Add Auth module.
-- [ ] Add Users module.
+- [ ] Add User module.
 - [ ] Add JWT auth guard.
 - [ ] Add RBAC guard.
 - [ ] Add Events module.
@@ -1409,7 +1409,7 @@ Reject:
 
 Use stable demo data so the presentation does not depend on random setup.
 
-### Users
+### User Accounts
 
 | Role      | Email                      | Purpose               |
 | --------- | -------------------------- | --------------------- |

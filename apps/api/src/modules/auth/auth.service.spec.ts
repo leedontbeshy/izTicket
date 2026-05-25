@@ -3,18 +3,18 @@ import { jest } from '@jest/globals';
 import { AuthService } from './auth.service';
 import { UserRole, UserStatus } from '../../generated/prisma/enums';
 import { AppException } from '../../common/errors/app.exception';
-import { UsersService } from '../users/users.service';
+import { UserService } from '../user/user.service';
 import { PasswordHasher } from './password-hasher.service';
 import { JwtService } from '@nestjs/jwt';
 
 describe('AuthService', () => {
     let service: AuthService;
-    let usersService: ReturnType<typeof createUsersServiceMock>;
+    let userService: ReturnType<typeof createUserServiceMock>;
     let passwordHasher: ReturnType<typeof createPasswordHasherMock>;
     let jwtService: ReturnType<typeof createJwtServiceMock>;
 
     beforeEach(async () => {
-        usersService = createUsersServiceMock();
+        userService = createUserServiceMock();
         passwordHasher = createPasswordHasherMock();
         jwtService = createJwtServiceMock();
 
@@ -22,8 +22,8 @@ describe('AuthService', () => {
             providers: [
                 AuthService,
                 {
-                    provide: UsersService,
-                    useValue: usersService,
+                    provide: UserService,
+                    useValue: userService,
                 },
                 {
                     provide: PasswordHasher,
@@ -45,7 +45,7 @@ describe('AuthService', () => {
 
     it('registers customers and stores a hashed password', async () => {
         passwordHasher.hash.mockResolvedValue('hashed-password');
-        usersService.createUser.mockResolvedValue({
+        userService.createUser.mockResolvedValue({
             id: 'user-1',
             name: 'Customer',
             email: 'customer@example.com',
@@ -66,7 +66,7 @@ describe('AuthService', () => {
             role: UserRole.CUSTOMER,
         });
         expect(passwordHasher.hash).toHaveBeenCalledWith('Password123');
-        expect(usersService.createUser).toHaveBeenCalledWith({
+        expect(userService.createUser).toHaveBeenCalledWith({
             name: 'Customer',
             email: 'CUSTOMER@example.com',
             passwordHash: 'hashed-password',
@@ -87,7 +87,7 @@ describe('AuthService', () => {
     });
 
     it('logs in an active user with a valid password', async () => {
-        usersService.findAuthUserByEmail.mockResolvedValue({
+        userService.findAuthUserByEmail.mockResolvedValue({
             id: 'user-1',
             name: 'Customer',
             email: 'customer@example.com',
@@ -120,7 +120,7 @@ describe('AuthService', () => {
     });
 
     it('rejects login with a wrong password', async () => {
-        usersService.findAuthUserByEmail.mockResolvedValue({
+        userService.findAuthUserByEmail.mockResolvedValue({
             id: 'user-1',
             name: 'Customer',
             email: 'customer@example.com',
@@ -138,8 +138,8 @@ describe('AuthService', () => {
         ).rejects.toThrow(AppException);
     });
 
-    it('rejects disabled users during login', async () => {
-        usersService.findAuthUserByEmail.mockResolvedValue({
+    it('rejects a disabled user during login', async () => {
+        userService.findAuthUserByEmail.mockResolvedValue({
             id: 'user-1',
             name: 'Customer',
             email: 'customer@example.com',
@@ -158,7 +158,7 @@ describe('AuthService', () => {
     });
 });
 
-function createUsersServiceMock() {
+function createUserServiceMock() {
     return {
         createUser: jest.fn<() => Promise<unknown>>(),
         findAuthUserByEmail: jest.fn<() => Promise<unknown>>(),

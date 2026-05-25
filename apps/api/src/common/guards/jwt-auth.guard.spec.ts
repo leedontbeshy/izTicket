@@ -2,21 +2,21 @@ import type { ExecutionContext } from '@nestjs/common';
 import type { JwtService } from '@nestjs/jwt';
 import { jest } from '@jest/globals';
 import { UserRole, UserStatus } from '../../generated/prisma/enums';
-import type { UsersService } from '../../modules/users/users.service';
+import type { UserService } from '../../modules/user/user.service';
 import { AppException } from '../errors/app.exception';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
 describe('JwtAuthGuard', () => {
     let jwtService: ReturnType<typeof createJwtServiceMock>;
-    let usersService: ReturnType<typeof createUsersServiceMock>;
+    let userService: ReturnType<typeof createUserServiceMock>;
     let guard: JwtAuthGuard;
 
     beforeEach(() => {
         jwtService = createJwtServiceMock();
-        usersService = createUsersServiceMock();
+        userService = createUserServiceMock();
         guard = new JwtAuthGuard(
             jwtService as unknown as JwtService,
-            usersService as unknown as UsersService,
+            userService as unknown as UserService,
         );
     });
 
@@ -38,13 +38,13 @@ describe('JwtAuthGuard', () => {
         ).rejects.toThrow(AppException);
     });
 
-    it('rejects disabled users even when the token is valid', async () => {
+    it('rejects a disabled user even when the token is valid', async () => {
         jwtService.verifyAsync.mockResolvedValue({
             sub: 'user-1',
             email: 'customer@example.com',
             role: UserRole.CUSTOMER,
         });
-        usersService.findAuthUserById.mockResolvedValue({
+        userService.findAuthUserById.mockResolvedValue({
             id: 'user-1',
             name: 'Customer',
             email: 'customer@example.com',
@@ -71,7 +71,7 @@ describe('JwtAuthGuard', () => {
             email: 'customer@example.com',
             role: UserRole.CUSTOMER,
         });
-        usersService.findAuthUserById.mockResolvedValue({
+        userService.findAuthUserById.mockResolvedValue({
             id: 'user-1',
             name: 'Customer',
             email: 'customer@example.com',
@@ -105,7 +105,7 @@ function createJwtServiceMock() {
     };
 }
 
-function createUsersServiceMock() {
+function createUserServiceMock() {
     return {
         findAuthUserById: jest.fn<() => Promise<unknown>>(),
     };

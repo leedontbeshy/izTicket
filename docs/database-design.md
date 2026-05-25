@@ -62,7 +62,7 @@ erDiagram
 
 | Backend module         | Owned tables                        |
 | ---------------------- | ----------------------------------- |
-| `Users Module`         | `users`                             |
+| `User Module`          | `users`                             |
 | `Events Module`        | `events`, `venues`                  |
 | `TicketTypes Module`   | `ticket_types`                      |
 | `AdminReview Module`   | `event_reviews`                     |
@@ -148,7 +148,7 @@ Foreign keys can cross module boundaries, but each module owns the rules that ch
 
 ### `users`
 
-Owned by: `Users Module`
+Owned by: `User Module`
 
 Stores all authenticated users.
 
