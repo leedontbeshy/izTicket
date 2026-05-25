@@ -1,55 +1,65 @@
 # AGENTS.md
 
-## Scope
+Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-This file applies to the whole repository. If a nested `AGENTS.md` or
-`AGENTS.override.md` is added later, follow the more specific file for that
-subtree.
+**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-## Project Context
+## 1. Think Before Coding
 
-This repository is a Turborepo + pnpm template for a NestJS API and a React
-frontend. Treat it as a starting point, not a finished product. Replace
-placeholder names, schema models, UI text, and docs when creating a real app.
+**Don't assume. Don't hide confusion. Surface tradeoffs.**
 
-## Repo Layout
+Before implementing:
+- State your assumptions explicitly. If uncertain, ask.
+- If multiple interpretations exist, present them - don't pick silently.
+- If a simpler approach exists, say so. Push back when warranted.
+- If something is unclear, stop. Name what's confusing. Ask.
 
-- `apps/api`: NestJS API, TypeScript ESM, Prisma, PostgreSQL target.
-- `apps/web`: Vite + React + TypeScript frontend.
-- `apps/api/prisma`: Prisma schema and future migrations.
-- `packages/`: place for shared packages.
+## 2. Simplicity First
 
-## Commands
+**Minimum code that solves the problem. Nothing speculative.**
 
-- Install: `pnpm install`.
-- Run all apps: `pnpm dev`.
-- Run one app: `pnpm dev:api` or `pnpm dev:web`.
-- Quality checks: `pnpm format:check`, `pnpm lint`, `pnpm check-types`,
-  `pnpm build`.
-- API tests when relevant: `pnpm --filter api test` and
-  `pnpm --filter api test:e2e`.
-- Prisma helpers: `pnpm --dir apps/api exec prisma validate`,
-  `pnpm --dir apps/api exec prisma format`,
-  `pnpm --dir apps/api exec prisma generate`, and
-  `pnpm --dir apps/api exec prisma migrate dev`.
+- No features beyond what was asked.
+- No abstractions for single-use code.
+- No "flexibility" or "configurability" that wasn't requested.
+- No error handling for impossible scenarios.
+- If you write 200 lines and it could be 50, rewrite it.
 
-## Environment
+Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-API-local environment variables live in `apps/api/.env`; copy from
-`apps/api/.env.example`. The root `.env` is reserved for repo-wide tooling.
-Never commit secrets.
+## 3. Surgical Changes
 
-## Implementation Rules
+**Touch only what you must. Clean up only your own mess.**
 
-- Keep changes scoped and prefer existing repo patterns.
-- Use pnpm, not npm or yarn.
-- Ask before adding production dependencies.
-- Keep TypeScript strict and avoid unrelated refactors.
-- Prettier config is root-owned: 4-space tabs, single quotes, trailing commas.
+When editing existing code:
+- Don't "improve" adjacent code, comments, or formatting.
+- Don't refactor things that aren't broken.
+- Match existing style, even if you'd do it differently.
+- If you notice unrelated dead code, mention it - don't delete it.
 
-## Testing And Done
+When your changes create orphans:
+- Remove imports/variables/functions that YOUR changes made unused.
+- Don't remove pre-existing dead code unless asked.
 
-- Add focused tests for new business rules, guards, validators, and helpers.
-- Add API e2e tests for new endpoints when behavior crosses module boundaries.
-- Before finishing, run the relevant checks you can. If a check cannot run,
-  say why.
+The test: Every changed line should trace directly to the user's request.
+
+## 4. Goal-Driven Execution
+
+**Define success criteria. Loop until verified.**
+
+Transform tasks into verifiable goals:
+- "Add validation" → "Write tests for invalid inputs, then make them pass"
+- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Refactor X" → "Ensure tests pass before and after"
+
+For multi-step tasks, state a brief plan:
+```
+1. [Step] → verify: [check]
+2. [Step] → verify: [check]
+3. [Step] → verify: [check]
+```
+
+Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
+
+---
+
+**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
