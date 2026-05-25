@@ -32,6 +32,33 @@ export class AppException extends HttpException {
         });
     }
 
+    static unauthorized(message = 'Unauthorized') {
+        return new AppException({
+            statusCode: HttpStatus.UNAUTHORIZED,
+            error: 'Unauthorized',
+            message,
+            code: ErrorCode.Unauthorized,
+        });
+    }
+
+    static conflict(message = 'Conflict') {
+        return new AppException({
+            statusCode: HttpStatus.CONFLICT,
+            error: 'Conflict',
+            message,
+            code: ErrorCode.Conflict,
+        });
+    }
+
+    static notFound(message = 'Not Found') {
+        return new AppException({
+            statusCode: HttpStatus.NOT_FOUND,
+            error: 'Not Found',
+            message,
+            code: ErrorCode.NotFound,
+        });
+    }
+
     static validationFailed(details: unknown) {
         return new AppException({
             statusCode: HttpStatus.BAD_REQUEST,

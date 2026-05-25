@@ -51,6 +51,15 @@ describe('RolesGuard', () => {
             ),
         ).toThrow(AppException);
     });
+
+    it('rejects missing authenticated users when a role is required', () => {
+        const reflector = {
+            getAllAndOverride: () => [UserRole.ADMIN],
+        } as unknown as Reflector;
+        const guard = new RolesGuard(reflector);
+
+        expect(() => guard.canActivate(createContext())).toThrow(AppException);
+    });
 });
 
 function createContext(request: Record<string, unknown> = {}) {
