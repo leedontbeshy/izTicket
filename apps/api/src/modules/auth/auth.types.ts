@@ -1,5 +1,6 @@
 import type { UserRole } from '../../generated/prisma/enums';
 import type { PublicUser } from '../user/user.service';
+import type { RefreshTokenCookie } from './auth-cookie';
 
 export interface AuthTokenPayload {
     sub: string;
@@ -10,4 +11,8 @@ export interface AuthTokenPayload {
 export interface LoginResponse {
     accessToken: string;
     user: PublicUser;
+}
+
+export interface AuthSessionResponse extends LoginResponse {
+    refreshTokenCookie: RefreshTokenCookie;
 }

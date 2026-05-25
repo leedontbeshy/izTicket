@@ -1,6 +1,6 @@
 # izTicket Architecture Diagrams
 
-Last updated: 2026-05-23
+Last updated: 2026-05-25
 
 ## How to import into draw.io
 
@@ -37,7 +37,7 @@ flowchart TB
     Web -->|"REST API / JSON"| API
 
     subgraph Backend["Backend Modules inside NestJS API"]
-        Auth["Auth Module<br/>JWT, RBAC"]
+        Auth["Auth Module<br/>JWT, Refresh, RBAC"]
         User["User Module"]
         Events["Events Module"]
         TicketTypes["Ticket Types Module"]
@@ -101,7 +101,7 @@ flowchart LR
         end
 
         subgraph Application["Application Layer"]
-            AuthUseCases["Auth Use Cases"]
+            AuthUseCases["Auth Use Cases<br/>Login, refresh, logout"]
             EventUseCases["Event Use Cases"]
             ReservationUseCases["Reservation Use Cases"]
             OrderUseCases["Order Use Cases"]
@@ -315,6 +315,7 @@ erDiagram
     USERS ||--o{ EVENT_REVIEWS : reviews
     USERS ||--o{ TICKETS : owns
     USERS ||--o{ NOTIFICATION_LOGS : receives
+    USERS ||--o{ AUTH_SESSIONS : authenticates
 
     VENUES ||--o{ EVENTS : hosts
 
@@ -346,6 +347,16 @@ erDiagram
         string name
         string role
         string status
+        datetime created_at
+        datetime updated_at
+    }
+
+    AUTH_SESSIONS {
+        uuid id PK
+        uuid user_id FK
+        string token_hash UK
+        datetime expires_at
+        datetime revoked_at
         datetime created_at
         datetime updated_at
     }

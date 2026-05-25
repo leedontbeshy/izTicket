@@ -34,6 +34,8 @@ describe('Auth (e2e)', () => {
     let prismaService: PrismaService;
     let server: Server;
     let accessToken: string;
+    let refreshCookie: string;
+    let rotatedRefreshCookie: string;
 
     const runId = `m3-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const email = `customer-${runId}@example.com`;
@@ -88,8 +90,46 @@ describe('Auth (e2e)', () => {
                 const body: unknown = response.body;
 
                 expectLoginResponse(body, email);
+                refreshCookie = expectRefreshCookie(response.headers);
                 accessToken = body.accessToken;
             });
+    });
+
+    it('refreshes the access token with the refresh cookie', async () => {
+        await request(server)
+            .post('/api/v1/auth/refresh')
+            .set('Cookie', refreshCookie)
+            .expect(200)
+            .expect((response) => {
+                const body: unknown = response.body;
+
+                expectLoginResponse(body, email);
+                rotatedRefreshCookie = expectRefreshCookie(response.headers);
+                expect(rotatedRefreshCookie).not.toBe(refreshCookie);
+                accessToken = body.accessToken;
+            });
+    });
+
+    it('rejects a rotated refresh token after it has been used', async () => {
+        await request(server)
+            .post('/api/v1/auth/refresh')
+            .set('Cookie', refreshCookie)
+            .expect(401);
+    });
+
+    it('logs out by revoking the current refresh token', async () => {
+        await request(server)
+            .post('/api/v1/auth/logout')
+            .set('Cookie', rotatedRefreshCookie)
+            .expect(204)
+            .expect((response) => {
+                expectRefreshCookieClearHeader(response.headers);
+            });
+
+        await request(server)
+            .post('/api/v1/auth/refresh')
+            .set('Cookie', rotatedRefreshCookie)
+            .expect(401);
     });
 
     it('returns the current user with a bearer token', async () => {
@@ -174,4 +214,37 @@ function expectLoginResponse(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
+}
+
+function expectRefreshCookie(headers: Record<string, unknown>) {
+    const cookie = getRefreshCookieHeader(headers);
+
+    expect(cookie).toContain('izticket_refresh_token=');
+    expect(cookie).toContain('HttpOnly');
+    expect(cookie).toContain('Path=/api/v1/auth');
+    expect(cookie).toContain('SameSite=Lax');
+
+    return cookie.split(';')[0];
+}
+
+function expectRefreshCookieClearHeader(headers: Record<string, unknown>) {
+    const cookie = getRefreshCookieHeader(headers);
+
+    expect(cookie).toContain('izticket_refresh_token=');
+    expect(cookie).toContain('Path=/api/v1/auth');
+    expect(cookie).toContain('Expires=');
+}
+
+function getRefreshCookieHeader(headers: Record<string, unknown>) {
+    const setCookie = headers['set-cookie'];
+    const cookies = Array.isArray(setCookie) ? setCookie : [setCookie];
+    const refreshCookie = cookies
+        .filter((cookie): cookie is string => typeof cookie === 'string')
+        .find((cookie) => cookie.startsWith('izticket_refresh_token='));
+
+    if (!refreshCookie) {
+        throw new Error('Expected refresh token cookie header.');
+    }
+
+    return refreshCookie;
 }

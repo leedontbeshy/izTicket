@@ -1,6 +1,6 @@
 # izTicket Implementation Plan
 
-Last updated: 2026-05-23
+Last updated: 2026-05-25
 
 ## 1. Goal
 
@@ -128,7 +128,7 @@ Keep dependency additions minimal. The demo can be successful without a large UI
 | M0        | Project setup              | Env files, naming cleanup, dev sanity check             | Low       |
 | M1        | Database foundation        | Prisma schema, migrations, seed data                    | High      |
 | M2        | Backend foundation         | Shared module structure, errors, validation, API prefix | Medium    |
-| M3        | Auth and RBAC              | Register, login, JWT, role guards                       | High      |
+| M3        | Auth and RBAC              | Register, login, refresh tokens, JWT, role guards       | High      |
 | M4        | Events and admin review    | Organizer creates events, admin approves                | Medium    |
 | M5        | Ticket types and inventory | Ticket capacities, sale window, availability            | High      |
 | M6        | Reservation and orders     | Hold tickets, create orders, expire reservations        | Very high |
@@ -197,6 +197,7 @@ Convert [Database Design](./database-design.md) into Prisma schema and seed data
     - `NotificationStatus`
 - Add Prisma models:
     - `User`
+    - `AuthSession`
     - `Venue`
     - `Event`
     - `EventReview`
@@ -343,6 +344,8 @@ Implement secure login and role-based access control.
 - Implement `AuthModule`.
 - Add password hashing.
 - Add JWT issuing.
+- Add DB-backed refresh-token sessions.
+- Add refresh-token rotation and logout revocation.
 - Add JWT auth guard.
 - Add RBAC guard.
 - Add decorators:
@@ -351,6 +354,8 @@ Implement secure login and role-based access control.
 - Implement endpoints:
     - `POST /auth/register`
     - `POST /auth/login`
+    - `POST /auth/refresh`
+    - `POST /auth/logout`
     - `GET /auth/me`
 - Restrict self-registration:
     - allow `CUSTOMER`
@@ -364,7 +369,12 @@ Implement secure login and role-based access control.
 - Never return `passwordHash` from API.
 - Reject disabled users.
 - Keep JWT secret in environment variable.
-- Add reasonable token expiration.
+- Use short-lived access tokens, default `15m`.
+- Use refresh tokens in HttpOnly cookies, default `7d`.
+- Store only SHA-256 refresh-token hashes in `auth_sessions`.
+- Rotate refresh tokens on every refresh request.
+- Revoke the current refresh-token session on logout.
+- Do not return refresh tokens in JSON responses.
 
 ### Tests
 
@@ -373,11 +383,19 @@ Unit tests:
 - Password hashing verifies correct password.
 - Wrong password fails.
 - Public cannot register as admin.
+- Login creates a refresh-token session.
+- Refresh rotates the session and returns a new access token.
+- Missing, invalid, expired, revoked, or disabled-user refresh tokens fail.
+- Logout revokes the current session and is idempotent.
 
 E2E tests:
 
 - Register customer.
 - Login customer.
+- Login response sets an HttpOnly refresh-token cookie.
+- Refresh with the cookie returns a new access token and cookie.
+- The old refresh cookie fails after rotation.
+- Logout clears the cookie and prevents future refresh.
 - `GET /auth/me` works with token.
 - Protected route rejects missing token.
 - Role guard rejects wrong role.
@@ -760,9 +778,10 @@ Build a usable frontend, not just isolated API testing.
 
 - Create API client with base URL from env.
 - Create auth state:
-    - token storage
+    - short-lived access token storage
+    - refresh via HttpOnly cookie with credentialed requests
     - current user
-    - logout
+    - logout that clears local access token and server refresh session
     - protected routes
 - Create layout shell:
     - customer/public layout
@@ -892,7 +911,11 @@ E2E flow 1: auth
 
 1. Register customer.
 2. Login.
-3. Access `GET /auth/me`.
+3. Refresh the session using the HttpOnly cookie.
+4. Confirm the previous refresh cookie is rejected after rotation.
+5. Access `GET /auth/me`.
+6. Logout.
+7. Confirm refresh fails after logout.
 
 E2E flow 2: event approval
 
@@ -973,6 +996,8 @@ Deploy frontend to Vercel and backend to Render.
 - Configure environment variables:
     - `DATABASE_URL`
     - `JWT_SECRET`
+    - `JWT_ACCESS_TOKEN_EXPIRES_IN`
+    - `JWT_REFRESH_TOKEN_EXPIRES_IN`
     - `SEPAY_*`
     - `CORS_ORIGIN`
     - `NODE_ENV=production`
@@ -1108,6 +1133,7 @@ Recommended script:
 - [ ] Add common error format.
 - [ ] Add Auth module.
 - [ ] Add User module.
+- [ ] Add refresh-token sessions and rotation.
 - [ ] Add JWT auth guard.
 - [ ] Add RBAC guard.
 - [ ] Add Events module.
@@ -1296,26 +1322,28 @@ Build endpoints in this order:
 
 1. `POST /auth/register`
 2. `POST /auth/login`
-3. `GET /auth/me`
-4. `POST /organizer/events`
-5. `GET /organizer/events`
-6. `PATCH /organizer/events/:eventId`
-7. `POST /organizer/events/:eventId/submit`
-8. `GET /admin/events/pending`
-9. `POST /admin/events/:eventId/approve`
-10. `POST /admin/events/:eventId/reject`
-11. `GET /events`
-12. `GET /events/:eventId`
-13. `POST /organizer/events/:eventId/ticket-types`
-14. `PATCH /organizer/ticket-types/:ticketTypeId`
-15. `POST /reservations`
-16. `GET /reservations/:reservationId`
-17. `POST /orders`
-18. `GET /orders/:orderId`
-19. `POST /payments/sepay/create`
-20. `POST /payments/sepay/webhook`
-21. `GET /tickets/my`
-22. `GET /organizer/events/:eventId/orders`
+3. `POST /auth/refresh`
+4. `POST /auth/logout`
+5. `GET /auth/me`
+6. `POST /organizer/events`
+7. `GET /organizer/events`
+8. `PATCH /organizer/events/:eventId`
+9. `POST /organizer/events/:eventId/submit`
+10. `GET /admin/events/pending`
+11. `POST /admin/events/:eventId/approve`
+12. `POST /admin/events/:eventId/reject`
+13. `GET /events`
+14. `GET /events/:eventId`
+15. `POST /organizer/events/:eventId/ticket-types`
+16. `PATCH /organizer/ticket-types/:ticketTypeId`
+17. `POST /reservations`
+18. `GET /reservations/:reservationId`
+19. `POST /orders`
+20. `GET /orders/:orderId`
+21. `POST /payments/sepay/create`
+22. `POST /payments/sepay/webhook`
+23. `GET /tickets/my`
+24. `GET /organizer/events/:eventId/orders`
 
 This order lets frontend start early while backend continues deeper checkout/payment logic.
 
@@ -1325,18 +1353,19 @@ Implement schema in this order to reduce relationship friction:
 
 1. Enums.
 2. `users`.
-3. `venues`.
-4. `events`.
-5. `event_reviews`.
-6. `ticket_types`.
-7. `reservations`.
-8. `reservation_items`.
-9. `orders`.
-10. `order_items`.
-11. `payments`.
-12. `payment_events`.
-13. `tickets`.
-14. `notification_logs`.
+3. `auth_sessions`.
+4. `venues`.
+5. `events`.
+6. `event_reviews`.
+7. `ticket_types`.
+8. `reservations`.
+9. `reservation_items`.
+10. `orders`.
+11. `order_items`.
+12. `payments`.
+13. `payment_events`.
+14. `tickets`.
+15. `notification_logs`.
 
 Then add:
 

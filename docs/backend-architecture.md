@@ -1,6 +1,6 @@
 # izTicket Backend Architecture
 
-Last updated: 2026-05-23
+Last updated: 2026-05-25
 
 ## 1. Context
 
@@ -101,18 +101,18 @@ flowchart TB
 
 ## 4. Module Decomposition
 
-| Module                 | Main responsibilities                                            | Owns data                                 | Emits or handles events                                                 |
-| ---------------------- | ---------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
-| `Auth Module`          | Register, login, JWT issuing, password hashing, RBAC guards      | Credentials/auth-related user data        | Handles none initially                                                  |
-| `User Module`          | User profile, role management, organizer/customer/admin identity | User profiles, roles                      | Handles user lifecycle events if needed                                 |
-| `Events Module`        | Event creation, editing, publishing status, event public listing | Events, venues, schedules                 | Emits `EventSubmitted`, handles `EventApproved`                         |
-| `TicketTypes Module`   | Ticket categories, prices, sale windows, capacity per event      | Ticket types, inventory counters          | Handles event status changes if ticket sale rules depend on publication |
-| `Reservations Module`  | Temporary ticket holds, expiration, inventory locking            | Reservations, reservation items           | Emits `ReservationCreated`, `ReservationExpired`                        |
-| `Orders Module`        | Checkout orders, order item totals, order status                 | Orders, order items                       | Handles `PaymentSucceeded`, `PaymentFailed`, `ReservationExpired`       |
-| `Payments Module`      | SePay payment request, webhook verification, payment status      | Payments, provider transaction references | Emits `PaymentSucceeded`, `PaymentFailed`                               |
-| `Tickets Module`       | E-ticket issuing after successful payment                        | Tickets, ticket codes/QR payload          | Handles `PaymentSucceeded`, emits `TicketIssued`                        |
-| `AdminReview Module`   | Admin approval/rejection workflow                                | Review decision records if needed         | Handles `EventSubmitted`, emits approval/rejection outcomes             |
-| `Notifications Module` | Email or mock notifications for MVP                              | Notification logs if implemented          | Handles `TicketIssued`, `EventApproved`, `EventRejected`                |
+| Module                 | Main responsibilities                                                               | Owns data                                           | Emits or handles events                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------- |
+| `Auth Module`          | Register, login, JWT issuing, refresh-token sessions, password hashing, RBAC guards | `auth_sessions`, credentials/auth-related user data | Handles none initially                                                  |
+| `User Module`          | User profile, role management, organizer/customer/admin identity                    | User profiles, roles                                | Handles user lifecycle events if needed                                 |
+| `Events Module`        | Event creation, editing, publishing status, event public listing                    | Events, venues, schedules                           | Emits `EventSubmitted`, handles `EventApproved`                         |
+| `TicketTypes Module`   | Ticket categories, prices, sale windows, capacity per event                         | Ticket types, inventory counters                    | Handles event status changes if ticket sale rules depend on publication |
+| `Reservations Module`  | Temporary ticket holds, expiration, inventory locking                               | Reservations, reservation items                     | Emits `ReservationCreated`, `ReservationExpired`                        |
+| `Orders Module`        | Checkout orders, order item totals, order status                                    | Orders, order items                                 | Handles `PaymentSucceeded`, `PaymentFailed`, `ReservationExpired`       |
+| `Payments Module`      | SePay payment request, webhook verification, payment status                         | Payments, provider transaction references           | Emits `PaymentSucceeded`, `PaymentFailed`                               |
+| `Tickets Module`       | E-ticket issuing after successful payment                                           | Tickets, ticket codes/QR payload                    | Handles `PaymentSucceeded`, emits `TicketIssued`                        |
+| `AdminReview Module`   | Admin approval/rejection workflow                                                   | Review decision records if needed                   | Handles `EventSubmitted`, emits approval/rejection outcomes             |
+| `Notifications Module` | Email or mock notifications for MVP                                                 | Notification logs if implemented                    | Handles `TicketIssued`, `EventApproved`, `EventRejected`                |
 
 ## 5. Dependency Rules
 
@@ -157,6 +157,7 @@ The MVP uses one PostgreSQL database. However, ownership is still defined at mod
 
 Suggested ownership:
 
+- `Auth Module`: `auth_sessions`
 - `User Module`: `users`
 - `Events Module`: `events`, `venues`, `event_schedules`
 - `TicketTypes Module`: `ticket_types`
@@ -210,14 +211,14 @@ This deployment is best-effort for the course project. It does not require high 
 
 ## 10. Non-Functional Requirements Mapping
 
-| Characteristic  | MVP decision                                                           | Rationale                                                                                   |
-| --------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Scalability     | Modular monolith first, clear path to queues/services later            | Fits a few thousand users and a few hundred events while keeping implementation manageable. |
-| Performance     | Indexed event listing, short checkout transactions, pagination         | Public event browsing and checkout should remain responsive.                                |
-| Availability    | Best-effort deployment on Vercel/Render                                | Good enough for demo; avoids over-engineering HA infrastructure.                            |
-| Security        | Email/password, hashed passwords, JWT, RBAC, webhook verification      | Covers role separation and payment callback safety.                                         |
-| Maintainability | Domain modules, layered code, explicit state machines                  | Makes the code easier to divide across a 2-3 person team.                                   |
-| Reliability     | Idempotent payment webhook, reservation expiry, transaction boundaries | Protects against overselling and duplicate payment callbacks.                               |
+| Characteristic  | MVP decision                                                                                                                | Rationale                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Scalability     | Modular monolith first, clear path to queues/services later                                                                 | Fits a few thousand users and a few hundred events while keeping implementation manageable. |
+| Performance     | Indexed event listing, short checkout transactions, pagination                                                              | Public event browsing and checkout should remain responsive.                                |
+| Availability    | Best-effort deployment on Vercel/Render                                                                                     | Good enough for demo; avoids over-engineering HA infrastructure.                            |
+| Security        | Email/password, hashed passwords, short-lived JWT access tokens, HttpOnly refresh-token cookies, RBAC, webhook verification | Covers role separation, session revocation, and payment callback safety.                    |
+| Maintainability | Domain modules, layered code, explicit state machines                                                                       | Makes the code easier to divide across a 2-3 person team.                                   |
+| Reliability     | Idempotent payment webhook, reservation expiry, transaction boundaries                                                      | Protects against overselling and duplicate payment callbacks.                               |
 
 ## 11. Scale Evolution
 
@@ -243,11 +244,12 @@ If the system grows beyond MVP, the architecture can evolve incrementally:
 
 ## 13. Decision Log
 
-| Decision                                            | Alternatives considered                                               | Reason                                                                                        |
-| --------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Build MVP with Customer, Organizer, and Admin roles | Customer-only, Organizer-only                                         | Better demonstrates stakeholders, authorization, and real ticketing workflow.                 |
-| Use Modular Monolith + Layered Architecture         | Service-based architecture, microservices, simple CRUD monolith       | Best balance of implementation feasibility and architecture discussion depth.                 |
-| Add Internal Event-Driven Pattern                   | Direct service calls only, full distributed event-driven architecture | Reduces coupling without requiring distributed infrastructure.                                |
-| Use SePay for payment integration                   | MoMo, ZaloPay, Stripe, mock payment                                   | Local payment context and richer integration story than mock payment.                         |
-| Use reservation hold for inventory                  | Decrement only after payment, decrement permanently at order creation | Prevents overselling and avoids permanently locking unpaid tickets.                           |
-| Deploy frontend on Vercel and API on Render         | Local-only demo, full cloud/Kubernetes                                | Practical deployment that can earn basic deployment credibility without excessive complexity. |
+| Decision                                            | Alternatives considered                                               | Reason                                                                                         |
+| --------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Build MVP with Customer, Organizer, and Admin roles | Customer-only, Organizer-only                                         | Better demonstrates stakeholders, authorization, and real ticketing workflow.                  |
+| Use Modular Monolith + Layered Architecture         | Service-based architecture, microservices, simple CRUD monolith       | Best balance of implementation feasibility and architecture discussion depth.                  |
+| Add Internal Event-Driven Pattern                   | Direct service calls only, full distributed event-driven architecture | Reduces coupling without requiring distributed infrastructure.                                 |
+| Use SePay for payment integration                   | MoMo, ZaloPay, Stripe, mock payment                                   | Local payment context and richer integration story than mock payment.                          |
+| Use reservation hold for inventory                  | Decrement only after payment, decrement permanently at order creation | Prevents overselling and avoids permanently locking unpaid tickets.                            |
+| Use opaque refresh tokens with DB-backed sessions   | JWT-only auth, refresh JWT in local storage, server session cookie    | Allows refresh-token rotation/revocation while keeping raw refresh tokens out of the database. |
+| Deploy frontend on Vercel and API on Render         | Local-only demo, full cloud/Kubernetes                                | Practical deployment that can earn basic deployment credibility without excessive complexity.  |

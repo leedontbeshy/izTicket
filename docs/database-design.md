@@ -1,12 +1,13 @@
 # izTicket Database Design
 
-Last updated: 2026-05-23
+Last updated: 2026-05-25
 
 ## 1. Purpose
 
 This document defines the database design for the `izTicket` MVP. The design supports:
 
 - Customer, Organizer, and Admin roles.
+- DB-backed refresh-token sessions for authentication.
 - Event creation and admin approval.
 - Public event browsing.
 - Ticket type and inventory management.
@@ -36,6 +37,7 @@ erDiagram
     users ||--o{ reservations : creates
     users ||--o{ orders : places
     users ||--o{ event_reviews : reviews
+    users ||--o{ auth_sessions : authenticates
 
     venues ||--o{ events : hosts
     events ||--o{ ticket_types : has
@@ -62,6 +64,7 @@ erDiagram
 
 | Backend module         | Owned tables                        |
 | ---------------------- | ----------------------------------- |
+| `Auth Module`          | `auth_sessions`                     |
 | `User Module`          | `users`                             |
 | `Events Module`        | `events`, `venues`                  |
 | `TicketTypes Module`   | `ticket_types`                      |
@@ -168,6 +171,30 @@ Indexes and constraints:
 - Unique index on `email`.
 - Index on `role`.
 - Index on `status`.
+
+### `auth_sessions`
+
+Owned by: `Auth Module`
+
+Stores refresh-token sessions. The raw refresh token is only sent to the client
+as an HttpOnly cookie; the database stores its SHA-256 hash.
+
+| Column       | Type        | Required | Notes                                           |
+| ------------ | ----------- | -------- | ----------------------------------------------- |
+| `id`         | `uuid`      | Yes      | Primary key.                                    |
+| `user_id`    | `uuid`      | Yes      | FK to `users.id`; cascade delete with user.     |
+| `token_hash` | `char(64)`  | Yes      | Unique SHA-256 hash of the opaque token.        |
+| `expires_at` | `timestamp` | Yes      | Refresh token expiry time.                      |
+| `revoked_at` | `timestamp` | No       | Set when refreshed, logged out, or invalidated. |
+| `created_at` | `timestamp` | Yes      | Creation timestamp.                             |
+| `updated_at` | `timestamp` | Yes      | Last update timestamp.                          |
+
+Indexes and constraints:
+
+- Unique index on `token_hash`.
+- Index on `user_id`.
+- Index on `expires_at`.
+- Index on `revoked_at`.
 
 ### `venues`
 
@@ -560,6 +587,9 @@ If reservation is already `EXPIRED`, mark order as `PAYMENT_REVIEW` and do not i
 | Table            | Index                                        | Purpose                                      |
 | ---------------- | -------------------------------------------- | -------------------------------------------- |
 | `users`          | `email` unique                               | Login lookup and duplicate prevention.       |
+| `auth_sessions`  | `token_hash` unique                          | Refresh token lookup and replay prevention.  |
+| `auth_sessions`  | `user_id`                                    | User session listing and cleanup.            |
+| `auth_sessions`  | `expires_at`, `revoked_at`                   | Session expiry and cleanup jobs.             |
 | `events`         | `(status, starts_at)`                        | Public listing of upcoming published events. |
 | `events`         | `organizer_id`                               | Organizer dashboard.                         |
 | `events`         | `slug` unique                                | Public event URL lookup.                     |
@@ -581,6 +611,12 @@ Events are created by organizers and remain in the database even if rejected or 
 ### Reservation data
 
 Reservations are not deleted after expiry. Expired reservations are useful for debugging, analytics, and demonstrating checkout behavior.
+
+### Auth session data
+
+Refresh-token sessions are revoked on logout and rotation. Expired or revoked
+rows can be cleaned up by a future maintenance job. Raw refresh tokens are never
+stored in the database.
 
 ### Payment data
 
