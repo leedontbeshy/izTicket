@@ -68,10 +68,6 @@ export class AuthService {
             throw invalidCredentials();
         }
 
-        if (user.status === UserStatus.DISABLED) {
-            throw AppException.forbidden('This account is disabled.');
-        }
-
         const passwordIsValid = await this.passwordHasher.verify(
             user.passwordHash,
             dto.password,
@@ -79,6 +75,10 @@ export class AuthService {
 
         if (!passwordIsValid) {
             throw invalidCredentials();
+        }
+
+        if (user.status === UserStatus.DISABLED) {
+            throw AppException.forbidden('This account is disabled.');
         }
 
         const refreshTokenCookie = await this.createRefreshSession(user.id);

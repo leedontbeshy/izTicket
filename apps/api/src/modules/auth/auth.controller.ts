@@ -9,6 +9,7 @@ import {
     Res,
     UseGuards,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import {
     CurrentUser,
@@ -30,11 +31,13 @@ export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
     @Post('register')
+    @Throttle({ default: { limit: 5, ttl: 60_000 } })
     register(@Body() dto: RegisterDto) {
         return this.authService.register(dto);
     }
 
     @Post('login')
+    @Throttle({ default: { limit: 10, ttl: 60_000 } })
     async login(
         @Body() dto: LoginDto,
         @Res({ passthrough: true }) response: Response,
@@ -47,6 +50,7 @@ export class AuthController {
 
     @Post('refresh')
     @HttpCode(HttpStatus.OK)
+    @Throttle({ default: { limit: 30, ttl: 60_000 } })
     async refresh(
         @Headers('cookie') cookieHeader: string | string[] | undefined,
         @Res({ passthrough: true }) response: Response,
@@ -59,6 +63,7 @@ export class AuthController {
 
     @Post('logout')
     @HttpCode(HttpStatus.NO_CONTENT)
+    @Throttle({ default: { limit: 30, ttl: 60_000 } })
     async logout(
         @Headers('cookie') cookieHeader: string | string[] | undefined,
         @Res({ passthrough: true }) response: Response,

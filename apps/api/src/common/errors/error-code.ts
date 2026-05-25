@@ -5,6 +5,7 @@ export const ErrorCode = {
     Forbidden: 'FORBIDDEN',
     NotFound: 'NOT_FOUND',
     Conflict: 'CONFLICT',
+    TooManyRequests: 'TOO_MANY_REQUESTS',
     InternalServerError: 'INTERNAL_SERVER_ERROR',
 } as const;
 

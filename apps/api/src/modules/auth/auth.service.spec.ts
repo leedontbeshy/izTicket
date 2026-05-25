@@ -1,3 +1,4 @@
+import { HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { jest } from '@jest/globals';
 import { ConfigService } from '@nestjs/config';
@@ -136,7 +137,7 @@ describe('AuthService', () => {
                 role: UserRole.CUSTOMER,
             },
             refreshTokenCookie: {
-                value: expect.any(String),
+                value: expectAnyString(),
                 options: refreshTokenCookieOptions,
             },
         });
@@ -148,8 +149,8 @@ describe('AuthService', () => {
         expect(prismaService.authSession.create).toHaveBeenCalledWith({
             data: {
                 userId: 'user-1',
-                tokenHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-                expiresAt: expect.any(Date),
+                tokenHash: expectHexTokenHash(),
+                expiresAt: expectAnyDate(),
             },
         });
     });
@@ -173,7 +174,7 @@ describe('AuthService', () => {
         ).rejects.toThrow(AppException);
     });
 
-    it('rejects a disabled user during login', async () => {
+    it('does not reveal disabled status when a disabled user has a wrong password', async () => {
         userService.findAuthUserByEmail.mockResolvedValue({
             id: 'user-1',
             name: 'Customer',
@@ -182,14 +183,49 @@ describe('AuthService', () => {
             status: UserStatus.DISABLED,
             passwordHash: 'hashed-password',
         });
+        passwordHasher.verify.mockResolvedValue(false);
 
-        await expect(
-            service.login({
-                email: 'customer@example.com',
-                password: 'Password123',
-            }),
-        ).rejects.toThrow(AppException);
-        expect(passwordHasher.verify).not.toHaveBeenCalled();
+        await expectAppExceptionStatus(
+            () =>
+                service.login({
+                    email: 'customer@example.com',
+                    password: 'wrong-password',
+                }),
+            HttpStatus.UNAUTHORIZED,
+        );
+        expect(passwordHasher.verify).toHaveBeenCalledWith(
+            'hashed-password',
+            'wrong-password',
+        );
+        expect(prismaService.authSession.create).not.toHaveBeenCalled();
+        expect(jwtService.signAsync).not.toHaveBeenCalled();
+    });
+
+    it('rejects a disabled user with a valid password during login', async () => {
+        userService.findAuthUserByEmail.mockResolvedValue({
+            id: 'user-1',
+            name: 'Customer',
+            email: 'customer@example.com',
+            role: UserRole.CUSTOMER,
+            status: UserStatus.DISABLED,
+            passwordHash: 'hashed-password',
+        });
+        passwordHasher.verify.mockResolvedValue(true);
+
+        await expectAppExceptionStatus(
+            () =>
+                service.login({
+                    email: 'customer@example.com',
+                    password: 'Password123',
+                }),
+            HttpStatus.FORBIDDEN,
+        );
+        expect(passwordHasher.verify).toHaveBeenCalledWith(
+            'hashed-password',
+            'Password123',
+        );
+        expect(prismaService.authSession.create).not.toHaveBeenCalled();
+        expect(jwtService.signAsync).not.toHaveBeenCalled();
     });
 
     it('refreshes an active session and rotates the refresh token', async () => {
@@ -219,13 +255,13 @@ describe('AuthService', () => {
                 role: UserRole.CUSTOMER,
             },
             refreshTokenCookie: {
-                value: expect.any(String),
+                value: expectAnyString(),
                 options: refreshTokenCookieOptions,
             },
         });
         expect(prismaService.authSession.findUnique).toHaveBeenCalledWith({
             where: { tokenHash: hashTestRefreshToken('refresh-token') },
-            select: expect.any(Object),
+            select: expectAnyObject(),
         });
         expect(prismaService.authSession.updateMany).toHaveBeenCalledWith({
             where: {
@@ -233,14 +269,14 @@ describe('AuthService', () => {
                 revokedAt: null,
             },
             data: {
-                revokedAt: expect.any(Date),
+                revokedAt: expectAnyDate(),
             },
         });
         expect(prismaService.authSession.create).toHaveBeenCalledWith({
             data: {
                 userId: 'user-1',
-                tokenHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-                expiresAt: expect.any(Date),
+                tokenHash: expectHexTokenHash(),
+                expiresAt: expectAnyDate(),
             },
         });
     });
@@ -328,7 +364,7 @@ describe('AuthService', () => {
                 revokedAt: null,
             },
             data: {
-                revokedAt: expect.any(Date),
+                revokedAt: expectAnyDate(),
             },
         });
     });
@@ -403,4 +439,39 @@ function createConfigServiceMock() {
 
 function hashTestRefreshToken(refreshToken: string) {
     return createHash('sha256').update(refreshToken).digest('hex');
+}
+
+async function expectAppExceptionStatus(
+    action: () => Promise<unknown>,
+    statusCode: HttpStatus,
+) {
+    try {
+        await action();
+    } catch (error: unknown) {
+        expect(error).toBeInstanceOf(AppException);
+
+        if (error instanceof AppException) {
+            expect(error.getStatus()).toBe(statusCode);
+        }
+
+        return;
+    }
+
+    throw new Error(`Expected AppException with status ${statusCode}.`);
+}
+
+function expectAnyString() {
+    return expect.any(String) as unknown as string;
+}
+
+function expectAnyDate() {
+    return expect.any(Date) as unknown as Date;
+}
+
+function expectAnyObject() {
+    return expect.any(Object) as unknown as Record<string, unknown>;
+}
+
+function expectHexTokenHash() {
+    return expect.stringMatching(/^[a-f0-9]{64}$/) as unknown as string;
 }

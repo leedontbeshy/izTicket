@@ -5,6 +5,7 @@ import type { Server } from 'node:http';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { Roles } from '../src/common/decorators/roles.decorator';
+import { ErrorCode } from '../src/common/errors/error-code';
 import { JwtAuthGuard } from '../src/common/guards/jwt-auth.guard';
 import { RolesGuard } from '../src/common/guards/roles.guard';
 import { configureApp } from '../src/common/utils/configure-app';
@@ -153,6 +154,36 @@ describe('Auth (e2e)', () => {
             .get('/api/v1/test-only/admin')
             .set('Authorization', `Bearer ${accessToken}`)
             .expect(403);
+    });
+
+    it('throttles repeated auth registration attempts', async () => {
+        let throttledBody: unknown = null;
+
+        for (let attempt = 0; attempt < 6; attempt += 1) {
+            const response = await request(server)
+                .post('/api/v1/auth/register')
+                .send({
+                    name: 'Rate Limit',
+                    email: `not-an-email-${runId}-${attempt}`,
+                    password: 'short',
+                    role: UserRole.CUSTOMER,
+                });
+
+            if (response.status === 429) {
+                throttledBody = response.body;
+                break;
+            }
+
+            expect(response.status).toBe(400);
+        }
+
+        expect(isRecord(throttledBody)).toBe(true);
+
+        if (!isRecord(throttledBody)) {
+            throw new Error('Expected throttled response body.');
+        }
+
+        expect(throttledBody.code).toBe(ErrorCode.TooManyRequests);
     });
 
     async function cleanupTestUser() {
