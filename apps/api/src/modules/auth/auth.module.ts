@@ -42,7 +42,7 @@ type JwtExpiresIn =
             }),
         }),
     ],
-    exports: [JwtAuthGuard, RolesGuard, JwtModule],
+    exports: [JwtAuthGuard, RolesGuard, JwtModule, UserModule],
 })
 export class AuthModule {}
 
