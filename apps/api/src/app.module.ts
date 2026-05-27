@@ -13,6 +13,7 @@ import { AdminReviewModule } from './modules/admin-review/admin-review.module';
 import { TicketTypesModule } from './modules/ticket-types/ticket-types.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { ExpiryModule } from './modules/expiry/expiry.module';
 
 @Module({
     imports: [
@@ -35,6 +36,7 @@ import { OrdersModule } from './modules/orders/orders.module';
         TicketTypesModule,
         ReservationsModule,
         OrdersModule,
+        ExpiryModule,
     ],
     controllers: [AppController],
     providers: [
