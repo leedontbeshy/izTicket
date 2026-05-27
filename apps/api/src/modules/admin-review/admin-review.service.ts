@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { AppException } from '../../common/errors/app.exception';
+import { DomainEventBus } from '../../common/events/domain-event-bus';
 import { getPaginationParams } from '../../common/pagination/pagination.helper';
 import type { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
 import { EventStatus } from '../../generated/prisma/enums';
 import { PrismaService } from '../../prisma/prisma.service';
+import {
+    eventApproved,
+    eventRejected,
+} from '../events/domain/event-domain.events';
+import { canReviewEvent } from '../events/domain/event-state.rules';
 
 const pendingEventSelect = {
     id: true,
@@ -93,7 +99,10 @@ const adminEventDetailSelect = {
 
 @Injectable()
 export class AdminReviewService {
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly domainEventBus: DomainEventBus,
+    ) {}
 
     async listPendingEvents(query: PaginationQueryDto) {
         const pagination = getPaginationParams(query);
@@ -137,6 +146,12 @@ export class AdminReviewService {
             EventStatus.PUBLISHED,
             'APPROVED',
         );
+        await this.domainEventBus.publish(
+            eventApproved({
+                eventId,
+                reviewerId: adminId,
+            }),
+        );
 
         return {
             id: eventId,
@@ -157,6 +172,13 @@ export class AdminReviewService {
             EventStatus.REJECTED,
             'REJECTED',
             trimmedReason,
+        );
+        await this.domainEventBus.publish(
+            eventRejected({
+                eventId,
+                reviewerId: adminId,
+                reason: trimmedReason,
+            }),
         );
 
         return {
@@ -189,16 +211,20 @@ export class AdminReviewService {
             if (updateResult.count !== 1) {
                 const existingEvent = await transaction.event.findUnique({
                     where: { id: eventId },
-                    select: { id: true },
+                    select: { id: true, status: true },
                 });
 
                 if (!existingEvent) {
                     throw AppException.notFound('Event was not found.');
                 }
 
-                throw AppException.conflict(
-                    'Only pending review events can be reviewed.',
-                );
+                if (!canReviewEvent(existingEvent.status)) {
+                    throw AppException.conflict(
+                        'Only pending review events can be reviewed.',
+                    );
+                }
+
+                throw AppException.conflict('Event review could not be saved.');
             }
 
             await transaction.eventReview.create({

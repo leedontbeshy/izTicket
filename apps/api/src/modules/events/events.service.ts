@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppException } from '../../common/errors/app.exception';
+import { DomainEventBus } from '../../common/events/domain-event-bus';
 import {
     getPaginationParams,
     type PaginationParams,
@@ -10,6 +11,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateEventDto } from './dto/create-event.dto';
 import type { ListPublicEventsQueryDto } from './dto/list-public-events-query.dto';
 import type { UpdateEventDto } from './dto/update-event.dto';
+import { eventSubmitted } from './domain/event-domain.events';
+import { canEditEvent, canSubmitEvent } from './domain/event-state.rules';
 
 const publicEventListSelect = {
     id: true,
@@ -62,7 +65,10 @@ const organizerEventSelect = {
 
 @Injectable()
 export class EventsService {
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly domainEventBus: DomainEventBus,
+    ) {}
 
     async listPublicEvents(query: ListPublicEventsQueryDto) {
         const pagination = getPaginationParams(query);
@@ -245,7 +251,11 @@ export class EventsService {
             organizerId,
             eventId,
         );
-        ensureEventIsEditable(existingEvent.status);
+        if (!canEditEvent(existingEvent.status)) {
+            throw AppException.conflict(
+                'Only draft or rejected events can be edited.',
+            );
+        }
 
         const startsAt = dto.startsAt ?? existingEvent.startsAt.toISOString();
         const endsAt = dto.endsAt ?? existingEvent.endsAt.toISOString();
@@ -290,16 +300,13 @@ export class EventsService {
     async submitOrganizerEvent(organizerId: string, eventId: string) {
         const event = await this.findOrganizerEvent(organizerId, eventId);
 
-        if (
-            event.status !== EventStatus.DRAFT &&
-            event.status !== EventStatus.REJECTED
-        ) {
+        if (!canSubmitEvent(event.status)) {
             throw AppException.conflict(
                 'Only draft or rejected events can be submitted for review.',
             );
         }
 
-        return this.prismaService.event.update({
+        const submittedEvent = await this.prismaService.event.update({
             where: { id: eventId },
             data: {
                 status: EventStatus.PENDING_REVIEW,
@@ -310,6 +317,15 @@ export class EventsService {
                 status: true,
             },
         });
+
+        await this.domainEventBus.publish(
+            eventSubmitted({
+                eventId,
+                organizerId,
+            }),
+        );
+
+        return submittedEvent;
     }
 
     private async findOrganizerEvent(organizerId: string, eventId: string) {
@@ -359,14 +375,6 @@ function validateEventDates(startsAt: string, endsAt: string) {
     if (new Date(endsAt).getTime() <= new Date(startsAt).getTime()) {
         throw AppException.conflict(
             'Event end time must be later than start time.',
-        );
-    }
-}
-
-function ensureEventIsEditable(status: EventStatus) {
-    if (status !== EventStatus.DRAFT && status !== EventStatus.REJECTED) {
-        throw AppException.conflict(
-            'Only draft or rejected events can be edited.',
         );
     }
 }
