@@ -10,6 +10,7 @@ import { CommonModule } from './common/common.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EventsModule } from './modules/events/events.module';
 import { AdminReviewModule } from './modules/admin-review/admin-review.module';
+import { TicketTypesModule } from './modules/ticket-types/ticket-types.module';
 
 @Module({
     imports: [
@@ -29,6 +30,7 @@ import { AdminReviewModule } from './modules/admin-review/admin-review.module';
         AuthModule,
         EventsModule,
         AdminReviewModule,
+        TicketTypesModule,
     ],
     controllers: [AppController],
     providers: [
