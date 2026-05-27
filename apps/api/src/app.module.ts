@@ -9,6 +9,7 @@ import { validateEnv } from './config/env.validate';
 import { CommonModule } from './common/common.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { EventsModule } from './modules/events/events.module';
+import { AdminReviewModule } from './modules/admin-review/admin-review.module';
 
 @Module({
     imports: [
@@ -27,6 +28,7 @@ import { EventsModule } from './modules/events/events.module';
         HealthModule,
         AuthModule,
         EventsModule,
+        AdminReviewModule,
     ],
     controllers: [AppController],
     providers: [
