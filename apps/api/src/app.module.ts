@@ -12,6 +12,7 @@ import { EventsModule } from './modules/events/events.module';
 import { AdminReviewModule } from './modules/admin-review/admin-review.module';
 import { TicketTypesModule } from './modules/ticket-types/ticket-types.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
+import { OrdersModule } from './modules/orders/orders.module';
 
 @Module({
     imports: [
@@ -33,6 +34,7 @@ import { ReservationsModule } from './modules/reservations/reservations.module';
         AdminReviewModule,
         TicketTypesModule,
         ReservationsModule,
+        OrdersModule,
     ],
     controllers: [AppController],
     providers: [
