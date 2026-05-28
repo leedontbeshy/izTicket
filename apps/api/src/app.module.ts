@@ -14,6 +14,7 @@ import { TicketTypesModule } from './modules/ticket-types/ticket-types.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ExpiryModule } from './modules/expiry/expiry.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 
 @Module({
     imports: [
@@ -37,6 +38,7 @@ import { ExpiryModule } from './modules/expiry/expiry.module';
         ReservationsModule,
         OrdersModule,
         ExpiryModule,
+        PaymentsModule,
     ],
     controllers: [AppController],
     providers: [
