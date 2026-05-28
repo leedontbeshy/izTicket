@@ -49,6 +49,23 @@ const envSchema = z
             emptyStringToUndefined,
             z.string().min(1).default('izticket-web'),
         ),
+        SEPAY_BANK_NAME: z.preprocess(
+            emptyStringToUndefined,
+            z.string().min(1).default('Vietcombank'),
+        ),
+        SEPAY_BANK_CODE: optionalString,
+        SEPAY_BANK_ACCOUNT_NUMBER: optionalString,
+        SEPAY_PAYMENT_CODE_PREFIX: z.preprocess(
+            emptyStringToUndefined,
+            z.string().min(1).default('IZT'),
+        ),
+        SEPAY_QR_BASE_URL: urlWithDefault('https://qr.sepay.vn/img'),
+        SEPAY_WEBHOOK_AUTH_MODE: z.preprocess(
+            emptyStringToUndefined,
+            z.enum(['hmac', 'apikey']).default('apikey'),
+        ),
+        SEPAY_WEBHOOK_SECRET: optionalString,
+        SEPAY_WEBHOOK_API_KEY: optionalString,
     })
     .superRefine((env, context) => {
         if (
