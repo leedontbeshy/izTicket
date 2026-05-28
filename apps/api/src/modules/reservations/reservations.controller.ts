@@ -36,7 +36,10 @@ export class ReservationsController {
         @CurrentUser('id') customerId: string,
         @Param('reservationId', ParseUUIDPipe) reservationId: string,
     ) {
-        return this.reservationsService.getReservation(customerId, reservationId);
+        return this.reservationsService.getReservation(
+            customerId,
+            reservationId,
+        );
     }
 
     @Post(':reservationId/cancel')
@@ -45,6 +48,9 @@ export class ReservationsController {
         @CurrentUser('id') customerId: string,
         @Param('reservationId', ParseUUIDPipe) reservationId: string,
     ) {
-        return this.reservationsService.cancelReservation(customerId, reservationId);
+        return this.reservationsService.cancelReservation(
+            customerId,
+            reservationId,
+        );
     }
 }

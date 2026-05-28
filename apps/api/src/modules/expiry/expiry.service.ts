@@ -40,7 +40,9 @@ export class ExpiryService {
                 for (const item of reservation.items) {
                     await tx.ticketType.update({
                         where: { id: item.ticketTypeId },
-                        data: { availableQuantity: { increment: item.quantity } },
+                        data: {
+                            availableQuantity: { increment: item.quantity },
+                        },
                     });
                 }
 
@@ -76,7 +78,9 @@ export class ExpiryService {
                 for (const item of order.items) {
                     await tx.ticketType.update({
                         where: { id: item.ticketTypeId },
-                        data: { availableQuantity: { increment: item.quantity } },
+                        data: {
+                            availableQuantity: { increment: item.quantity },
+                        },
                     });
                 }
 

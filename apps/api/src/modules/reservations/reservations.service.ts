@@ -34,7 +34,9 @@ export class ReservationsService {
         });
 
         if (!event || event.status !== EventStatus.PUBLISHED) {
-            throw AppException.conflict('Event is not available for reservations.');
+            throw AppException.conflict(
+                'Event is not available for reservations.',
+            );
         }
 
         const ticketTypeIds = dto.items.map((i) => i.ticketTypeId);
@@ -58,11 +60,20 @@ export class ReservationsService {
         for (const item of dto.items) {
             const tt = ticketTypes.find((t) => t.id === item.ticketTypeId)!;
             if (tt.eventId !== dto.eventId) {
-                throw AppException.conflict('Ticket type does not belong to event.');
+                throw AppException.conflict(
+                    'Ticket type does not belong to event.',
+                );
             }
 
-            if (!isSaleActive({ saleStartsAt: tt.saleStartsAt, saleEndsAt: tt.saleEndsAt })) {
-                throw AppException.conflict('Ticket sale window is not active.');
+            if (
+                !isSaleActive({
+                    saleStartsAt: tt.saleStartsAt,
+                    saleEndsAt: tt.saleEndsAt,
+                })
+            ) {
+                throw AppException.conflict(
+                    'Ticket sale window is not active.',
+                );
             }
 
             validateMaxPerOrder({ maxPerOrder: tt.maxPerOrder }, item.quantity);
@@ -83,7 +94,9 @@ export class ReservationsService {
                 });
 
                 if (updateResult.count !== 1) {
-                    throw AppException.conflict('Not enough tickets available.');
+                    throw AppException.conflict(
+                        'Not enough tickets available.',
+                    );
                 }
             }
 
@@ -130,7 +143,9 @@ export class ReservationsService {
         }
 
         if (reservation.customerId !== customerId) {
-            throw AppException.forbidden('You do not have permission to view this reservation.');
+            throw AppException.forbidden(
+                'You do not have permission to view this reservation.',
+            );
         }
 
         return reservation;
@@ -151,11 +166,15 @@ export class ReservationsService {
         }
 
         if (reservation.customerId !== customerId) {
-            throw AppException.forbidden('You do not have permission to cancel this reservation.');
+            throw AppException.forbidden(
+                'You do not have permission to cancel this reservation.',
+            );
         }
 
         if (reservation.status !== 'ACTIVE') {
-            throw AppException.conflict('Only active reservations can be cancelled.');
+            throw AppException.conflict(
+                'Only active reservations can be cancelled.',
+            );
         }
 
         const result = await this.prismaService.$transaction(async (tx) => {

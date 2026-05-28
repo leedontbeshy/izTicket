@@ -5,13 +5,21 @@ export function isSaleActive(ticketType: {
     saleEndsAt: Date;
 }) {
     const now = Date.now();
-    return ticketType.saleStartsAt.getTime() <= now && ticketType.saleEndsAt.getTime() > now;
+    return (
+        ticketType.saleStartsAt.getTime() <= now &&
+        ticketType.saleEndsAt.getTime() > now
+    );
 }
 
-export function validateMaxPerOrder(ticketType: {
-    maxPerOrder: number | null;
-}, quantity: number) {
+export function validateMaxPerOrder(
+    ticketType: {
+        maxPerOrder: number | null;
+    },
+    quantity: number,
+) {
     if (ticketType.maxPerOrder !== null && quantity > ticketType.maxPerOrder) {
-        throw AppException.conflict('Requested quantity exceeds maxPerOrder for ticket type.');
+        throw AppException.conflict(
+            'Requested quantity exceeds maxPerOrder for ticket type.',
+        );
     }
 }
