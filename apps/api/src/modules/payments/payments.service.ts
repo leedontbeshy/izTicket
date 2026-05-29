@@ -10,6 +10,7 @@ import { SepayQrService } from './sepay/sepay-qr.service';
 import { SepayWebhookVerifierService } from './sepay/sepay-webhook-verifier.service';
 import {
     mapSepayWebhookPayload,
+    sepayPgIpnSchema,
     sepayWebhookPayloadSchema,
 } from './sepay/sepay-webhook.mapper';
 
@@ -112,6 +113,11 @@ export class PaymentsService {
     async handleSepayWebhook(input: WebhookInput): Promise<void> {
         if (!this.webhookVerifierService.verify(input.headers, input.rawBody)) {
             throw AppException.unauthorized('Webhook signature invalid.');
+        }
+
+        const bodyObj = input.body as Record<string, unknown>;
+        if (bodyObj?.notification_type !== undefined) {
+            return this.handleSepayPgIpn(input.body);
         }
 
         const parsed = sepayWebhookPayloadSchema.safeParse(input.body);
@@ -239,6 +245,155 @@ export class PaymentsService {
                     provider: SEPAY_PROVIDER,
                     providerEventId: cmd.providerEventId,
                     providerTransactionId: cmd.providerTransactionId,
+                    eventType: isLate ? 'LATE_PAYMENT' : 'PAYMENT_SUCCESS',
+                    payload: parsed.data,
+                    processedAt: now,
+                },
+            });
+        });
+
+        if (!isLate) {
+            const event: PaymentSucceededEvent = {
+                name: 'payment.succeeded',
+                occurredAt: now,
+                payload: {
+                    orderId: payment.orderId,
+                    paymentId: payment.id,
+                    amountVnd: payment.amountVnd,
+                },
+            };
+            await this.eventBus.publish(event);
+        }
+    }
+
+    private async handleSepayPgIpn(body: unknown): Promise<void> {
+        const parsed = sepayPgIpnSchema.safeParse(body);
+        if (!parsed.success) return;
+
+        const { notification_type, order, transaction } = parsed.data;
+        if (notification_type !== 'PAYMENT_SUCCESS') return;
+        if (transaction.transaction_status !== 'APPROVED') return;
+
+        const providerEventId = order.id;
+        const providerReference = order.order_invoice_number;
+        const providerTransactionId = transaction.transaction_id;
+        const transferAmount = transaction.transaction_amount;
+
+        const alreadyProcessed = await this.prismaService.paymentEvent.findFirst(
+            {
+                where: {
+                    provider: SEPAY_PROVIDER,
+                    providerEventId,
+                    processedAt: { not: null },
+                },
+                select: { id: true },
+            },
+        );
+        if (alreadyProcessed) return;
+
+        if (!providerReference) {
+            await this.prismaService.paymentEvent.create({
+                data: {
+                    provider: SEPAY_PROVIDER,
+                    providerEventId,
+                    providerTransactionId,
+                    eventType: 'WEBHOOK_UNKNOWN',
+                    payload: parsed.data,
+                    processedAt: new Date(),
+                },
+            });
+            return;
+        }
+
+        const payment = await this.prismaService.payment.findFirst({
+            where: { provider: SEPAY_PROVIDER, providerReference },
+            select: { id: true, orderId: true, amountVnd: true },
+        });
+
+        if (!payment) {
+            await this.prismaService.paymentEvent.create({
+                data: {
+                    provider: SEPAY_PROVIDER,
+                    providerEventId,
+                    providerTransactionId,
+                    eventType: 'WEBHOOK_UNKNOWN',
+                    payload: parsed.data,
+                    processedAt: new Date(),
+                },
+            });
+            return;
+        }
+
+        if (transferAmount < payment.amountVnd) {
+            await this.prismaService.paymentEvent.create({
+                data: {
+                    paymentId: payment.id,
+                    provider: SEPAY_PROVIDER,
+                    providerEventId,
+                    providerTransactionId,
+                    eventType: 'WEBHOOK_IGNORED',
+                    payload: parsed.data,
+                    processedAt: new Date(),
+                },
+            });
+            return;
+        }
+
+        const dbOrder = await this.prismaService.order.findUnique({
+            where: { id: payment.orderId },
+            select: { status: true, expiresAt: true },
+        });
+
+        if (!dbOrder || dbOrder.status === 'PAID') return;
+
+        if (
+            dbOrder.status === 'CANCELLED' ||
+            dbOrder.status === 'PAYMENT_REVIEW'
+        ) {
+            await this.prismaService.paymentEvent.create({
+                data: {
+                    paymentId: payment.id,
+                    provider: SEPAY_PROVIDER,
+                    providerEventId,
+                    providerTransactionId,
+                    eventType: 'WEBHOOK_IGNORED',
+                    payload: parsed.data,
+                    processedAt: new Date(),
+                },
+            });
+            return;
+        }
+
+        const now = new Date();
+        const isLate = dbOrder.status === 'EXPIRED' || now >= dbOrder.expiresAt;
+
+        await this.prismaService.$transaction(async (tx) => {
+            if (!isLate) {
+                await tx.payment.update({
+                    where: { id: payment.id },
+                    data: { status: 'SUCCEEDED', succeededAt: now },
+                });
+                await tx.order.update({
+                    where: { id: payment.orderId },
+                    data: { status: 'PAID', paidAt: now },
+                });
+            } else {
+                await tx.payment.update({
+                    where: { id: payment.id },
+                    data: { status: 'REQUIRES_REVIEW' },
+                });
+                await tx.order.update({
+                    where: { id: payment.orderId },
+                    data: { status: 'PAYMENT_REVIEW' },
+                });
+            }
+
+            await tx.paymentEvent.create({
+                data: {
+                    paymentId: payment.id,
+                    provider: SEPAY_PROVIDER,
+                    providerEventId,
+                    providerTransactionId,
                     eventType: isLate ? 'LATE_PAYMENT' : 'PAYMENT_SUCCESS',
                     payload: parsed.data,
                     processedAt: now,
