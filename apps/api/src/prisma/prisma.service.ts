@@ -1,4 +1,4 @@
-import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { config } from 'dotenv';
 import { existsSync } from 'node:fs';
@@ -35,11 +35,22 @@ function resolveDatasourceUrl() {
 }
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleDestroy {
+export class PrismaService
+    extends PrismaClient
+    implements OnModuleInit, OnModuleDestroy
+{
     constructor() {
         super({
-            adapter: new PrismaPg({ connectionString: resolveDatasourceUrl() }),
+            adapter: new PrismaPg({
+                connectionString: resolveDatasourceUrl(),
+                keepAlive: true,
+                max: 5,
+            }),
         });
+    }
+
+    async onModuleInit() {
+        await this.$connect();
     }
 
     async onModuleDestroy() {
