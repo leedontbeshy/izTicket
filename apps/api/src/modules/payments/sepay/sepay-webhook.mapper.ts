@@ -38,3 +38,19 @@ export function mapSepayWebhookPayload(
         accountNumber: payload.accountNumber,
     };
 }
+
+export const sepayPgIpnSchema = z.object({
+    notification_type: z.string(),
+    order: z.object({
+        id: z.string(),
+        order_invoice_number: z.string().optional(),
+        order_amount: z.number(),
+    }),
+    transaction: z.object({
+        transaction_id: z.string().optional(),
+        transaction_status: z.string(),
+        transaction_amount: z.number(),
+    }),
+});
+
+export type SepayPgIpnPayload = z.infer<typeof sepayPgIpnSchema>;
