@@ -62,7 +62,7 @@ const envSchema = z
         SEPAY_QR_BASE_URL: urlWithDefault('https://qr.sepay.vn/img'),
         SEPAY_WEBHOOK_AUTH_MODE: z.preprocess(
             emptyStringToUndefined,
-            z.enum(['hmac', 'apikey']).default('apikey'),
+            z.enum(['hmac', 'apikey', 'pg']).default('apikey'),
         ),
         SEPAY_WEBHOOK_SECRET: optionalString,
         SEPAY_WEBHOOK_API_KEY: optionalString,
