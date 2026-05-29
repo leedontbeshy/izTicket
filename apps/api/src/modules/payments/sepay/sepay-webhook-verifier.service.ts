@@ -11,19 +11,20 @@ type IncomingHeaders = Record<string, string | string[] | undefined>;
 
 @Injectable()
 export class SepayWebhookVerifierService {
-    private readonly authMode: 'hmac' | 'apikey';
+    private readonly authMode: 'hmac' | 'apikey' | 'pg';
     private readonly secret: string | undefined;
     private readonly apiKey: string | undefined;
 
     constructor(configService: ConfigService) {
         this.authMode =
             (configService.get<string>('SEPAY_WEBHOOK_AUTH_MODE') ??
-                'apikey') as 'hmac' | 'apikey';
+                'apikey') as 'hmac' | 'apikey' | 'pg';
         this.secret = configService.get<string>('SEPAY_WEBHOOK_SECRET');
         this.apiKey = configService.get<string>('SEPAY_WEBHOOK_API_KEY');
     }
 
     verify(headers: IncomingHeaders, rawBody: Buffer): boolean {
+        if (this.authMode === 'pg') return true;
         if (this.authMode === 'hmac') {
             return this.verifyHmac(headers, rawBody);
         }
