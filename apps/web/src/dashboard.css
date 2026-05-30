@@ -1,0 +1,270 @@
+/* Shared dashboard styles — used by all organizer/admin pages */
+
+.dash-shell {
+    min-height: 100vh;
+    background: #f4f4f5;
+    font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ── Header ── */
+
+.dash-header {
+    background: #ffffff;
+    border-bottom: 1px solid #ececee;
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 0;
+}
+
+.dash-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #09090b;
+    text-decoration: none;
+    margin-right: 28px;
+    flex-shrink: 0;
+}
+
+.dash-brand .material-symbols-outlined {
+    font-size: 20px;
+}
+
+.dash-nav {
+    display: flex;
+    gap: 2px;
+    flex: 1;
+}
+
+.dash-nav a {
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #52525b;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.dash-nav a:hover,
+.dash-nav a.active {
+    background: #f4f4f5;
+    color: #09090b;
+}
+
+.dash-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.dash-user-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: #3f3f46;
+}
+
+/* ── Main content area ── */
+
+.dash-main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 32px 80px;
+}
+
+/* ── Feedback states ── */
+
+.dash-loading {
+    text-align: center;
+    color: #71717a;
+    padding: 80px 0;
+    font-size: 14px;
+}
+
+.dash-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 24px;
+}
+
+.dash-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 80px 0;
+    gap: 16px;
+    color: #71717a;
+}
+
+.dash-empty-icon {
+    font-size: 48px;
+    color: #d4d4d8;
+}
+
+.dash-empty p {
+    font-size: 16px;
+    margin: 0;
+}
+
+/* ── Buttons ── */
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #09090b;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    padding: 10px 20px;
+    border-radius: 36px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    box-shadow:
+        rgba(255, 255, 255, 0.5) 0px 0.5px 0px 0px inset,
+        rgba(117, 123, 133, 0.4) 0px 9px 14px -5px inset,
+        rgb(44, 46, 52) 0px 0px 0px 1.5px,
+        rgba(0, 0, 0, 0.14) 0px 4px 6px 0px;
+    transition: opacity 0.15s;
+}
+
+.btn-primary:hover {
+    opacity: 0.88;
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ffffff;
+    color: #3f3f46;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    padding: 10px 20px;
+    border-radius: 36px;
+    border: 1px solid #3f3f46;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-outline:hover {
+    background: #f4f4f5;
+}
+
+.btn-outline-sm {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #09090b;
+    background: #ffffff;
+    border: 1px solid #3f3f46;
+    border-radius: 36px;
+    padding: 5px 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-outline-sm:hover {
+    background: #f4f4f5;
+}
+
+.btn-ghost {
+    background: none;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #71717a;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+}
+
+.btn-ghost:hover {
+    background: #f4f4f5;
+    color: #09090b;
+}
+
+.btn-ghost-sm {
+    display: inline-flex;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    color: #71717a;
+    background: none;
+    border: 1px solid #ececee;
+    border-radius: 36px;
+    padding: 5px 14px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-ghost-sm:hover {
+    background: #f4f4f5;
+}
+
+/* ── Status badges ── */
+
+.status-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+}
+
+.status-draft {
+    background: #ececee;
+    color: #3f3f46;
+}
+
+.status-pending-review {
+    background: #fef9c3;
+    color: #92400e;
+}
+
+.status-published {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-cancelled {
+    background: #f4f4f5;
+    color: #71717a;
+}

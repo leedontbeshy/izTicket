@@ -1,0 +1,210 @@
+/* EventFormPage — page-specific styles */
+
+.ef-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #71717a;
+    text-decoration: none;
+    margin-bottom: 24px;
+    transition: color 0.15s;
+}
+
+.ef-back-link:hover {
+    color: #09090b;
+}
+
+.ef-back-link .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.ef-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+}
+
+.ef-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ef-title-group h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #09090b;
+    margin: 0;
+    line-height: 1.28;
+}
+
+/* Submit for review — distinct from primary save */
+.btn-submit-review {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #166534;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    padding: 10px 20px;
+    border-radius: 36px;
+    border: none;
+    cursor: pointer;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 2px 6px 0px;
+    transition: opacity 0.15s;
+    flex-shrink: 0;
+}
+
+.btn-submit-review:hover {
+    opacity: 0.88;
+}
+
+.btn-submit-review:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-submit-review .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* ── Form layout ── */
+
+.ef-form {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.ef-section {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-shadow: rgb(228, 228, 231) 0px 1px 0px 0px inset;
+}
+
+.ef-section h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #09090b;
+    margin: 0 0 4px;
+    line-height: 1.35;
+}
+
+.ef-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+@media (max-width: 640px) {
+    .ef-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ── Field ── */
+
+.ef-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ef-field label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #3f3f46;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ef-optional {
+    font-size: 12px;
+    font-weight: 400;
+    color: #a1a1aa;
+}
+
+.ef-field input,
+.ef-field textarea,
+.ef-field select {
+    font-family: inherit;
+    font-size: 14px;
+    color: #09090b;
+    background: #ffffff;
+    border: 1px solid #d4d4d8;
+    border-radius: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ef-field input::placeholder,
+.ef-field textarea::placeholder {
+    color: #a1a1aa;
+}
+
+.ef-field input:focus,
+.ef-field textarea:focus,
+.ef-field select:focus {
+    border-color: #09090b;
+    box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08);
+}
+
+.ef-field input:disabled,
+.ef-field textarea:disabled,
+.ef-field select:disabled {
+    background: #f4f4f5;
+    color: #71717a;
+    cursor: not-allowed;
+    border-color: #ececee;
+}
+
+.ef-field textarea {
+    resize: vertical;
+    min-height: 100px;
+    line-height: 1.56;
+}
+
+/* ── Read-only note ── */
+
+.ef-readonly-note {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fef9c3;
+    color: #92400e;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.ef-readonly-note .material-symbols-outlined {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+/* ── Form actions ── */
+
+.ef-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding-top: 8px;
+}

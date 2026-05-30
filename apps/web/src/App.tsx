@@ -1,6 +1,11 @@
 import AuthPage from './AuthPage';
 import EventDetailPage from './EventDetailPage';
 import EventsPage from './EventsPage';
+import { OrganizerEventsPage } from './OrganizerEventsPage';
+import { EventFormPage } from './EventFormPage';
+import { AdminEventsPage } from './AdminEventsPage';
+import { AdminReviewPage } from './AdminReviewPage';
+import { OrganizerEventDetailPage } from './OrganizerEventDetailPage';
 import { getRoleLabel, getStoredAuthUser } from './authSession';
 import './App.css';
 
@@ -357,14 +362,28 @@ function HeaderAccountActions() {
         );
     }
 
+    const dashHref =
+        user.role === 'ORGANIZER'
+            ? '/organizer/events'
+            : user.role === 'ADMIN'
+              ? '/admin/events'
+              : null;
+
     return (
-        <div className="user-chip">
-            <span>{getInitials(user.name)}</span>
-            <div>
-                <strong>{user.name}</strong>
-                <small>{getRoleLabel(user.role)}</small>
+        <>
+            {dashHref && (
+                <a className="dark-button" href={dashHref}>
+                    Dashboard
+                </a>
+            )}
+            <div className="user-chip">
+                <span>{getInitials(user.name)}</span>
+                <div>
+                    <strong>{user.name}</strong>
+                    <small>{getRoleLabel(user.role)}</small>
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 
@@ -389,6 +408,46 @@ function App() {
                 eventId={decodeURIComponent(path.replace('/events/', ''))}
             />
         );
+    }
+
+    if (path === '/organizer/events') {
+        return <OrganizerEventsPage />;
+    }
+
+    if (path === '/organizer/events/new') {
+        return <EventFormPage mode="create" />;
+    }
+
+    if (
+        path.startsWith('/organizer/events/') &&
+        path.endsWith('/edit')
+    ) {
+        const eventId = path
+            .replace('/organizer/events/', '')
+            .replace('/edit', '');
+        return <EventFormPage mode="edit" eventId={eventId} />;
+    }
+
+    if (path === '/admin/events') {
+        return <AdminEventsPage />;
+    }
+
+    if (
+        path.startsWith('/admin/events/') &&
+        path.endsWith('/review')
+    ) {
+        const eventId = path
+            .replace('/admin/events/', '')
+            .replace('/review', '');
+        return <AdminReviewPage eventId={eventId} />;
+    }
+
+    if (
+        path.startsWith('/organizer/events/') &&
+        !path.endsWith('/edit')
+    ) {
+        const eventId = path.replace('/organizer/events/', '');
+        return <OrganizerEventDetailPage eventId={eventId} />;
     }
 
     return (
