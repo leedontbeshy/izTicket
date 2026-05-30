@@ -1,3 +1,4 @@
+import AuthPage from './AuthPage';
 import './App.css';
 
 type EventCard = {
@@ -338,6 +339,16 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 function App() {
+    const path = window.location.pathname;
+
+    if (path === '/auth/login') {
+        return <AuthPage mode="login" />;
+    }
+
+    if (path === '/auth/register') {
+        return <AuthPage mode="register" />;
+    }
+
     return (
         <main className="landing-shell">
             <header className="site-header">
@@ -362,12 +373,12 @@ function App() {
                         VI
                         <MaterialIcon>expand_more</MaterialIcon>
                     </button>
-                    <button className="ghost-button" type="button">
+                    <a className="ghost-button" href="/auth/login">
                         Đăng nhập
-                    </button>
-                    <button className="dark-button" type="button">
+                    </a>
+                    <a className="dark-button" href="/auth/register">
                         Đăng ký
-                    </button>
+                    </a>
                 </div>
             </header>
 
