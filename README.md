@@ -4,7 +4,7 @@ izTicket is an MVP event ticketing application built as a Turborepo workspace.
 The product goal is to let customers browse events, reserve tickets, create
 orders, complete the SePay payment flow, and view issued e-tickets. Organizers
 manage events and ticket types, while admins review submitted events before
-they become public.
+they become public .
 
 ## Stack
 
