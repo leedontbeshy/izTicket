@@ -15,6 +15,7 @@ import { ReservationsModule } from './modules/reservations/reservations.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ExpiryModule } from './modules/expiry/expiry.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
 
 @Module({
     imports: [
@@ -39,6 +40,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
         OrdersModule,
         ExpiryModule,
         PaymentsModule,
+        TicketsModule,
     ],
     controllers: [AppController],
     providers: [
