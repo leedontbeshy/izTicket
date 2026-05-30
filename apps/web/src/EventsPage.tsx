@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
-import { getRoleLabel, getStoredAuthUser } from './authSession';
+import {
+    MaterialIcon,
+    PublicFooter,
+    PublicHeader,
+} from './PublicLayout';
 import './EventsPage.css';
 
 type EventListItem = {
@@ -118,68 +122,10 @@ const sidebarCategories = [
     ['Triển lãm', '39'],
 ];
 
-function MaterialIcon({ children }: { children: string }) {
-    return (
-        <span aria-hidden="true" className="material-symbols-outlined">
-            {children}
-        </span>
-    );
-}
-
-function BrandMark() {
-    return (
-        <span className="brand-mark" aria-hidden="true">
-            <MaterialIcon>confirmation_number</MaterialIcon>
-        </span>
-    );
-}
-
 function EventsPage() {
-    const user = getStoredAuthUser();
-
     return (
         <main className="events-page">
-            <header className="site-header">
-                <a className="brand" href="/">
-                    <BrandMark />
-                    <span>izTicket</span>
-                </a>
-
-                <nav className="main-nav" aria-label="Điều hướng chính">
-                    <a href="/">Trang chủ</a>
-                    <a className="active" href="/events">
-                        Sự kiện
-                    </a>
-                    <a href="/#organizers">Dành cho tổ chức</a>
-                    <a href="/#about">Giới thiệu</a>
-                    <a href="/#support">Hỗ trợ</a>
-                </nav>
-
-                <div className="header-actions">
-                    <button className="language-button" type="button">
-                        <MaterialIcon>language</MaterialIcon>
-                        VI
-                        <MaterialIcon>expand_more</MaterialIcon>
-                    </button>
-                    <button className="cart-button" type="button" aria-label="Giỏ hàng">
-                        <MaterialIcon>shopping_cart</MaterialIcon>
-                        <span>2</span>
-                    </button>
-                    {user ? (
-                        <div className="user-chip">
-                            <span>{getInitials(user.name)}</span>
-                            <div>
-                                <strong>{user.name}</strong>
-                                <small>{getRoleLabel(user.role)}</small>
-                            </div>
-                        </div>
-                    ) : (
-                        <a className="dark-button" href="/auth/login">
-                            Đăng nhập
-                        </a>
-                    )}
-                </div>
-            </header>
+            <PublicHeader active="events" />
 
             <section className="events-hero">
                 <div className="breadcrumb">
@@ -298,6 +244,7 @@ function EventsPage() {
                     </nav>
                 </div>
             </section>
+            <PublicFooter />
         </main>
     );
 }
@@ -337,7 +284,11 @@ function EventListCard({ event }: { event: EventListItem }) {
                 </div>
             </div>
             <div className="event-list-body">
-                <h2>{event.title}</h2>
+                <h2>
+                    <a href={`/events/${toEventSlug(event.title)}`}>
+                        {event.title}
+                    </a>
+                </h2>
                 <p>
                     <MaterialIcon>location_on</MaterialIcon>
                     {event.location}
@@ -352,14 +303,13 @@ function EventListCard({ event }: { event: EventListItem }) {
     );
 }
 
-function getInitials(name: string) {
-    return name
-        .split(' ')
-        .filter(Boolean)
-        .slice(-2)
-        .map((part) => part[0])
-        .join('')
-        .toUpperCase();
-}
-
 export default EventsPage;
+
+function toEventSlug(title: string) {
+    return title
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
+}

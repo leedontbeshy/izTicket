@@ -1,0 +1,959 @@
+.event-detail-page {
+    min-height: 100vh;
+    padding: 0 32px 48px;
+    color: var(--ink);
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, sans-serif;
+    background:
+        radial-gradient(circle at 92% 3%, rgba(8, 91, 247, 0.08), transparent 20%),
+        linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
+}
+
+.event-detail-page .site-header,
+.detail-breadcrumb,
+.detail-layout {
+    max-width: var(--container);
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.detail-breadcrumb {
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #8a94a6;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.detail-breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-breadcrumb .material-symbols-outlined {
+    font-size: 17px;
+}
+
+.detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 410px;
+    gap: 18px;
+    align-items: start;
+}
+
+.detail-main {
+    display: grid;
+    gap: 16px;
+}
+
+.event-hero-card,
+.info-card,
+.ticket-panel,
+.ticket-benefits,
+.review-summary > article,
+.related-card {
+    background: #ffffff;
+    border: 1px solid #e3e9f2;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(18, 23, 34, 0.06);
+}
+
+.event-hero-card {
+    height: 350px;
+    position: relative;
+    overflow: hidden;
+}
+
+.event-hero-card::after {
+    position: absolute;
+    inset: 0;
+    content: '';
+    background: linear-gradient(180deg, transparent 42%, rgba(5, 8, 16, 0.82));
+}
+
+.event-hero-card > img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.hero-favorite,
+.photo-button {
+    position: absolute;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+}
+
+.hero-favorite {
+    width: 40px;
+    height: 40px;
+    top: 16px;
+    right: 16px;
+    color: #172033;
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+.event-hero-overlay {
+    position: absolute;
+    right: 24px;
+    bottom: 22px;
+    left: 24px;
+    z-index: 2;
+    color: #ffffff;
+}
+
+.event-hero-overlay > span {
+    width: fit-content;
+    padding: 9px 14px;
+    display: block;
+    background: var(--blue);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.event-hero-overlay h1 {
+    margin: 12px 0 10px;
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.hero-meta-line,
+.hero-tags,
+.photo-button,
+.about-card,
+.event-facts article,
+.location-card,
+.ticket-panel header,
+.quantity-row,
+.quantity-row > div,
+.ticket-total button,
+.ticket-total p,
+.ticket-benefits article,
+.related-card section,
+.attendee-review > div:first-child {
+    display: flex;
+    align-items: center;
+}
+
+.hero-meta-line {
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.hero-meta-line p {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.94);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.hero-meta-line .material-symbols-outlined {
+    font-size: 17px;
+}
+
+.hero-tags {
+    margin-top: 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.hero-tags strong {
+    padding: 8px 13px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.photo-button {
+    right: 16px;
+    bottom: 16px;
+    gap: 8px;
+    padding: 12px 16px;
+    color: #111827;
+    background: #ffffff;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.info-card {
+    padding: 20px;
+}
+
+.info-card h2,
+.reviews-section h2,
+.related-section h2 {
+    margin: 0;
+    color: #141b28;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.info-card p {
+    color: #4f596b;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.7;
+}
+
+.about-card {
+    align-items: stretch;
+    gap: 28px;
+}
+
+.about-card > div:first-child {
+    flex: 1 1 auto;
+}
+
+.about-card a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.event-facts {
+    width: 280px;
+    display: grid;
+    gap: 16px;
+    padding-left: 20px;
+    border-left: 1px solid #e8edf4;
+}
+
+.event-facts article {
+    gap: 12px;
+}
+
+.event-facts article > span,
+.ticket-benefits article > span {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blue);
+    background: #eef4ff;
+    border-radius: 50%;
+}
+
+.event-facts h3,
+.ticket-benefits h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.event-facts p,
+.ticket-benefits p {
+    margin: 3px 0 0;
+    color: #697386;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.45;
+    white-space: pre-line;
+}
+
+.lineup-card {
+    padding-top: 18px;
+}
+
+.artist-row {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.artist-row article {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    color: #344054;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.artist-row img,
+.more-artists {
+    width: 58px;
+    height: 58px;
+    border-radius: 50%;
+}
+
+.artist-row img {
+    object-fit: cover;
+}
+
+.more-artists {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff !important;
+    background: #11161f;
+    font-size: 10px !important;
+}
+
+.location-card {
+    gap: 24px;
+}
+
+.location-card > div:first-child {
+    flex: 1 1 260px;
+}
+
+.location-card h3 {
+    margin: 14px 0 6px;
+    color: #172033;
+    font-size: 15px;
+}
+
+.location-card p {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 8px 0;
+}
+
+.location-card button {
+    min-height: 42px;
+    margin-top: 8px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #111827;
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.map-preview {
+    min-height: 170px;
+    flex: 1 1 360px;
+    display: grid;
+    place-items: center;
+    background:
+        linear-gradient(90deg, rgba(8, 91, 247, 0.08) 1px, transparent 1px),
+        linear-gradient(rgba(8, 91, 247, 0.08) 1px, transparent 1px),
+        #eef3f9;
+    background-size: 34px 34px;
+    border-radius: 12px;
+}
+
+.map-preview > div {
+    padding: 14px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #172033;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(18, 23, 34, 0.12);
+}
+
+.map-preview .material-symbols-outlined {
+    color: #ef3124;
+    font-variation-settings: 'FILL' 1;
+}
+
+.detail-table-card {
+    padding: 0;
+    overflow: hidden;
+}
+
+.detail-table-card nav {
+    display: flex;
+    border-bottom: 1px solid #e8edf4;
+}
+
+.detail-table-card nav a {
+    padding: 16px 22px;
+    color: #475467;
+    border-bottom: 3px solid transparent;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.detail-table-card nav a.active {
+    color: var(--blue);
+    border-color: var(--blue);
+}
+
+.detail-table-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.9fr);
+    gap: 28px;
+    padding: 18px 22px 22px;
+}
+
+.detail-table-grid table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.detail-table-grid th,
+.detail-table-grid td {
+    padding: 12px 8px;
+    border-bottom: 1px solid #e8edf4;
+    color: #344054;
+    font-size: 12px;
+    line-height: 1.35;
+    text-align: left;
+    white-space: pre-line;
+}
+
+.detail-table-grid th {
+    width: 40%;
+    color: #172033;
+    font-weight: 800;
+}
+
+.detail-table-grid h3 {
+    margin: 0 0 10px;
+    font-size: 13px;
+}
+
+.detail-table-grid ul {
+    margin: 0;
+    padding-left: 18px;
+    color: #4f596b;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.7;
+}
+
+.detail-table-grid a {
+    margin-top: 12px;
+    display: inline-block;
+    color: var(--blue);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.ticket-sidebar {
+    position: sticky;
+    top: 16px;
+    display: grid;
+    gap: 16px;
+}
+
+.ticket-panel {
+    padding: 18px;
+}
+
+.ticket-panel header {
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ticket-panel h2 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.ticket-panel header span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ticket-panel header strong {
+    color: #ef3124;
+}
+
+.ticket-options {
+    display: grid;
+    gap: 12px;
+}
+
+.ticket-options article {
+    padding: 18px;
+    border: 1px solid #e0e7f1;
+    border-radius: 12px;
+}
+
+.ticket-options article.selected {
+    border-color: #ff78bd;
+    box-shadow: 0 0 0 1px #ffb8da inset;
+}
+
+.ticket-options article > div:first-child {
+    display: grid;
+    grid-template-columns: 12px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+}
+
+.ticket-options article > div:first-child > span {
+    width: 12px;
+    height: 12px;
+    background: var(--ticket-color);
+    border-radius: 50%;
+}
+
+.ticket-options h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.ticket-options em {
+    width: fit-content;
+    grid-column: 2;
+    padding: 4px 8px;
+    color: #ff2f92;
+    background: #fff0f7;
+    border-radius: 999px;
+    font-size: 10px;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.ticket-options article > div:first-child strong {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.ticket-options article > p {
+    margin: 12px 0 18px 20px;
+    color: #697386;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.quantity-row {
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.quantity-row label,
+.quantity-row small {
+    color: #667085;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.quantity-row > div {
+    overflow: hidden;
+    border: 1px solid #dfe5ee;
+    border-radius: 8px;
+}
+
+.quantity-row button {
+    width: 34px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #344054;
+    background: #ffffff;
+    border: 0;
+}
+
+.quantity-row button .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.quantity-row > div span {
+    width: 38px;
+    text-align: center;
+    color: #172033;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.quantity-row small {
+    display: grid;
+    justify-items: end;
+    gap: 4px;
+}
+
+.quantity-row small strong {
+    color: #172033;
+    font-size: 13px;
+}
+
+.ticket-total {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e8edf4;
+}
+
+.ticket-total > div {
+    display: grid;
+    justify-items: end;
+    gap: 3px;
+}
+
+.ticket-total > div span {
+    justify-self: start;
+    color: #172033;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ticket-total > div strong {
+    color: #111827;
+    font-size: 24px;
+    font-weight: 800;
+}
+
+.ticket-total small {
+    color: #8a94a6;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ticket-total button {
+    width: 100%;
+    height: 52px;
+    margin-top: 18px;
+    justify-content: center;
+    gap: 12px;
+    color: #ffffff;
+    background: #11161f;
+    border: 0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ticket-total button:disabled {
+    opacity: 0.45;
+}
+
+.ticket-total p {
+    justify-content: center;
+    gap: 7px;
+    margin: 12px 0 0;
+    color: #8a94a6;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ticket-total p .material-symbols-outlined {
+    font-size: 15px;
+}
+
+.ticket-benefits {
+    padding: 22px;
+    display: grid;
+    gap: 18px;
+}
+
+.ticket-benefits article {
+    gap: 12px;
+}
+
+.reviews-section,
+.related-section {
+    display: grid;
+    gap: 14px;
+}
+
+.review-summary {
+    display: grid;
+    grid-template-columns: 220px 220px repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.review-summary > article {
+    padding: 18px;
+}
+
+.rating-card {
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+.rating-card strong {
+    color: #111827;
+    font-size: 34px;
+    font-weight: 800;
+}
+
+.rating-card strong span {
+    font-size: 16px;
+}
+
+.review-stars {
+    display: flex;
+    gap: 2px;
+    color: #ffb000;
+}
+
+.review-stars .material-symbols-outlined {
+    font-size: 17px;
+    font-variation-settings: 'FILL' 1, 'wght' 700;
+}
+
+.rating-card p,
+.attendee-review p {
+    margin: 10px 0 0;
+    color: #667085;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.rating-bars {
+    display: grid;
+    gap: 7px;
+}
+
+.rating-bars div {
+    display: grid;
+    grid-template-columns: 32px minmax(0, 1fr) 36px;
+    align-items: center;
+    gap: 8px;
+    color: #475467;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.rating-bars i {
+    height: 8px;
+    overflow: hidden;
+    background: #eef1f5;
+    border-radius: 999px;
+}
+
+.rating-bars b {
+    height: 100%;
+    display: block;
+    background: #ffb000;
+}
+
+.attendee-review {
+    min-width: 0;
+}
+
+.attendee-review > div:first-child {
+    gap: 10px;
+}
+
+.attendee-review img {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.attendee-review span {
+    display: grid;
+}
+
+.attendee-review strong {
+    color: #172033;
+    font-size: 12px;
+}
+
+.attendee-review small {
+    color: #8a94a6;
+    font-size: 11px;
+}
+
+.attendee-review .review-stars {
+    margin-top: 14px;
+}
+
+.related-section .section-title-row {
+    margin-bottom: 0;
+}
+
+.related-section .section-title-row button {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #1f2735;
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
+    border-radius: 50%;
+}
+
+.related-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.related-card {
+    overflow: hidden;
+}
+
+.related-card > div {
+    height: 110px;
+    position: relative;
+    overflow: hidden;
+}
+
+.related-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.related-card section {
+    gap: 12px;
+    padding: 12px;
+}
+
+.related-card time {
+    width: 38px;
+    flex: 0 0 38px;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    white-space: pre-line;
+}
+
+.related-card h3 {
+    margin: 0;
+    color: #172033;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.related-card p,
+.related-card strong {
+    margin: 4px 0 0;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.related-card strong {
+    color: #111827;
+}
+
+.related-card section button {
+    margin-left: auto;
+    color: #667085;
+    background: transparent;
+    border: 0;
+}
+
+@media (max-width: 1260px) {
+    .detail-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ticket-sidebar {
+        position: static;
+    }
+
+    .review-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 920px) {
+    .event-detail-page {
+        padding: 0 20px 38px;
+    }
+
+    .event-hero-card {
+        height: 300px;
+    }
+
+    .event-hero-overlay h1 {
+        font-size: 26px;
+    }
+
+    .about-card,
+    .location-card {
+        flex-direction: column;
+    }
+
+    .event-facts {
+        width: 100%;
+        padding-left: 0;
+        border-left: 0;
+    }
+
+    .artist-row,
+    .related-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .detail-table-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .event-detail-page {
+        padding: 0 14px 28px;
+    }
+
+    .detail-breadcrumb {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        padding: 12px 0;
+    }
+
+    .event-hero-card {
+        height: 360px;
+    }
+
+    .photo-button {
+        right: 12px;
+        bottom: 12px;
+    }
+
+    .hero-meta-line {
+        gap: 10px;
+    }
+
+    .artist-row,
+    .related-grid,
+    .review-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .quantity-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .quantity-row small {
+        justify-items: start;
+    }
+}

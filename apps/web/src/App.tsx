@@ -1,4 +1,5 @@
 import AuthPage from './AuthPage';
+import EventDetailPage from './EventDetailPage';
 import EventsPage from './EventsPage';
 import { getRoleLabel, getStoredAuthUser } from './authSession';
 import './App.css';
@@ -380,6 +381,14 @@ function App() {
 
     if (path === '/events') {
         return <EventsPage />;
+    }
+
+    if (path.startsWith('/events/')) {
+        return (
+            <EventDetailPage
+                eventId={decodeURIComponent(path.replace('/events/', ''))}
+            />
+        );
     }
 
     return (
