@@ -22,6 +22,23 @@ type Metric = {
     label: string;
 };
 
+type Review = {
+    quote: string;
+    name: string;
+    role: string;
+    avatar: string;
+};
+
+type Sponsor = {
+    name: string;
+    tone: 'green' | 'magenta' | 'red' | 'orange' | 'blue' | 'navy';
+};
+
+type FooterGroup = {
+    title: string;
+    links: string[];
+};
+
 const events: EventCard[] = [
     {
         title: 'Đen Vâu Live in Concert',
@@ -120,6 +137,105 @@ const metrics: Metric[] = [
     },
 ];
 
+const categoryTabs = ['Âm nhạc', 'Thể thao', 'Hội thảo', 'Giải trí', 'Workshop', 'Esports'];
+
+const categoryEvents: EventCard[] = [
+    {
+        title: 'Dalies Live 2026',
+        date: '22.06.2026',
+        location: 'Hà Nội',
+        price: 'Từ 550.000đ',
+        status: '',
+        image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=640&q=80',
+    },
+    {
+        title: 'Hoàng Thùy Linh Vietnam Tour',
+        date: '28.06.2026',
+        location: 'TP. HCM',
+        price: 'Từ 480.000đ',
+        status: '',
+        image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=640&q=80',
+    },
+    {
+        title: 'GENFest 2026',
+        date: '12.07.2026',
+        location: 'Hà Nội',
+        price: 'Từ 650.000đ',
+        status: '',
+        image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=640&q=80',
+    },
+    {
+        title: 'Tùng Dương Live Concert',
+        date: '19.07.2026',
+        location: 'Hà Nội',
+        price: 'Từ 600.000đ',
+        status: '',
+        image: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=640&q=80',
+    },
+    {
+        title: 'Đêm Nhạc Acoustic Tháng 7',
+        date: '26.07.2026',
+        location: 'TP. HCM',
+        price: 'Từ 250.000đ',
+        status: '',
+        image: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=640&q=80',
+    },
+];
+
+const reviews: Review[] = [
+    {
+        quote: 'Mua vé cực nhanh, nhận vé trong 30 giây. Giao diện dễ dùng và rất chuyên nghiệp.',
+        name: 'Nguyễn Minh Anh',
+        role: 'Khách hàng',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+        quote: 'Tổ chức sự kiện dễ hơn nhiều nhờ công cụ quản lý và báo cáo của izTicket.',
+        name: 'Trần Quốc Trung',
+        role: 'BTC Tech Summit',
+        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+        quote: 'Thanh toán an toàn, hỗ trợ nhiệt tình. Sẽ tiếp tục đồng hành cùng izTicket!',
+        name: 'Lê Phương Linh',
+        role: 'Khách hàng',
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
+    },
+];
+
+const sponsors: Sponsor[] = [
+    { name: 'Vietcombank', tone: 'green' },
+    { name: 'momo', tone: 'magenta' },
+    { name: 'TECHCOMBANK', tone: 'red' },
+    { name: 'FPT', tone: 'orange' },
+    { name: 'VNG', tone: 'orange' },
+    { name: 'SePay', tone: 'blue' },
+];
+
+const faqs = [
+    'Làm sao để nhận vé sau khi thanh toán?',
+    'izTicket có đảm bảo vé thật không?',
+    'Có hoàn tiền nếu không tham dự được không?',
+    'Thanh toán qua SePay có an toàn không?',
+    'Tôi có thể chuyển nhượng vé cho người khác không?',
+    'Tôi cần hỗ trợ, liên hệ ở đâu?',
+];
+
+const footerGroups: FooterGroup[] = [
+    {
+        title: 'Về izTicket',
+        links: ['Giới thiệu', 'Tin tức', 'Tuyển dụng', 'Liên hệ'],
+    },
+    {
+        title: 'Hỗ trợ',
+        links: ['Trung tâm trợ giúp', 'Hướng dẫn mua vé', 'Chính sách bảo mật', 'Điều khoản sử dụng'],
+    },
+    {
+        title: 'Dành cho tổ chức',
+        links: ['Tạo sự kiện', 'Bảng giá', 'Tính năng', 'Tài liệu hướng dẫn'],
+    },
+];
+
 function MaterialIcon({
     children,
     className = '',
@@ -168,6 +284,53 @@ function EventCard({ event }: { event: EventCard }) {
                     <button type="button" aria-label={`Lưu ${event.title}`}>
                         <MaterialIcon>favorite</MaterialIcon>
                     </button>
+                </div>
+            </div>
+        </article>
+    );
+}
+
+function CategoryEventCard({ event }: { event: EventCard }) {
+    return (
+        <article className="category-event-card">
+            <img src={event.image} alt={event.title} />
+            <div className="category-event-body">
+                <h3>{event.title}</h3>
+                <div className="event-meta-row">
+                    <span>
+                        <MaterialIcon>calendar_today</MaterialIcon>
+                        {event.date}
+                    </span>
+                    <span>
+                        <MaterialIcon>location_on</MaterialIcon>
+                        {event.location}
+                    </span>
+                </div>
+                <div className="event-price-row">
+                    <strong>{event.price}</strong>
+                    <button type="button" aria-label={`Lưu ${event.title}`}>
+                        <MaterialIcon>favorite</MaterialIcon>
+                    </button>
+                </div>
+            </div>
+        </article>
+    );
+}
+
+function ReviewCard({ review }: { review: Review }) {
+    return (
+        <article className="review-card">
+            <div className="stars" aria-label="5 sao">
+                {[0, 1, 2, 3, 4].map((star) => (
+                    <MaterialIcon key={star}>star</MaterialIcon>
+                ))}
+            </div>
+            <p>{review.quote}</p>
+            <div className="reviewer">
+                <img src={review.avatar} alt={review.name} />
+                <div>
+                    <h3>{review.name}</h3>
+                    <span>{review.role}</span>
                 </div>
             </div>
         </article>
@@ -358,6 +521,145 @@ function App() {
                     </article>
                 ))}
             </section>
+
+            <section className="category-showcase">
+                <div className="section-title-row">
+                    <div>
+                        <h2>Sự kiện sắp diễn ra theo danh mục</h2>
+                        <div className="category-tabs" aria-label="Danh mục sự kiện">
+                            {categoryTabs.map((tab, index) => (
+                                <button
+                                    className={index === 0 ? 'active' : ''}
+                                    key={tab}
+                                    type="button"
+                                >
+                                    {tab}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <a href="#events">
+                        Xem tất cả
+                        <MaterialIcon>arrow_forward</MaterialIcon>
+                    </a>
+                </div>
+
+                <div className="category-event-row">
+                    {categoryEvents.map((event) => (
+                        <CategoryEventCard event={event} key={event.title} />
+                    ))}
+                    <button className="round-next-button" type="button" aria-label="Xem thêm sự kiện">
+                        <MaterialIcon>chevron_right</MaterialIcon>
+                    </button>
+                </div>
+            </section>
+
+            <section className="social-proof-section">
+                <div className="reviews-block">
+                    <h2>Khách hàng nói gì về izTicket</h2>
+                    <div className="review-grid">
+                        {reviews.map((review) => (
+                            <ReviewCard key={review.name} review={review} />
+                        ))}
+                    </div>
+                </div>
+
+                <div className="sponsors-block">
+                    <h2>Được tin dùng bởi</h2>
+                    <div className="sponsor-grid">
+                        {sponsors.map((sponsor) => (
+                            <article className={`sponsor-card ${sponsor.tone}`} key={sponsor.name}>
+                                {sponsor.name}
+                            </article>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            <section className="faq-section">
+                <h2>Câu hỏi thường gặp</h2>
+                <div className="faq-grid">
+                    {faqs.map((question) => (
+                        <details className="faq-item" key={question}>
+                            <summary>
+                                {question}
+                                <MaterialIcon>expand_more</MaterialIcon>
+                            </summary>
+                            <p>
+                                Đội ngũ izTicket luôn sẵn sàng hỗ trợ để giao dịch
+                                của bạn diễn ra rõ ràng và an toàn.
+                            </p>
+                        </details>
+                    ))}
+                </div>
+            </section>
+
+            <section className="bottom-cta">
+                <div>
+                    <h2>Sẵn sàng khám phá sự kiện tiếp theo?</h2>
+                    <p>Hàng ngàn sự kiện đang chờ bạn. Đừng bỏ lỡ!</p>
+                </div>
+                <a href="#events">
+                    Tìm sự kiện ngay
+                    <MaterialIcon>arrow_forward</MaterialIcon>
+                </a>
+            </section>
+
+            <footer className="site-footer">
+                <div className="footer-brand">
+                    <a className="brand" href="#">
+                        <BrandMark />
+                        <span>izTicket</span>
+                    </a>
+                    <p>
+                        Nền tảng vé sự kiện thông minh.
+                        <br />
+                        Kết nối bạn với những trải nghiệm đáng nhớ.
+                    </p>
+                    <div className="social-links" aria-label="Mạng xã hội">
+                        {['facebook', 'photo_camera', 'music_note', 'smart_display'].map((icon) => (
+                            <a href="#" key={icon}>
+                                <MaterialIcon>{icon}</MaterialIcon>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+
+                {footerGroups.map((group) => (
+                    <nav className="footer-column" key={group.title} aria-label={group.title}>
+                        <h2>{group.title}</h2>
+                        {group.links.map((link) => (
+                            <a href="#" key={link}>
+                                {link}
+                            </a>
+                        ))}
+                    </nav>
+                ))}
+
+                <div className="footer-column contact-column" id="support">
+                    <h2>Liên hệ</h2>
+                    <span>
+                        <MaterialIcon>mail</MaterialIcon>
+                        support@izticket.vn
+                    </span>
+                    <span>
+                        <MaterialIcon>call</MaterialIcon>
+                        1900 1234
+                    </span>
+                    <span>
+                        <MaterialIcon>location_on</MaterialIcon>
+                        S9C Nguyễn Đình Chiểu, P. Võ Thị Sáu, Q.3, TP.HCM
+                    </span>
+                </div>
+
+                <div className="footer-bottom">
+                    <span>© 2026 izTicket. All rights reserved.</span>
+                    <button className="footer-language" type="button">
+                        VI
+                        <MaterialIcon>expand_more</MaterialIcon>
+                    </button>
+                </div>
+            </footer>
         </main>
     );
 }
