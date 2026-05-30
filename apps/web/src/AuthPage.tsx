@@ -1,22 +1,16 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
+import { saveAuthSession, type StoredAuthUser } from './authSession';
 import './AuthPage.css';
 
 type AuthMode = 'login' | 'register';
 type UserRole = 'CUSTOMER' | 'ORGANIZER';
 
-type PublicUser = {
-    id: string;
-    name: string;
-    email: string;
-    role: UserRole | 'ADMIN';
-};
-
 type LoginResponse = {
     accessToken: string;
-    user: PublicUser;
+    user: StoredAuthUser;
 };
 
-type RegisterResponse = PublicUser;
+type RegisterResponse = StoredAuthUser;
 
 type ValidationDetail = {
     field: string;
@@ -109,14 +103,7 @@ function AuthPage({ mode }: { mode: AuthMode }) {
                     password: form.password,
                 });
 
-                sessionStorage.setItem(
-                    'izticket_access_token',
-                    response.accessToken,
-                );
-                sessionStorage.setItem(
-                    'izticket_user',
-                    JSON.stringify(response.user),
-                );
+                saveAuthSession(response.accessToken, response.user);
                 setMessage('Đăng nhập thành công. Đang chuyển về trang chủ...');
                 window.setTimeout(() => window.location.assign('/'), 600);
                 return;

@@ -1,4 +1,6 @@
 import AuthPage from './AuthPage';
+import EventsPage from './EventsPage';
+import { getRoleLabel, getStoredAuthUser } from './authSession';
 import './App.css';
 
 type EventCard = {
@@ -338,6 +340,33 @@ function ReviewCard({ review }: { review: Review }) {
     );
 }
 
+function HeaderAccountActions() {
+    const user = getStoredAuthUser();
+
+    if (!user) {
+        return (
+            <>
+                <a className="ghost-button" href="/auth/login">
+                    Đăng nhập
+                </a>
+                <a className="dark-button" href="/auth/register">
+                    Đăng ký
+                </a>
+            </>
+        );
+    }
+
+    return (
+        <div className="user-chip">
+            <span>{getInitials(user.name)}</span>
+            <div>
+                <strong>{user.name}</strong>
+                <small>{getRoleLabel(user.role)}</small>
+            </div>
+        </div>
+    );
+}
+
 function App() {
     const path = window.location.pathname;
 
@@ -349,10 +378,14 @@ function App() {
         return <AuthPage mode="register" />;
     }
 
+    if (path === '/events') {
+        return <EventsPage />;
+    }
+
     return (
         <main className="landing-shell">
             <header className="site-header">
-                <a className="brand" href="#">
+                <a className="brand" href="/">
                     <BrandMark />
                     <span>izTicket</span>
                 </a>
@@ -361,8 +394,8 @@ function App() {
                     <a className="active" href="#">
                         Trang chủ
                     </a>
-                    <a href="#events">Sự kiện</a>
-                    <a href="#organizers">Dành cho tổ chức</a>
+                    <a href="/events">Sự kiện</a>
+                    <a href="/#organizers">Dành cho tổ chức</a>
                     <a href="#about">Giới thiệu</a>
                     <a href="#support">Hỗ trợ</a>
                 </nav>
@@ -373,12 +406,7 @@ function App() {
                         VI
                         <MaterialIcon>expand_more</MaterialIcon>
                     </button>
-                    <a className="ghost-button" href="/auth/login">
-                        Đăng nhập
-                    </a>
-                    <a className="dark-button" href="/auth/register">
-                        Đăng ký
-                    </a>
+                    <HeaderAccountActions />
                 </div>
             </header>
 
@@ -673,6 +701,16 @@ function App() {
             </footer>
         </main>
     );
+}
+
+function getInitials(name: string) {
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(-2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase();
 }
 
 export default App;
