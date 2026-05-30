@@ -1,0 +1,321 @@
+/* AdminReviewPage — page-specific styles */
+
+.ar-event-header {
+    margin-bottom: 28px;
+}
+
+.ar-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.ar-title-group h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #09090b;
+    margin: 0;
+    line-height: 1.28;
+}
+
+/* ── Two-column grid ── */
+
+.ar-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .ar-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ar-main-col,
+.ar-side-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* ── Cards ── */
+
+.ar-card {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow: rgb(228, 228, 231) 0px 1px 0px 0px inset;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.ar-card h2 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #09090b;
+    margin: 0;
+}
+
+/* ── Definition list ── */
+
+.ar-dl {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ar-dl > div {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 8px;
+    align-items: baseline;
+}
+
+.ar-dl dt {
+    font-size: 12px;
+    font-weight: 600;
+    color: #71717a;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.ar-dl dd {
+    font-size: 14px;
+    color: #09090b;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.ar-muted {
+    color: #71717a;
+    font-size: 13px;
+}
+
+/* ── Thumbnail ── */
+
+.ar-thumbnail {
+    width: 100%;
+    max-width: 320px;
+    border-radius: 12px;
+    object-fit: cover;
+    display: block;
+}
+
+/* ── Description ── */
+
+.ar-description {
+    font-size: 14px;
+    color: #3f3f46;
+    line-height: 1.7;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+/* ── Ticket list ── */
+
+.ar-ticket-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ar-ticket-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #f4f4f5;
+    border-radius: 12px;
+    flex-wrap: wrap;
+}
+
+.ar-ticket-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #09090b;
+    flex: 1;
+    min-width: 120px;
+}
+
+.ar-ticket-price {
+    font-size: 14px;
+    font-weight: 700;
+    color: #09090b;
+    flex-shrink: 0;
+}
+
+/* ── Action card ── */
+
+.ar-action-card {
+    gap: 12px;
+}
+
+.ar-approve-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 12px;
+    background: #09090b;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    border: none;
+    border-radius: 36px;
+    cursor: pointer;
+    box-shadow:
+        rgba(255, 255, 255, 0.5) 0px 0.5px 0px 0px inset,
+        rgba(117, 123, 133, 0.4) 0px 9px 14px -5px inset,
+        rgb(44, 46, 52) 0px 0px 0px 1.5px,
+        rgba(0, 0, 0, 0.14) 0px 4px 6px 0px;
+    transition: opacity 0.15s;
+}
+
+.ar-approve-btn:hover {
+    opacity: 0.88;
+}
+
+.ar-approve-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ar-approve-btn .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.ar-reject-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 11px;
+    background: #ffffff;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    border: 1px solid #fecaca;
+    border-radius: 36px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.ar-reject-btn:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+
+.ar-reject-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ar-reject-btn .material-symbols-outlined {
+    font-size: 16px;
+}
+
+/* ── Reject form ── */
+
+.ar-reject-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ar-reason-input {
+    font-family: inherit;
+    font-size: 14px;
+    color: #09090b;
+    background: #ffffff;
+    border: 1px solid #d4d4d8;
+    border-radius: 14px;
+    padding: 10px 14px;
+    outline: none;
+    resize: vertical;
+    line-height: 1.56;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ar-reason-input:focus {
+    border-color: #09090b;
+    box-shadow: 0 0 0 3px rgba(9, 9, 11, 0.08);
+}
+
+.ar-reject-confirm-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: #dc2626;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    border: none;
+    border-radius: 36px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.ar-reject-confirm-btn:hover {
+    opacity: 0.88;
+}
+
+.ar-reject-confirm-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ── Review history ── */
+
+.ar-review-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ar-review-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    background: #f4f4f5;
+    border-radius: 12px;
+}
+
+.ar-review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ar-decision {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    border-radius: 10px;
+}
+
+.ar-approved {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.ar-rejected {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.ar-review-reason {
+    font-size: 13px;
+    color: #3f3f46;
+    margin: 4px 0 0;
+    line-height: 1.5;
+}
