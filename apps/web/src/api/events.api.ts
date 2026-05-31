@@ -37,6 +37,46 @@ export type PageResponse<T> = {
     total: number;
 };
 
+export type PublicEventListItem = {
+    id: string;
+    title: string;
+    slug: string;
+    status: 'PUBLISHED';
+    venueName: string;
+    city: string;
+    startsAt: string;
+    minPrice: number | null;
+    thumbnailUrl: string | null;
+};
+
+export type PublicTicketType = {
+    id: string;
+    name: string;
+    description: string | null;
+    price: number;
+    availableQuantity: number;
+    saleStartsAt: string | null;
+    saleEndsAt: string | null;
+};
+
+export type PublicEventDetail = {
+    id: string;
+    title: string;
+    description: string;
+    status: 'PUBLISHED';
+    thumbnailUrl: string | null;
+    startsAt: string;
+    endsAt: string;
+    venue: {
+        name: string;
+        address: string;
+        city: string;
+        district: string | null;
+        mapUrl: string | null;
+    };
+    ticketTypes: PublicTicketType[];
+};
+
 export type EventVenuePayload = {
     name: string;
     address: string;
@@ -59,6 +99,27 @@ export function listOrganizerEvents(page = 1, limit = 20) {
     return apiGet<PageResponse<OrganizerEvent>>(
         `/organizer/events?page=${page}&limit=${limit}`,
     );
+}
+
+export function listPublicEvents(params: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    city?: string;
+} = {}) {
+    const search = new URLSearchParams();
+    search.set('page', String(params.page ?? 1));
+    search.set('limit', String(params.limit ?? 20));
+    if (params.q?.trim()) search.set('q', params.q.trim());
+    if (params.city?.trim()) search.set('city', params.city.trim());
+
+    return apiGet<PageResponse<PublicEventListItem>>(
+        `/events?${search.toString()}`,
+    );
+}
+
+export function getPublicEvent(eventId: string) {
+    return apiGet<PublicEventDetail>(`/events/${eventId}`);
 }
 
 export function createEvent(payload: CreateEventPayload) {
