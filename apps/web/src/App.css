@@ -88,6 +88,7 @@ a {
 .ghost-button,
 .dark-button,
 .user-chip,
+.header-logout-button,
 .search-panel,
 .search-field,
 .location-select,
@@ -181,7 +182,8 @@ a {
 
 .language-button,
 .ghost-button,
-.dark-button {
+.dark-button,
+.header-logout-button {
     height: 40px;
     justify-content: center;
     border-radius: 12px;
@@ -190,7 +192,8 @@ a {
 }
 
 .language-button,
-.ghost-button {
+.ghost-button,
+.header-logout-button {
     color: #1e2533;
     background: #ffffff;
     border: 1px solid var(--line);
@@ -208,6 +211,15 @@ a {
 
 .ghost-button {
     padding: 0 24px;
+}
+
+.header-logout-button {
+    gap: 8px;
+    padding: 0 16px;
+}
+
+.header-logout-button .material-symbols-outlined {
+    font-size: 19px;
 }
 
 .dark-button {
@@ -1569,7 +1581,8 @@ a {
     }
 
     .ghost-button,
-    .dark-button {
+    .dark-button,
+    .header-logout-button {
         flex: 1 1 130px;
     }
 

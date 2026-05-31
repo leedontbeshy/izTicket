@@ -9,7 +9,8 @@ import {
     type CreateEventPayload,
     type EventStatus,
 } from './api/events.api';
-import { DashHeader, logout } from './DashboardLayout';
+import { DashHeader } from './DashboardLayout';
+import { logout } from './dashboardLogout';
 import './EventFormPage.css';
 
 type Props =

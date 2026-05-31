@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getStoredAuthUser } from './authSession';
 import { listPendingEvents, type PendingEvent } from './api/admin.api';
-import { DashHeader, logout } from './DashboardLayout';
+import { DashHeader } from './DashboardLayout';
+import { logout } from './dashboardLogout';
 
 export function AdminEventsPage() {
     const [events, setEvents] = useState<PendingEvent[]>([]);

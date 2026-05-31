@@ -196,6 +196,9 @@
 }
 
 .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     background: none;
     border: none;
     font-size: 14px;
@@ -211,6 +214,10 @@
 .btn-ghost:hover {
     background: #f4f4f5;
     color: #09090b;
+}
+
+.btn-ghost .material-symbols-outlined {
+    font-size: 18px;
 }
 
 .btn-ghost-sm {

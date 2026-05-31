@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getStoredAuthUser } from './authSession';
 import { listOrganizerEvents, type OrganizerEvent } from './api/events.api';
-import { DashHeader, logout } from './DashboardLayout';
+import { DashHeader } from './DashboardLayout';
+import { logout } from './dashboardLogout';
 import './OrganizerEventsPage.css';
 
 const STATUS_LABEL: Record<string, string> = {

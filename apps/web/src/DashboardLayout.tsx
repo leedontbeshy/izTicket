@@ -46,14 +46,10 @@ export function DashHeader({
                     type="button"
                     onClick={onLogout}
                 >
+                    <span className="material-symbols-outlined">logout</span>
                     Đăng xuất
                 </button>
             </div>
         </header>
     );
-}
-
-export function logout() {
-    sessionStorage.clear();
-    window.location.href = '/';
 }

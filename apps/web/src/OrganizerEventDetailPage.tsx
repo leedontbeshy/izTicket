@@ -8,7 +8,8 @@ import {
     type CreateTicketTypePayload,
 } from './api/ticket-types.api';
 import { listEventOrders, type OrganizerOrder, type OrderStatus } from './api/orders.api';
-import { DashHeader, logout } from './DashboardLayout';
+import { DashHeader } from './DashboardLayout';
+import { logout } from './dashboardLogout';
 import './OrganizerEventDetailPage.css';
 
 type Props = { eventId: string };

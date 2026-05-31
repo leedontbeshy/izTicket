@@ -6,7 +6,8 @@ import {
     rejectEvent,
     type AdminEventDetail,
 } from './api/admin.api';
-import { DashHeader, logout } from './DashboardLayout';
+import { DashHeader } from './DashboardLayout';
+import { logout } from './dashboardLogout';
 import './AdminReviewPage.css';
 
 type Props = { eventId: string };

@@ -68,6 +68,16 @@ export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
     return (await res.json()) as T;
 }
 
+export async function apiPostVoid(path: string, body?: unknown): Promise<void> {
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        credentials: 'include',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error(await readApiError(res));
+}
+
 export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
     const res = await fetch(`${API_BASE_URL}${path}`, {
         method: 'PATCH',

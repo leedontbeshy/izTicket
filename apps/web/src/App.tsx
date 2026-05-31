@@ -7,6 +7,7 @@ import { AdminEventsPage } from './AdminEventsPage';
 import { AdminReviewPage } from './AdminReviewPage';
 import { OrganizerEventDetailPage } from './OrganizerEventDetailPage';
 import { getRoleLabel, getStoredAuthUser } from './authSession';
+import { logout } from './dashboardLogout';
 import './App.css';
 
 type EventCard = {
@@ -383,6 +384,10 @@ function HeaderAccountActions() {
                     <small>{getRoleLabel(user.role)}</small>
                 </div>
             </div>
+            <button className="header-logout-button" type="button" onClick={logout}>
+                <MaterialIcon>logout</MaterialIcon>
+                Đăng xuất
+            </button>
         </>
     );
 }
@@ -390,12 +395,13 @@ function HeaderAccountActions() {
 function App() {
     const path = window.location.pathname;
 
-    if (path === '/auth/login') {
-        return <AuthPage mode="login" />;
-    }
+    if (path === '/auth/login' || path === '/auth/register') {
+        if (getStoredAuthUser()) {
+            window.location.replace('/');
+            return null;
+        }
 
-    if (path === '/auth/register') {
-        return <AuthPage mode="register" />;
+        return <AuthPage mode={path === '/auth/login' ? 'login' : 'register'} />;
     }
 
     if (path === '/events') {
