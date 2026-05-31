@@ -43,6 +43,43 @@
     align-items: start;
 }
 
+.detail-state {
+    max-width: var(--container);
+    min-height: 340px;
+    margin: 0 auto;
+    padding: 42px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 12px;
+    color: #667085;
+    background: #ffffff;
+    border: 1px solid #e3e9f2;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(18, 23, 34, 0.06);
+    text-align: center;
+}
+
+.detail-state .material-symbols-outlined {
+    color: var(--blue);
+    font-size: 36px;
+}
+
+.detail-state h1 {
+    margin: 0;
+    color: #172033;
+    font-size: 24px;
+    letter-spacing: 0;
+}
+
+.detail-state p {
+    max-width: 520px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
 .detail-main {
     display: grid;
     gap: 16px;
@@ -350,6 +387,21 @@
     font-weight: 800;
 }
 
+.location-card .map-link {
+    min-height: 42px;
+    margin-top: 8px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #111827;
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .map-preview {
     min-height: 170px;
     flex: 1 1 360px;
@@ -551,6 +603,39 @@
     font-size: 12px;
     font-weight: 600;
     line-height: 1.6;
+}
+
+.availability-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e8edf4;
+}
+
+.availability-row span {
+    color: #667085;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.availability-row strong {
+    color: #172033;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.ticket-empty {
+    margin: 0;
+    padding: 22px;
+    color: #667085;
+    background: #f8faff;
+    border: 1px dashed #d9e2f0;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
 }
 
 .quantity-row {
