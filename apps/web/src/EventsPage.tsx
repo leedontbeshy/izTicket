@@ -1,104 +1,17 @@
-import type { ReactNode } from 'react';
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import {
     MaterialIcon,
     PublicFooter,
     PublicHeader,
 } from './PublicLayout';
+import {
+    listPublicEvents,
+    type PublicEventListItem,
+} from './api/events.api';
 import './EventsPage.css';
 
-type EventListItem = {
-    title: string;
-    date: string;
-    location: string;
-    venue: string;
-    price: string;
-    image: string;
-    status: string;
-    statusTone: 'blue' | 'red';
-};
-
-const eventItems: EventListItem[] = [
-    {
-        title: 'Đen Vâu Live in Concert',
-        date: '10.06',
-        location: 'TP. Hồ Chí Minh',
-        venue: 'Nhà thi đấu Phú Thọ',
-        price: 'Từ 450.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=720&q=80',
-    },
-    {
-        title: 'AMEE Show: Dreamy Night',
-        date: '18.06',
-        location: 'Hà Nội',
-        venue: 'Cung Văn hóa Hữu nghị Việt Xô',
-        price: 'Từ 390.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=720&q=80',
-    },
-    {
-        title: 'V.League 2026 - Vòng 10',
-        date: '01.07',
-        location: 'Hà Nội',
-        venue: 'SVĐ Quốc gia Mỹ Đình',
-        price: 'Từ 120.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=720&q=80',
-    },
-    {
-        title: 'Tech Summit Vietnam 2026',
-        date: '15.07',
-        location: 'TP. Hồ Chí Minh',
-        venue: 'SECC',
-        price: 'Từ 990.000đ',
-        status: 'Mới mở bán',
-        statusTone: 'blue',
-        image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=720&q=80',
-    },
-    {
-        title: 'Disney On Ice Vietnam',
-        date: '20.09',
-        location: 'Đà Nẵng',
-        venue: 'Cung thể thao Tiên Sơn',
-        price: 'Từ 300.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?auto=format&fit=crop&w=720&q=80',
-    },
-    {
-        title: 'Hài Độc Thoại: Cười Xuyên Việt',
-        date: '05.09',
-        location: 'Hà Nội',
-        venue: 'Nhà hát Lớn Hà Nội',
-        price: 'Từ 250.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=720&q=80',
-    },
-    {
-        title: 'VALORANT Champions Tour',
-        date: '12.09',
-        location: 'TP. Hồ Chí Minh',
-        venue: 'Nhà thi đấu Quân khu 7',
-        price: 'Từ 200.000đ',
-        status: 'Mới mở bán',
-        statusTone: 'blue',
-        image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=720&q=80',
-    },
-    {
-        title: 'Hội thảo: AI & Tương lai công việc',
-        date: '25.09',
-        location: 'Hà Nội',
-        venue: 'Trung tâm Hội nghị Quốc gia',
-        price: 'Từ 350.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=720&q=80',
-    },
-];
+const fallbackImage =
+    'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=720&q=80';
 
 const categories = [
     { icon: 'grid_view', label: 'Tất cả', active: true },
@@ -112,17 +25,75 @@ const categories = [
 ];
 
 const sidebarCategories = [
-    ['Tất cả danh mục', '1.236'],
-    ['Âm nhạc', '425'],
-    ['Thể thao', '218'],
-    ['Hội thảo', '198'],
-    ['Giải trí', '162'],
-    ['Workshop', '121'],
-    ['Esports', '73'],
-    ['Triển lãm', '39'],
+    ['Tất cả danh mục', ''],
+    ['Âm nhạc', ''],
+    ['Thể thao', ''],
+    ['Hội thảo', ''],
+    ['Giải trí', ''],
+    ['Workshop', ''],
 ];
 
 function EventsPage() {
+    const [events, setEvents] = useState<PublicEventListItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [query, setQuery] = useState('');
+    const [city, setCity] = useState('');
+    const [submittedFilters, setSubmittedFilters] = useState({
+        q: '',
+        city: '',
+    });
+    const [total, setTotal] = useState(0);
+
+    useEffect(() => {
+        let active = true;
+        setLoading(true);
+        setError('');
+
+        listPublicEvents({
+            page: 1,
+            limit: 20,
+            q: submittedFilters.q,
+            city: submittedFilters.city,
+        })
+            .then((page) => {
+                if (!active) return;
+                setEvents(page.items);
+                setTotal(page.total);
+            })
+            .catch((err: unknown) => {
+                if (!active) return;
+                setEvents([]);
+                setTotal(0);
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Không thể tải danh sách sự kiện.',
+                );
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [submittedFilters]);
+
+    const resultLabel = useMemo(() => {
+        if (loading) return 'Đang tải sự kiện...';
+        if (error) return 'Chưa thể tải sự kiện';
+        return `Hiển thị ${events.length}/${total} sự kiện`;
+    }, [error, events.length, loading, total]);
+
+    function submitFilters(event: FormEvent) {
+        event.preventDefault();
+        setSubmittedFilters({
+            q: query,
+            city,
+        });
+    }
+
     return (
         <main className="events-page">
             <PublicHeader active="events" />
@@ -135,31 +106,36 @@ function EventsPage() {
                 </div>
                 <h1>Tất cả sự kiện</h1>
                 <p>
-                    Khám phá hàng ngàn sự kiện hấp dẫn: âm nhạc, thể thao, hội
-                    thảo và nhiều hơn thế nữa.
+                    Khám phá các sự kiện đã được duyệt và đang mở bán trên izTicket.
                 </p>
 
-                <div className="events-filter-bar">
+                <form className="events-filter-bar" onSubmit={submitFilters}>
                     <label className="events-search">
                         <MaterialIcon>search</MaterialIcon>
-                        <input placeholder="Tìm kiếm sự kiện, nghệ sĩ, địa điểm..." />
+                        <input
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            placeholder="Tìm kiếm sự kiện..."
+                        />
                     </label>
-                    <button type="button">
+                    <label className="events-search">
                         <MaterialIcon>location_on</MaterialIcon>
-                        Tất cả địa điểm
-                        <MaterialIcon>expand_more</MaterialIcon>
-                    </button>
+                        <input
+                            value={city}
+                            onChange={(event) => setCity(event.target.value)}
+                            placeholder="Thành phố"
+                        />
+                    </label>
                     <button type="button">
                         <MaterialIcon>calendar_today</MaterialIcon>
                         Tất cả thời gian
                         <MaterialIcon>expand_more</MaterialIcon>
                     </button>
-                    <button className="filter-button" type="button">
+                    <button className="filter-button" type="submit">
                         <MaterialIcon>tune</MaterialIcon>
-                        Bộ lọc
-                        <span>1</span>
+                        Lọc
                     </button>
-                </div>
+                </form>
 
                 <div className="category-chip-row">
                     {categories.map((category) => (
@@ -172,7 +148,17 @@ function EventsPage() {
                             {category.label}
                         </button>
                     ))}
-                    <a href="#clear">Xóa bộ lọc</a>
+                    <button
+                        className="link-chip"
+                        type="button"
+                        onClick={() => {
+                            setQuery('');
+                            setCity('');
+                            setSubmittedFilters({ q: '', city: '' });
+                        }}
+                    >
+                        Xóa bộ lọc
+                    </button>
                 </div>
             </section>
 
@@ -202,10 +188,10 @@ function EventsPage() {
 
                 <div className="events-results">
                     <div className="result-toolbar">
-                        <p>Hiển thị 1.236 sự kiện</p>
+                        <p>{resultLabel}</p>
                         <div>
                             <button className="sort-button" type="button">
-                                Sắp xếp: Mới nhất
+                                Sắp xếp: Sớm nhất
                                 <MaterialIcon>expand_more</MaterialIcon>
                             </button>
                             <button className="view-button active" type="button">
@@ -217,31 +203,27 @@ function EventsPage() {
                         </div>
                     </div>
 
-                    <div className="event-list-grid">
-                        {eventItems.map((event) => (
-                            <EventListCard event={event} key={event.title} />
-                        ))}
-                    </div>
-
-                    <nav className="pagination" aria-label="Phân trang sự kiện">
-                        <button type="button">
-                            <MaterialIcon>chevron_left</MaterialIcon>
-                        </button>
-                        {[1, 2, 3, 4, 5].map((page) => (
-                            <button
-                                className={page === 1 ? 'active' : ''}
-                                key={page}
-                                type="button"
-                            >
-                                {page}
-                            </button>
-                        ))}
-                        <span>...</span>
-                        <button type="button">31</button>
-                        <button type="button">
-                            <MaterialIcon>chevron_right</MaterialIcon>
-                        </button>
-                    </nav>
+                    {error ? (
+                        <StateMessage icon="error" title="Không thể tải sự kiện" text={error} />
+                    ) : loading ? (
+                        <StateMessage
+                            icon="hourglass_top"
+                            title="Đang tải sự kiện"
+                            text="Danh sách sẽ hiển thị ngay khi API phản hồi."
+                        />
+                    ) : events.length === 0 ? (
+                        <StateMessage
+                            icon="event_busy"
+                            title="Chưa có sự kiện phù hợp"
+                            text="Thử bỏ bớt bộ lọc hoặc quay lại sau khi organizer đăng sự kiện mới."
+                        />
+                    ) : (
+                        <div className="event-list-grid">
+                            {events.map((event) => (
+                                <EventListCard event={event} key={event.id} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </section>
             <PublicFooter />
@@ -269,47 +251,68 @@ function FilterPanel({
     );
 }
 
-function EventListCard({ event }: { event: EventListItem }) {
+function EventListCard({ event }: { event: PublicEventListItem }) {
+    const date = formatShortDate(event.startsAt);
+
     return (
         <article className="event-list-card">
             <div className="event-list-image">
-                <img src={event.image} alt={event.title} />
-                <span className={`status-pill ${event.statusTone}`}>{event.status}</span>
+                <img src={event.thumbnailUrl ?? fallbackImage} alt={event.title} />
+                <span className="status-pill blue">Đang mở bán</span>
                 <button type="button" aria-label={`Lưu ${event.title}`}>
                     <MaterialIcon>favorite</MaterialIcon>
                 </button>
                 <div className="date-pill">
                     <MaterialIcon>calendar_today</MaterialIcon>
-                    {event.date}
+                    {date}
                 </div>
             </div>
             <div className="event-list-body">
                 <h2>
-                    <a href={`/events/${toEventSlug(event.title)}`}>
-                        {event.title}
-                    </a>
+                    <a href={`/events/${event.id}`}>{event.title}</a>
                 </h2>
                 <p>
                     <MaterialIcon>location_on</MaterialIcon>
-                    {event.location}
+                    {event.city}
                 </p>
                 <p>
                     <MaterialIcon>apartment</MaterialIcon>
-                    {event.venue}
+                    {event.venueName}
                 </p>
-                <strong>{event.price}</strong>
+                <strong>{formatPrice(event.minPrice)}</strong>
             </div>
         </article>
     );
 }
 
-export default EventsPage;
-
-function toEventSlug(title: string) {
-    return title
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
+function StateMessage({
+    icon,
+    text,
+    title,
+}: {
+    icon: string;
+    text: string;
+    title: string;
+}) {
+    return (
+        <section className="events-state">
+            <MaterialIcon>{icon}</MaterialIcon>
+            <h2>{title}</h2>
+            <p>{text}</p>
+        </section>
+    );
 }
+
+function formatPrice(value: number | null) {
+    if (value === null) return 'Chưa mở bán';
+    return `Từ ${new Intl.NumberFormat('vi-VN').format(value)}đ`;
+}
+
+function formatShortDate(value: string) {
+    return new Intl.DateTimeFormat('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+    }).format(new Date(value));
+}
+
+export default EventsPage;
