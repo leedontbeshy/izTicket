@@ -626,6 +626,10 @@
     font-weight: 800;
 }
 
+.availability-row + .quantity-row {
+    margin-top: 14px;
+}
+
 .ticket-empty {
     margin: 0;
     padding: 22px;
@@ -665,6 +669,11 @@
     color: #344054;
     background: #ffffff;
     border: 0;
+}
+
+.quantity-row button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
 }
 
 .quantity-row button .material-symbols-outlined {

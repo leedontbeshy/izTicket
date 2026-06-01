@@ -259,14 +259,36 @@ function Fact({
 }
 
 function TicketSidebar({ tickets }: { tickets: PublicTicketType[] }) {
-    const minPrice = useMemo(
-        () => tickets.reduce<number | null>(
-            (lowest, ticket) =>
-                lowest === null ? ticket.price : Math.min(lowest, ticket.price),
-            null,
-        ),
-        [tickets],
+    const [quantities, setQuantities] = useState<Record<string, number>>({});
+
+    const selectedCount = useMemo(
+        () =>
+            tickets.reduce(
+                (count, ticket) => count + (quantities[ticket.id] ?? 0),
+                0,
+            ),
+        [quantities, tickets],
     );
+    const total = useMemo(
+        () =>
+            tickets.reduce(
+                (sum, ticket) => sum + (quantities[ticket.id] ?? 0) * ticket.price,
+                0,
+            ),
+        [quantities, tickets],
+    );
+
+    function updateQuantity(ticket: PublicTicketType, delta: number) {
+        setQuantities((current) => {
+            const nextQuantity = clamp(
+                (current[ticket.id] ?? 0) + delta,
+                0,
+                ticket.availableQuantity,
+            );
+
+            return { ...current, [ticket.id]: nextQuantity };
+        });
+    }
 
     return (
         <aside className="ticket-sidebar" id="tickets">
@@ -283,33 +305,73 @@ function TicketSidebar({ tickets }: { tickets: PublicTicketType[] }) {
                     <p className="ticket-empty">Sự kiện chưa cấu hình vé.</p>
                 ) : (
                     <div className="ticket-options">
-                        {tickets.map((ticket, index) => (
-                            <article
-                                key={ticket.id}
-                                style={{
-                                    '--ticket-color': ticketColors[index % ticketColors.length],
-                                } as CSSProperties}
-                            >
-                                <div>
-                                    <span />
-                                    <h3>{ticket.name}</h3>
-                                    <strong>{formatCurrency(ticket.price)}</strong>
-                                </div>
-                                <p>{ticket.description || 'Vé tham dự sự kiện.'}</p>
-                                <div className="availability-row">
-                                    <span>Còn lại</span>
-                                    <strong>{ticket.availableQuantity}</strong>
-                                </div>
-                            </article>
-                        ))}
+                        {tickets.map((ticket, index) => {
+                            const quantity = quantities[ticket.id] ?? 0;
+                            const soldOut = ticket.availableQuantity === 0;
+
+                            return (
+                                <article
+                                    className={quantity > 0 ? 'selected' : ''}
+                                    key={ticket.id}
+                                    style={{
+                                        '--ticket-color':
+                                            ticketColors[index % ticketColors.length],
+                                    } as CSSProperties}
+                                >
+                                    <div>
+                                        <span />
+                                        <h3>{ticket.name}</h3>
+                                        {quantity > 0 ? <em>Đã chọn</em> : null}
+                                        <strong>{formatCurrency(ticket.price)}</strong>
+                                    </div>
+                                    <p>{ticket.description || 'Vé tham dự sự kiện.'}</p>
+                                    <div className="availability-row">
+                                        <span>
+                                            {soldOut
+                                                ? 'Hết vé'
+                                                : `Còn ${ticket.availableQuantity} vé`}
+                                        </span>
+                                        <strong>
+                                            {formatCurrency(quantity * ticket.price)}
+                                        </strong>
+                                    </div>
+                                    <div className="quantity-row">
+                                        <label>Số lượng</label>
+                                        <div>
+                                            <button
+                                                type="button"
+                                                disabled={quantity === 0}
+                                                onClick={() => updateQuantity(ticket, -1)}
+                                            >
+                                                <MaterialIcon>remove</MaterialIcon>
+                                            </button>
+                                            <span>{quantity}</span>
+                                            <button
+                                                type="button"
+                                                disabled={
+                                                    quantity >= ticket.availableQuantity
+                                                }
+                                                onClick={() => updateQuantity(ticket, 1)}
+                                            >
+                                                <MaterialIcon>add</MaterialIcon>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </article>
+                            );
+                        })}
                     </div>
                 )}
 
                 <footer className="ticket-total">
                     <div>
-                        <span>Giá từ</span>
-                        <strong>{minPrice === null ? 'Chưa mở bán' : formatCurrency(minPrice)}</strong>
-                        <small>Chọn số lượng ở phần tiếp theo</small>
+                        <span>Tổng cộng</span>
+                        <strong>{formatCurrency(total)}</strong>
+                        <small>
+                            {selectedCount > 0
+                                ? `${selectedCount} vé đã chọn`
+                                : 'Chọn số lượng vé muốn giữ'}
+                        </small>
                     </div>
                     <button type="button" disabled>
                         Tiếp tục đặt vé
@@ -367,6 +429,10 @@ function formatDateTime(value: string) {
         dateStyle: 'medium',
         timeStyle: 'short',
     }).format(new Date(value));
+}
+
+function clamp(value: number, min: number, max: number) {
+    return Math.min(Math.max(value, min), max);
 }
 
 export default EventDetailPage;
