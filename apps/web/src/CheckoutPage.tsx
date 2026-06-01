@@ -10,6 +10,10 @@ import {
 } from './api/events.api';
 import { createOrder, type Order } from './api/orders.api';
 import {
+    createSepayPayment,
+    type SepayPayment,
+} from './api/payments.api';
+import {
     getReservation,
     type Reservation,
     type ReservationItem,
@@ -20,8 +24,10 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
     const [reservation, setReservation] = useState<Reservation | null>(null);
     const [event, setEvent] = useState<PublicEventDetail | null>(null);
     const [order, setOrder] = useState<Order | null>(null);
+    const [payment, setPayment] = useState<SepayPayment | null>(null);
     const [loading, setLoading] = useState(true);
     const [creatingOrder, setCreatingOrder] = useState(false);
+    const [creatingPayment, setCreatingPayment] = useState(false);
     const [error, setError] = useState('');
     const [actionError, setActionError] = useState('');
     const [now, setNow] = useState(() => Date.now());
@@ -95,6 +101,25 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
         }
     }
 
+    async function handleCreatePayment() {
+        if (!order || creatingPayment || isExpired) return;
+
+        setCreatingPayment(true);
+        setActionError('');
+
+        try {
+            setPayment(await createSepayPayment(order.id));
+        } catch (err) {
+            setActionError(
+                err instanceof Error
+                    ? err.message
+                    : 'Không thể tạo thanh toán SePay. Vui lòng thử lại.',
+            );
+        } finally {
+            setCreatingPayment(false);
+        }
+    }
+
     return (
         <main className="checkout-page">
             <PublicHeader active="events" />
@@ -157,6 +182,8 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                 </div>
                             </section>
                         ) : null}
+
+                        {payment ? <PaymentInstructions payment={payment} /> : null}
                     </div>
 
                     <aside className="checkout-summary">
@@ -185,17 +212,22 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                             type="button"
                             disabled={
                                 creatingOrder ||
+                                creatingPayment ||
                                 isExpired ||
                                 reservation.status !== 'ACTIVE' ||
-                                Boolean(order)
+                                Boolean(payment)
                             }
-                            onClick={handleCreateOrder}
+                            onClick={order ? handleCreatePayment : handleCreateOrder}
                         >
-                            {order
-                                ? 'Đã tạo order'
-                                : creatingOrder
-                                  ? 'Đang tạo order...'
-                                  : 'Tạo order'}
+                            {payment
+                                ? 'Đã tạo thanh toán'
+                                : creatingPayment
+                                  ? 'Đang tạo thanh toán...'
+                                  : order
+                                    ? 'Tạo thanh toán SePay'
+                                    : creatingOrder
+                                      ? 'Đang tạo order...'
+                                      : 'Tạo order'}
                             <MaterialIcon>arrow_forward</MaterialIcon>
                         </button>
 
@@ -240,6 +272,50 @@ function ReservationItemRow({
             <span>x{item.quantity}</span>
             <strong>{formatCurrency(getItemSubtotal(item))}</strong>
         </article>
+    );
+}
+
+function PaymentInstructions({ payment }: { payment: SepayPayment }) {
+    const instructions = payment.transferInstructions;
+
+    return (
+        <section className="checkout-card payment-card">
+            <header>
+                <div>
+                    <h2>Thanh toán SePay</h2>
+                    <p>Payment #{payment.paymentId}</p>
+                </div>
+                <span className="reservation-status active">{payment.status}</span>
+            </header>
+
+            <div className="payment-body">
+                <img src={instructions.qrImageUrl} alt="QR thanh toán SePay" />
+                <div className="payment-details">
+                    <PaymentLine label="Ngân hàng" value={instructions.bankName} />
+                    <PaymentLine
+                        label="Số tài khoản"
+                        value={instructions.accountNumber}
+                    />
+                    <PaymentLine
+                        label="Số tiền"
+                        value={formatCurrency(instructions.amountVnd)}
+                    />
+                    <PaymentLine
+                        label="Nội dung"
+                        value={instructions.transferContent}
+                    />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+function PaymentLine({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="payment-line">
+            <span>{label}</span>
+            <strong>{value}</strong>
+        </div>
     );
 }
 

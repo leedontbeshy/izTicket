@@ -116,6 +116,11 @@
     background: #ecfdf3;
 }
 
+.reservation-status.active {
+    color: #0f5cc9;
+    background: #eef4ff;
+}
+
 .checkout-items {
     display: grid;
     gap: 12px;
@@ -260,6 +265,55 @@
     line-height: 1.6;
 }
 
+.payment-card {
+    display: grid;
+    gap: 18px;
+}
+
+.payment-body {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.payment-body img {
+    width: 220px;
+    height: 220px;
+    display: block;
+    object-fit: contain;
+    background: #ffffff;
+    border: 1px solid #e8edf4;
+    border-radius: 12px;
+}
+
+.payment-details {
+    display: grid;
+    gap: 10px;
+}
+
+.payment-line {
+    padding: 12px 14px;
+    display: grid;
+    gap: 5px;
+    background: #f8faff;
+    border: 1px solid #e8edf4;
+    border-radius: 10px;
+}
+
+.payment-line span {
+    color: #667085;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.payment-line strong {
+    overflow-wrap: anywhere;
+    color: #172033;
+    font-size: 14px;
+    font-weight: 900;
+}
+
 .checkout-placeholder {
     min-height: 380px;
     margin-top: 24px;
@@ -332,8 +386,20 @@
     }
 
     .checkout-card header,
-    .order-created {
+    .order-created,
+    .payment-body {
         flex-direction: column;
+    }
+
+    .payment-body {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-body img {
+        width: 100%;
+        max-width: 240px;
+        height: auto;
+        aspect-ratio: 1;
     }
 
     .checkout-item {
