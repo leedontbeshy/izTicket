@@ -34,7 +34,11 @@ export class PaymentsController {
         @CurrentUser('id') customerId: string,
         @Body() dto: CreateSepayPaymentDto,
     ) {
-        return this.paymentsService.createSepayPayment(customerId, dto.orderId);
+        return this.paymentsService.createSepayPayment(
+            customerId,
+            dto.orderId,
+            dto.returnUrl,
+        );
     }
 
     @Post('sepay/webhook')

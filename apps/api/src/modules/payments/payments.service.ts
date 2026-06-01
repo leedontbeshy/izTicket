@@ -39,7 +39,11 @@ export class PaymentsService {
         );
     }
 
-    async createSepayPayment(customerId: string, orderId: string) {
+    async createSepayPayment(
+        customerId: string,
+        orderId: string,
+        returnUrl?: string,
+    ) {
         const order = await this.prismaService.order.findUnique({
             where: { id: orderId },
             select: {
@@ -117,6 +121,7 @@ export class PaymentsService {
             providerReference,
             amountVnd: payment.amountVnd,
             expiresAt: order.expiresAt,
+            returnUrl: returnUrl ?? null,
             transferInstructions: instructions,
         };
     }

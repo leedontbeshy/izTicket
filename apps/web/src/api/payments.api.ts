@@ -24,11 +24,15 @@ export type SepayPayment = {
     providerReference: string;
     amountVnd: number;
     expiresAt: string;
+    returnUrl: string | null;
     transferInstructions: SepayTransferInstructions;
 };
 
 export function createSepayPayment(orderId: string) {
-    return apiPost<SepayPayment>('/payments/sepay/create', { orderId });
+    return apiPost<SepayPayment>('/payments/sepay/create', {
+        orderId,
+        returnUrl: `${window.location.origin}/payment-result`,
+    });
 }
 
 export function getPayment(paymentId: string) {
