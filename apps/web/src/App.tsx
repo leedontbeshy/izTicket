@@ -2,6 +2,7 @@ import AuthPage from './AuthPage';
 import { CheckoutPage } from './CheckoutPage';
 import EventDetailPage from './EventDetailPage';
 import EventsPage from './EventsPage';
+import { PaymentResultPage } from './PaymentResultPage';
 import { OrganizerEventsPage } from './OrganizerEventsPage';
 import { EventFormPage } from './EventFormPage';
 import { AdminEventsPage } from './AdminEventsPage';
@@ -415,6 +416,10 @@ function App() {
                 reservationId={decodeURIComponent(path.replace('/checkout/', ''))}
             />
         );
+    }
+
+    if (path === '/payment-result') {
+        return <PaymentResultPage />;
     }
 
     if (path.startsWith('/events/')) {

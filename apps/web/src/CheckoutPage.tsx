@@ -304,6 +304,13 @@ function PaymentInstructions({ payment }: { payment: SepayPayment }) {
                         label="Nội dung"
                         value={instructions.transferContent}
                     />
+                    <a
+                        className="payment-result-link"
+                        href={`/payment-result?paymentId=${encodeURIComponent(payment.paymentId)}`}
+                    >
+                        <MaterialIcon>receipt_long</MaterialIcon>
+                        Kiểm tra kết quả thanh toán
+                    </a>
                 </div>
             </div>
         </section>

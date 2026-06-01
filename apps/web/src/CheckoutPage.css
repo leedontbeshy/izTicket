@@ -314,6 +314,20 @@
     font-weight: 900;
 }
 
+.payment-result-link {
+    min-height: 44px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #ffffff;
+    background: #11161f;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 900;
+}
+
 .checkout-placeholder {
     min-height: 380px;
     margin-top: 24px;
