@@ -167,6 +167,12 @@
     border: 1px solid #dfe5ee;
 }
 
+.payment-result-actions a.primary {
+    color: #ffffff;
+    background: #11161f;
+    border-color: #11161f;
+}
+
 @media (max-width: 720px) {
     .payment-result-page {
         padding: 0 14px 28px;

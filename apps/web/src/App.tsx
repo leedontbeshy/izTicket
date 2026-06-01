@@ -2,6 +2,8 @@ import AuthPage from './AuthPage';
 import { CheckoutPage } from './CheckoutPage';
 import EventDetailPage from './EventDetailPage';
 import EventsPage from './EventsPage';
+import { MyTicketDetailPage } from './MyTicketDetailPage';
+import { MyTicketsPage } from './MyTicketsPage';
 import { PaymentResultPage } from './PaymentResultPage';
 import { OrganizerEventsPage } from './OrganizerEventsPage';
 import { EventFormPage } from './EventFormPage';
@@ -420,6 +422,18 @@ function App() {
 
     if (path === '/payment-result') {
         return <PaymentResultPage />;
+    }
+
+    if (path === '/my-tickets') {
+        return <MyTicketsPage />;
+    }
+
+    if (path.startsWith('/my-tickets/')) {
+        return (
+            <MyTicketDetailPage
+                ticketId={decodeURIComponent(path.replace('/my-tickets/', ''))}
+            />
+        );
     }
 
     if (path.startsWith('/events/')) {

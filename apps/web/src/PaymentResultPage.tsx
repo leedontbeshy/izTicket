@@ -89,6 +89,10 @@ export function PaymentResultPage() {
                 </div>
 
                 <div className="payment-result-actions">
+                    <a className="primary" href="/my-tickets">
+                        <MaterialIcon>confirmation_number</MaterialIcon>
+                        Vé của tôi
+                    </a>
                     {paymentId ? (
                         <button type="button" onClick={() => window.location.reload()}>
                             <MaterialIcon>refresh</MaterialIcon>
