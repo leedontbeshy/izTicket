@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { AppException } from '../../common/errors/app.exception';
 import { DomainEventBus } from '../../common/events/domain-event-bus';
 import { PrismaService } from '../../prisma/prisma.service';
+import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '../../generated/prisma/enums';
 import type { PaymentSucceededEvent } from './events/payment-succeeded.event';
 import { SEPAY_PROVIDER } from './sepay/sepay-config';
 import { SepayPaymentReferenceService } from './sepay/sepay-payment-reference.service';
@@ -46,7 +48,7 @@ export class PaymentsService {
                 status: true,
                 totalAmountVnd: true,
                 expiresAt: true,
-                reservation: { select: { status: true } },
+                reservation: { select: { status: true, expiresAt: true } },
             },
         });
 
@@ -66,10 +68,14 @@ export class PaymentsService {
             );
         }
 
-        if (order.reservation.status !== 'CONFIRMED') {
+        if (order.reservation.status !== 'ACTIVE') {
             throw AppException.conflict(
                 'Reservation is not in a valid state for payment.',
             );
+        }
+
+        if (new Date() >= order.reservation.expiresAt) {
+            throw AppException.conflict('Reservation has expired.');
         }
 
         const existingPayment = await this.prismaService.payment.findFirst({
@@ -103,11 +109,57 @@ export class PaymentsService {
 
         return {
             paymentId: payment.id,
+            orderId,
+            status: 'INITIATED',
+            provider: SEPAY_PROVIDER,
+            paymentUrl: instructions.qrImageUrl,
+            amount: payment.amountVnd,
             providerReference,
             amountVnd: payment.amountVnd,
             expiresAt: order.expiresAt,
             transferInstructions: instructions,
         };
+    }
+
+    async getPayment(user: AuthenticatedUser, paymentId: string) {
+        const payment = await this.prismaService.payment.findUnique({
+            where: { id: paymentId },
+            select: {
+                id: true,
+                orderId: true,
+                provider: true,
+                providerReference: true,
+                providerTransactionId: true,
+                status: true,
+                amountVnd: true,
+                paymentUrl: true,
+                succeededAt: true,
+                failedAt: true,
+                createdAt: true,
+                order: {
+                    select: {
+                        customerId: true,
+                        event: {
+                            select: {
+                                organizerId: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        if (!payment) {
+            throw AppException.notFound('Payment was not found.');
+        }
+
+        if (!canViewPayment(user, payment)) {
+            throw AppException.forbidden(
+                'You do not have permission to view this payment.',
+            );
+        }
+
+        return toPaymentResponse(payment);
     }
 
     async handleSepayWebhook(input: WebhookInput): Promise<void> {
@@ -194,7 +246,7 @@ export class PaymentsService {
 
         const order = await this.prismaService.order.findUnique({
             where: { id: payment.orderId },
-            select: { status: true, expiresAt: true },
+            select: { status: true, expiresAt: true, reservationId: true },
         });
 
         if (!order || order.status === 'PAID') return;
@@ -227,6 +279,10 @@ export class PaymentsService {
                 await tx.order.update({
                     where: { id: payment.orderId },
                     data: { status: 'PAID', paidAt: now },
+                });
+                await tx.reservation.update({
+                    where: { id: order.reservationId },
+                    data: { status: 'CONFIRMED', confirmedAt: now },
                 });
             } else {
                 await tx.payment.update({
@@ -341,7 +397,7 @@ export class PaymentsService {
 
         const dbOrder = await this.prismaService.order.findUnique({
             where: { id: payment.orderId },
-            select: { status: true, expiresAt: true },
+            select: { status: true, expiresAt: true, reservationId: true },
         });
 
         if (!dbOrder || dbOrder.status === 'PAID') return;
@@ -376,6 +432,10 @@ export class PaymentsService {
                 await tx.order.update({
                     where: { id: payment.orderId },
                     data: { status: 'PAID', paidAt: now },
+                });
+                await tx.reservation.update({
+                    where: { id: dbOrder.reservationId },
+                    data: { status: 'CONFIRMED', confirmedAt: now },
                 });
             } else {
                 await tx.payment.update({
@@ -414,4 +474,55 @@ export class PaymentsService {
             await this.eventBus.publish(event);
         }
     }
+}
+
+function canViewPayment(
+    user: AuthenticatedUser,
+    payment: {
+        order: {
+            customerId: string;
+            event: {
+                organizerId: string;
+            };
+        };
+    },
+) {
+    if (user.role === UserRole.ADMIN) return true;
+    if (user.role === UserRole.CUSTOMER) {
+        return payment.order.customerId === user.id;
+    }
+    if (user.role === UserRole.ORGANIZER) {
+        return payment.order.event.organizerId === user.id;
+    }
+    return false;
+}
+
+function toPaymentResponse(payment: {
+    id: string;
+    orderId: string;
+    provider: string;
+    providerReference: string | null;
+    providerTransactionId: string | null;
+    status: string;
+    amountVnd: number;
+    paymentUrl: string | null;
+    succeededAt: Date | null;
+    failedAt: Date | null;
+    createdAt: Date;
+}) {
+    return {
+        paymentId: payment.id,
+        id: payment.id,
+        orderId: payment.orderId,
+        provider: payment.provider,
+        providerReference: payment.providerReference,
+        providerTransactionId: payment.providerTransactionId,
+        status: payment.status,
+        amount: payment.amountVnd,
+        amountVnd: payment.amountVnd,
+        paymentUrl: payment.paymentUrl,
+        succeededAt: payment.succeededAt,
+        failedAt: payment.failedAt,
+        createdAt: payment.createdAt,
+    };
 }

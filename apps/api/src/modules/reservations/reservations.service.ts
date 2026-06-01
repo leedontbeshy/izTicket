@@ -129,7 +129,7 @@ export class ReservationsService {
             });
         });
 
-        return result;
+        return result ? toReservationResponse(result) : result;
     }
 
     async getReservation(customerId: string, reservationId: string) {
@@ -148,7 +148,7 @@ export class ReservationsService {
             );
         }
 
-        return reservation;
+        return toReservationResponse(reservation);
     }
 
     async cancelReservation(customerId: string, reservationId: string) {
@@ -197,6 +197,34 @@ export class ReservationsService {
             });
         });
 
-        return result;
+        return toReservationResponse(result);
     }
+}
+
+function toReservationResponse(reservation: {
+    id: string;
+    eventId: string;
+    customerId: string;
+    status: string;
+    expiresAt: Date;
+    createdAt: Date;
+    items: Array<{
+        id: string;
+        ticketTypeId: string;
+        quantity: number;
+        unitPriceVnd: number;
+        subtotalVnd: number;
+    }>;
+}) {
+    const items = reservation.items.map((item) => ({
+        ...item,
+        unitPrice: item.unitPriceVnd,
+        subtotal: item.subtotalVnd,
+    }));
+
+    return {
+        ...reservation,
+        items,
+        totalAmount: items.reduce((sum, item) => sum + item.subtotal, 0),
+    };
 }

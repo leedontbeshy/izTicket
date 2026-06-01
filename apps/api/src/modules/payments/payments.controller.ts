@@ -1,15 +1,21 @@
 import {
     Body,
     Controller,
+    Get,
     HttpCode,
     HttpStatus,
+    Param,
+    ParseUUIDPipe,
     Post,
     Req,
     UseGuards,
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import {
+    CurrentUser,
+    type AuthenticatedUser,
+} from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -17,11 +23,11 @@ import { UserRole } from '../../generated/prisma/enums';
 import { PaymentsService } from './payments.service';
 import { CreateSepayPaymentDto } from './dto/create-sepay-payment.dto';
 
-@Controller('payments/sepay')
+@Controller('payments')
 export class PaymentsController {
     constructor(private readonly paymentsService: PaymentsService) {}
 
-    @Post('create')
+    @Post('sepay/create')
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.CUSTOMER)
     createPayment(
@@ -31,7 +37,7 @@ export class PaymentsController {
         return this.paymentsService.createSepayPayment(customerId, dto.orderId);
     }
 
-    @Post('webhook')
+    @Post('sepay/webhook')
     @HttpCode(HttpStatus.OK)
     async handleWebhook(@Req() request: RawBodyRequest<Request>) {
         await this.paymentsService.handleSepayWebhook({
@@ -42,6 +48,15 @@ export class PaymentsController {
             rawBody: request.rawBody ?? Buffer.alloc(0),
             body: request.body,
         });
-        return { success: true };
+        return { received: true };
+    }
+
+    @Get(':paymentId')
+    @UseGuards(JwtAuthGuard, RolesGuard)
+    getPayment(
+        @CurrentUser() user: AuthenticatedUser,
+        @Param('paymentId', ParseUUIDPipe) paymentId: string,
+    ) {
+        return this.paymentsService.getPayment(user, paymentId);
     }
 }

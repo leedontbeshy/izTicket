@@ -16,14 +16,15 @@ import { PaginationQueryDto } from '../../common/pagination/pagination-query.dto
 import { UserRole } from '../../generated/prisma/enums';
 import { OrdersService } from './orders.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
+import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.CUSTOMER)
 export class OrdersController {
     constructor(private readonly ordersService: OrdersService) {}
 
     @Post()
+    @Roles(UserRole.CUSTOMER)
     createOrder(
         @CurrentUser('id') customerId: string,
         @Body() dto: CreateOrderDto,
@@ -32,6 +33,7 @@ export class OrdersController {
     }
 
     @Get('my')
+    @Roles(UserRole.CUSTOMER)
     listMyOrders(
         @CurrentUser('id') customerId: string,
         @Query() query: PaginationQueryDto,
@@ -41,9 +43,9 @@ export class OrdersController {
 
     @Get(':orderId')
     getOrder(
-        @CurrentUser('id') customerId: string,
+        @CurrentUser() user: AuthenticatedUser,
         @Param('orderId', ParseUUIDPipe) orderId: string,
     ) {
-        return this.ordersService.getOrder(customerId, orderId);
+        return this.ordersService.getOrder(user, orderId);
     }
 }
