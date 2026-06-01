@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+    useEffect,
+    useMemo,
+    useState,
+    type CSSProperties,
+    type ChangeEvent,
+    type ReactNode,
+} from 'react';
 import {
     MaterialIcon,
     PublicFooter,
@@ -9,6 +16,8 @@ import {
     type PublicEventDetail,
     type PublicTicketType,
 } from './api/events.api';
+import { createReservation } from './api/reservations.api';
+import { getStoredAuthUser } from './authSession';
 import './EventDetailPage.css';
 
 const fallbackImage =
@@ -194,7 +203,7 @@ function EventDetailPage({ eventId }: { eventId: string }) {
                     </section>
                 </div>
 
-                <TicketSidebar tickets={event.ticketTypes} />
+                <TicketSidebar eventId={event.id} tickets={event.ticketTypes} />
             </section>
 
             <PublicFooter />
@@ -258,8 +267,17 @@ function Fact({
     );
 }
 
-function TicketSidebar({ tickets }: { tickets: PublicTicketType[] }) {
+function TicketSidebar({
+    eventId,
+    tickets,
+}: {
+    eventId: string;
+    tickets: PublicTicketType[];
+}) {
     const [quantities, setQuantities] = useState<Record<string, number>>({});
+    const [reservationError, setReservationError] = useState('');
+    const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const selectedCount = useMemo(
         () =>
@@ -290,7 +308,62 @@ function TicketSidebar({ tickets }: { tickets: PublicTicketType[] }) {
         });
     }
 
+    function setQuantity(ticket: PublicTicketType, value: number) {
+        const quantity = Number.isFinite(value) ? value : 0;
+
+        setQuantities((current) => ({
+            ...current,
+            [ticket.id]: clamp(quantity, 0, ticket.availableQuantity),
+        }));
+    }
+
+    function handleQuantityInput(
+        ticket: PublicTicketType,
+        event: ChangeEvent<HTMLInputElement>,
+    ) {
+        const digits = event.target.value.replace(/\D/g, '');
+        const normalized = digits.replace(/^0+(?=\d)/, '');
+        setQuantity(ticket, normalized === '' ? 0 : Number(normalized));
+    }
+
+    async function submitReservation() {
+        if (selectedCount === 0 || submitting) return;
+
+        const user = getStoredAuthUser();
+        if (!user || user.role !== 'CUSTOMER') {
+            setReservationError('');
+            setShowLoginPrompt(true);
+            return;
+        }
+
+        setSubmitting(true);
+        setReservationError('');
+
+        try {
+            const reservation = await createReservation({
+                eventId,
+                items: tickets
+                    .map((ticket) => ({
+                        ticketTypeId: ticket.id,
+                        quantity: quantities[ticket.id] ?? 0,
+                    }))
+                    .filter((item) => item.quantity > 0),
+            });
+
+            window.location.assign(`/checkout/${reservation.id}`);
+        } catch (err) {
+            setReservationError(
+                err instanceof Error
+                    ? err.message
+                    : 'Không thể tạo reservation. Vui lòng thử lại.',
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    }
+
     return (
+        <>
         <aside className="ticket-sidebar" id="tickets">
             <section className="ticket-panel">
                 <header>
@@ -345,7 +418,16 @@ function TicketSidebar({ tickets }: { tickets: PublicTicketType[] }) {
                                             >
                                                 <MaterialIcon>remove</MaterialIcon>
                                             </button>
-                                            <span>{quantity}</span>
+                                            <input
+                                                aria-label={`Số lượng ${ticket.name}`}
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                type="text"
+                                                value={quantity}
+                                                onChange={(event) =>
+                                                    handleQuantityInput(ticket, event)
+                                                }
+                                            />
                                             <button
                                                 type="button"
                                                 disabled={
@@ -373,10 +455,20 @@ function TicketSidebar({ tickets }: { tickets: PublicTicketType[] }) {
                                 : 'Chọn số lượng vé muốn giữ'}
                         </small>
                     </div>
-                    <button type="button" disabled>
-                        Tiếp tục đặt vé
+                    <button
+                        type="button"
+                        disabled={selectedCount === 0 || submitting}
+                        onClick={submitReservation}
+                    >
+                        {submitting ? 'Đang giữ vé...' : 'Tiếp tục đặt vé'}
                         <MaterialIcon>arrow_forward</MaterialIcon>
                     </button>
+                    {reservationError ? (
+                        <p className="reservation-error">
+                            <MaterialIcon>error</MaterialIcon>
+                            {reservationError}
+                        </p>
+                    ) : null}
                     <p>
                         <MaterialIcon>shield</MaterialIcon>
                         Reservation sẽ giữ vé trong 15 phút sau khi tạo thành công
@@ -402,6 +494,30 @@ function TicketSidebar({ tickets }: { tickets: PublicTicketType[] }) {
                 ))}
             </section>
         </aside>
+        {showLoginPrompt ? (
+            <section className="reservation-login-prompt" role="dialog" aria-modal="true">
+                <div>
+                    <span>
+                        <MaterialIcon>lock</MaterialIcon>
+                    </span>
+                    <h2>Cần đăng nhập để đặt vé</h2>
+                    <p>
+                        Đăng nhập bằng tài khoản khách hàng để giữ vé và tiếp tục
+                        thanh toán.
+                    </p>
+                    <div>
+                        <a href="/auth/login">Đăng nhập</a>
+                        <button
+                            type="button"
+                            onClick={() => setShowLoginPrompt(false)}
+                        >
+                            Quay lại
+                        </button>
+                    </div>
+                </div>
+            </section>
+        ) : null}
+        </>
     );
 }
 
