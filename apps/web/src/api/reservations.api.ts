@@ -8,6 +8,8 @@ export type ReservationItem = {
     quantity: number;
     unitPriceVnd: number;
     subtotalVnd: number;
+    unitPrice?: number;
+    subtotal?: number;
 };
 
 export type Reservation = {
@@ -18,6 +20,7 @@ export type Reservation = {
     expiresAt: string;
     createdAt: string;
     items: ReservationItem[];
+    totalAmount?: number;
 };
 
 export type CreateReservationPayload = {

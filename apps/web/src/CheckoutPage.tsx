@@ -1,31 +1,291 @@
+import { useEffect, useMemo, useState } from 'react';
 import {
     MaterialIcon,
     PublicFooter,
     PublicHeader,
 } from './PublicLayout';
+import {
+    getPublicEvent,
+    type PublicEventDetail,
+} from './api/events.api';
+import { createOrder, type Order } from './api/orders.api';
+import {
+    getReservation,
+    type Reservation,
+    type ReservationItem,
+} from './api/reservations.api';
 import './CheckoutPage.css';
 
 export function CheckoutPage({ reservationId }: { reservationId: string }) {
+    const [reservation, setReservation] = useState<Reservation | null>(null);
+    const [event, setEvent] = useState<PublicEventDetail | null>(null);
+    const [order, setOrder] = useState<Order | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [creatingOrder, setCreatingOrder] = useState(false);
+    const [error, setError] = useState('');
+    const [actionError, setActionError] = useState('');
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        const timerId = window.setInterval(() => setNow(Date.now()), 1000);
+        return () => window.clearInterval(timerId);
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        setLoading(true);
+        setError('');
+
+        getReservation(reservationId)
+            .then(async (reservationDetail) => {
+                const eventDetail = await getPublicEvent(reservationDetail.eventId);
+                if (!active) return;
+                setReservation(reservationDetail);
+                setEvent(eventDetail);
+            })
+            .catch((err: unknown) => {
+                if (!active) return;
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Không thể tải reservation.',
+                );
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [reservationId]);
+
+    const remainingMs = useMemo(() => {
+        if (!reservation) return 0;
+        return Math.max(0, new Date(reservation.expiresAt).getTime() - now);
+    }, [now, reservation]);
+    const isExpired = remainingMs === 0;
+    const totalAmount = useMemo(
+        () =>
+            reservation?.totalAmount ??
+            reservation?.items.reduce(
+                (sum, item) => sum + getItemSubtotal(item),
+                0,
+            ) ??
+            0,
+        [reservation],
+    );
+
+    async function handleCreateOrder() {
+        if (!reservation || creatingOrder || isExpired) return;
+
+        setCreatingOrder(true);
+        setActionError('');
+
+        try {
+            setOrder(await createOrder(reservation.id));
+        } catch (err) {
+            setActionError(
+                err instanceof Error
+                    ? err.message
+                    : 'Không thể tạo order. Vui lòng thử lại.',
+            );
+        } finally {
+            setCreatingOrder(false);
+        }
+    }
+
     return (
         <main className="checkout-page">
             <PublicHeader active="events" />
 
-            <section className="checkout-placeholder">
-                <span>
-                    <MaterialIcon>task_alt</MaterialIcon>
-                </span>
-                <h1>Đã giữ vé thành công</h1>
-                <p>
-                    Reservation <strong>{reservationId}</strong> đã được tạo. Bước
-                    checkout chi tiết sẽ hiển thị countdown và tạo order ở phần tiếp theo.
-                </p>
-                <a href="/events">
-                    <MaterialIcon>arrow_back</MaterialIcon>
-                    Quay lại sự kiện
-                </a>
-            </section>
+            {loading ? (
+                <CheckoutState
+                    icon="hourglass_top"
+                    title="Đang tải checkout"
+                    text="Reservation của bạn sẽ hiển thị ngay khi API phản hồi."
+                />
+            ) : error || !reservation ? (
+                <CheckoutState
+                    icon="error"
+                    title="Không thể tải checkout"
+                    text={error || 'Reservation không tồn tại hoặc không thuộc tài khoản này.'}
+                />
+            ) : (
+                <section className="checkout-layout">
+                    <div className="checkout-main">
+                        <div className="checkout-heading">
+                            <a href={`/events/${reservation.eventId}`}>
+                                <MaterialIcon>arrow_back</MaterialIcon>
+                                Quay lại sự kiện
+                            </a>
+                            <h1>Checkout</h1>
+                            <p>{event?.title ?? 'Reservation của bạn'}</p>
+                        </div>
+
+                        <section className="checkout-card">
+                            <header>
+                                <div>
+                                    <h2>Vé đã giữ</h2>
+                                    <p>Reservation #{reservation.id}</p>
+                                </div>
+                                <StatusPill status={reservation.status} />
+                            </header>
+
+                            <div className="checkout-items">
+                                {reservation.items.map((item) => (
+                                    <ReservationItemRow
+                                        event={event}
+                                        item={item}
+                                        key={item.id}
+                                    />
+                                ))}
+                            </div>
+                        </section>
+
+                        {order ? (
+                            <section className="checkout-card order-created">
+                                <span>
+                                    <MaterialIcon>task_alt</MaterialIcon>
+                                </span>
+                                <div>
+                                    <h2>Order đã được tạo</h2>
+                                    <p>
+                                        Order #{order.id} đang chờ thanh toán. Phần tiếp theo
+                                        sẽ khởi tạo thanh toán SePay cho order này.
+                                    </p>
+                                </div>
+                            </section>
+                        ) : null}
+                    </div>
+
+                    <aside className="checkout-summary">
+                        <section>
+                            <h2>Thời gian giữ vé</h2>
+                            <strong className={isExpired ? 'expired' : ''}>
+                                {formatRemaining(remainingMs)}
+                            </strong>
+                            <p>
+                                Hoàn tất tạo order trước khi reservation hết hạn.
+                            </p>
+                        </section>
+
+                        <section>
+                            <div className="summary-line">
+                                <span>Số lượng vé</span>
+                                <strong>{getTotalQuantity(reservation.items)}</strong>
+                            </div>
+                            <div className="summary-line">
+                                <span>Tổng tiền</span>
+                                <strong>{formatCurrency(totalAmount)}</strong>
+                            </div>
+                        </section>
+
+                        <button
+                            type="button"
+                            disabled={
+                                creatingOrder ||
+                                isExpired ||
+                                reservation.status !== 'ACTIVE' ||
+                                Boolean(order)
+                            }
+                            onClick={handleCreateOrder}
+                        >
+                            {order
+                                ? 'Đã tạo order'
+                                : creatingOrder
+                                  ? 'Đang tạo order...'
+                                  : 'Tạo order'}
+                            <MaterialIcon>arrow_forward</MaterialIcon>
+                        </button>
+
+                        {isExpired ? (
+                            <p className="checkout-error">
+                                <MaterialIcon>error</MaterialIcon>
+                                Reservation đã hết hạn. Vui lòng đặt lại vé.
+                            </p>
+                        ) : null}
+                        {actionError ? (
+                            <p className="checkout-error">
+                                <MaterialIcon>error</MaterialIcon>
+                                {actionError}
+                            </p>
+                        ) : null}
+                    </aside>
+                </section>
+            )}
 
             <PublicFooter />
         </main>
     );
+}
+
+function ReservationItemRow({
+    event,
+    item,
+}: {
+    event: PublicEventDetail | null;
+    item: ReservationItem;
+}) {
+    const ticketType = event?.ticketTypes.find(
+        (ticket) => ticket.id === item.ticketTypeId,
+    );
+
+    return (
+        <article className="checkout-item">
+            <div>
+                <h3>{ticketType?.name ?? 'Hạng vé'}</h3>
+                <p>{item.ticketTypeId}</p>
+            </div>
+            <span>x{item.quantity}</span>
+            <strong>{formatCurrency(getItemSubtotal(item))}</strong>
+        </article>
+    );
+}
+
+function CheckoutState({
+    icon,
+    text,
+    title,
+}: {
+    icon: string;
+    text: string;
+    title: string;
+}) {
+    return (
+        <section className="checkout-placeholder">
+            <span>
+                <MaterialIcon>{icon}</MaterialIcon>
+            </span>
+            <h1>{title}</h1>
+            <p>{text}</p>
+            <a href="/events">
+                <MaterialIcon>arrow_back</MaterialIcon>
+                Quay lại sự kiện
+            </a>
+        </section>
+    );
+}
+
+function StatusPill({ status }: { status: Reservation['status'] }) {
+    return <span className={`reservation-status ${status.toLowerCase()}`}>{status}</span>;
+}
+
+function getItemSubtotal(item: ReservationItem) {
+    return item.subtotal ?? item.subtotalVnd;
+}
+
+function getTotalQuantity(items: ReservationItem[]) {
+    return items.reduce((sum, item) => sum + item.quantity, 0);
+}
+
+function formatCurrency(value: number) {
+    return `${new Intl.NumberFormat('vi-VN').format(value)}đ`;
+}
+
+function formatRemaining(ms: number) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
