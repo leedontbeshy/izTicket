@@ -1,4 +1,5 @@
 import AuthPage from './AuthPage';
+import { CheckoutPage } from './CheckoutPage';
 import EventDetailPage from './EventDetailPage';
 import EventsPage from './EventsPage';
 import { OrganizerEventsPage } from './OrganizerEventsPage';
@@ -406,6 +407,14 @@ function App() {
 
     if (path === '/events') {
         return <EventsPage />;
+    }
+
+    if (path.startsWith('/checkout/')) {
+        return (
+            <CheckoutPage
+                reservationId={decodeURIComponent(path.replace('/checkout/', ''))}
+            />
+        );
     }
 
     if (path.startsWith('/events/')) {
