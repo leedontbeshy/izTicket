@@ -38,3 +38,7 @@ export function createReservation(payload: CreateReservationPayload) {
 export function getReservation(reservationId: string) {
     return apiGet<Reservation>(`/reservations/${reservationId}`);
 }
+
+export function cancelReservation(reservationId: string) {
+    return apiPost<Reservation>(`/reservations/${reservationId}/cancel`);
+}

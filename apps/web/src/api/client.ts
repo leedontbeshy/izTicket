@@ -1,8 +1,20 @@
+import {
+    clearAuthSession,
+    saveAuthSession,
+    type StoredAuthUser,
+} from '../authSession';
+import { clearCheckoutSession } from '../checkoutSession';
+
 const API_BASE_URL =
     (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ??
     'http://localhost:3000/api/v1';
 
 const ACCESS_TOKEN_KEY = 'izticket_access_token';
+
+type AuthResponse = {
+    accessToken: string;
+    user: StoredAuthUser;
+};
 
 function authHeaders(): Record<string, string> {
     const token = sessionStorage.getItem(ACCESS_TOKEN_KEY);
@@ -49,42 +61,91 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 }
 
 export async function apiGet<T>(path: string): Promise<T> {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await apiFetch(path, {
         headers: authHeaders(),
-        credentials: 'include',
     });
-    if (!res.ok) throw new Error(await readApiError(res));
     return (await res.json()) as T;
 }
 
 export async function apiPost<T>(path: string, body?: unknown): Promise<T> {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await apiFetch(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        credentials: 'include',
         body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-    if (!res.ok) throw new Error(await readApiError(res));
     return (await res.json()) as T;
 }
 
 export async function apiPostVoid(path: string, body?: unknown): Promise<void> {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    await apiFetch(path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        credentials: 'include',
         body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-    if (!res.ok) throw new Error(await readApiError(res));
 }
 
 export async function apiPatch<T>(path: string, body: unknown): Promise<T> {
-    const res = await fetch(`${API_BASE_URL}${path}`, {
+    const res = await apiFetch(path, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...authHeaders() },
-        credentials: 'include',
         body: JSON.stringify(body),
     });
-    if (!res.ok) throw new Error(await readApiError(res));
     return (await res.json()) as T;
+}
+
+async function apiFetch(path: string, init: RequestInit = {}, retry = true) {
+    const res = await fetch(`${API_BASE_URL}${path}`, {
+        ...init,
+        credentials: 'include',
+    });
+
+    if (res.status === 401 && retry && path !== '/auth/refresh') {
+        const refreshed = await refreshAccessToken();
+        if (refreshed) {
+            return apiFetch(
+                path,
+                {
+                    ...init,
+                    headers: {
+                        ...(init.headers as Record<string, string> | undefined),
+                        ...authHeaders(),
+                    },
+                },
+                false,
+            );
+        }
+
+        clearExpiredSession();
+    }
+
+    if (!res.ok) throw new Error(await readApiError(res));
+    return res;
+}
+
+async function refreshAccessToken() {
+    try {
+        const res = await fetch(`${API_BASE_URL}/auth/refresh`, {
+            method: 'POST',
+            credentials: 'include',
+        });
+        if (!res.ok) return false;
+
+        const payload = (await res.json()) as AuthResponse;
+        saveAuthSession(payload.accessToken, payload.user);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function clearExpiredSession() {
+    clearAuthSession();
+    clearCheckoutSession();
+
+    if (window.location.pathname !== '/auth/login') {
+        const next = `${window.location.pathname}${window.location.search}`;
+        window.location.assign(
+            `/auth/login?next=${encodeURIComponent(next)}`,
+        );
+    }
 }

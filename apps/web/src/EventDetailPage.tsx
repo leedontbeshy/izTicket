@@ -16,9 +16,13 @@ import {
     type PublicEventDetail,
     type PublicTicketType,
 } from './api/events.api';
-import { createReservation } from './api/reservations.api';
+import {
+    cancelReservation,
+    createReservation,
+} from './api/reservations.api';
 import { getStoredAuthUser } from './authSession';
 import {
+    clearCheckoutSession,
     getActiveCheckoutSession,
     saveCheckoutSession,
 } from './checkoutSession';
@@ -282,6 +286,8 @@ function TicketSidebar({
     const [reservationError, setReservationError] = useState('');
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
+    const [, setSessionRefresh] = useState(0);
     const activeSession = getActiveCheckoutSession(eventId);
 
     const selectedCount = useMemo(
@@ -372,6 +378,27 @@ function TicketSidebar({
         }
     }
 
+    async function cancelActiveReservation() {
+        if (!activeSession || activeSession.orderId || cancelling) return;
+
+        setCancelling(true);
+        setReservationError('');
+
+        try {
+            await cancelReservation(activeSession.reservationId);
+            clearCheckoutSession();
+            setSessionRefresh((value) => value + 1);
+        } catch (err) {
+            setReservationError(
+                err instanceof Error
+                    ? err.message
+                    : 'Không thể hủy reservation. Vui lòng thử lại.',
+            );
+        } finally {
+            setCancelling(false);
+        }
+    }
+
     return (
         <>
         <aside className="ticket-sidebar" id="tickets">
@@ -393,9 +420,20 @@ function TicketSidebar({
                             <h3>Bạn đang giữ vé</h3>
                             <p>Reservation còn hiệu lực, bạn có thể tiếp tục checkout.</p>
                         </div>
-                        <a href={`/checkout/${activeSession.reservationId}`}>
-                            Tiếp tục
-                        </a>
+                        <div className="active-checkout-actions">
+                            <a href={`/checkout/${activeSession.reservationId}`}>
+                                Tiếp tục
+                            </a>
+                            {!activeSession.orderId ? (
+                                <button
+                                    type="button"
+                                    disabled={cancelling}
+                                    onClick={cancelActiveReservation}
+                                >
+                                    {cancelling ? 'Đang hủy' : 'Hủy'}
+                                </button>
+                            ) : null}
+                        </div>
                     </div>
                 ) : null}
 

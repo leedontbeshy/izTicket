@@ -224,6 +224,12 @@
     opacity: 0.45;
 }
 
+.checkout-summary .checkout-secondary-button {
+    color: #172033;
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
+}
+
 .checkout-error {
     margin: 0;
     padding: 10px 12px;

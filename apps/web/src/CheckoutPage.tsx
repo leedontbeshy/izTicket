@@ -20,6 +20,7 @@ import {
     type SepayPayment,
 } from './api/payments.api';
 import {
+    cancelReservation,
     getReservation,
     type Reservation,
     type ReservationItem,
@@ -40,6 +41,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
     const [loading, setLoading] = useState(true);
     const [creatingOrder, setCreatingOrder] = useState(false);
     const [creatingPayment, setCreatingPayment] = useState(false);
+    const [cancelling, setCancelling] = useState(false);
     const [error, setError] = useState('');
     const [actionError, setActionError] = useState('');
     const [now, setNow] = useState(() => Date.now());
@@ -165,6 +167,27 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
         }
     }
 
+    async function handleCancelReservation() {
+        if (!reservation || order || payment || cancelling) return;
+
+        setCancelling(true);
+        setActionError('');
+
+        try {
+            const cancelledReservation = await cancelReservation(reservation.id);
+            setReservation(cancelledReservation);
+            clearCheckoutSession();
+        } catch (err) {
+            setActionError(
+                err instanceof Error
+                    ? err.message
+                    : 'Không thể hủy reservation. Vui lòng thử lại.',
+            );
+        } finally {
+            setCancelling(false);
+        }
+    }
+
     return (
         <main className="checkout-page">
             <PublicHeader active="events" />
@@ -275,6 +298,18 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                       : 'Tạo order'}
                             <MaterialIcon>arrow_forward</MaterialIcon>
                         </button>
+
+                        {!order && !payment && reservation.status === 'ACTIVE' ? (
+                            <button
+                                className="checkout-secondary-button"
+                                type="button"
+                                disabled={creatingOrder || cancelling}
+                                onClick={handleCancelReservation}
+                            >
+                                <MaterialIcon>close</MaterialIcon>
+                                {cancelling ? 'Đang hủy reservation...' : 'Hủy giữ vé'}
+                            </button>
+                        ) : null}
 
                         {isExpired ? (
                             <p className="checkout-error">

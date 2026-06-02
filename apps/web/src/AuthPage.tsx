@@ -73,6 +73,7 @@ function AuthPage({ mode }: { mode: AuthMode }) {
     const [error, setError] = useState('');
 
     const isLogin = mode === 'login';
+    const nextPath = getSafeNextPath();
 
     function updateField<K extends keyof AuthFormState>(
         field: K,
@@ -105,7 +106,7 @@ function AuthPage({ mode }: { mode: AuthMode }) {
 
                 saveAuthSession(response.accessToken, response.user);
                 setMessage('Đăng nhập thành công. Đang chuyển về trang chủ...');
-                window.setTimeout(() => window.location.assign('/'), 600);
+                window.setTimeout(() => window.location.assign(nextPath), 600);
                 return;
             }
 
@@ -486,6 +487,16 @@ function getAutocomplete(name: string) {
     if (name === 'confirmPassword') return 'new-password';
     if (name === 'name') return 'name';
     return 'off';
+}
+
+function getSafeNextPath() {
+    const next = new URLSearchParams(window.location.search).get('next');
+
+    if (!next || !next.startsWith('/') || next.startsWith('//')) {
+        return '/';
+    }
+
+    return next;
 }
 
 export default AuthPage;

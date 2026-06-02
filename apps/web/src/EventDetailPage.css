@@ -582,7 +582,15 @@
     line-height: 1.45;
 }
 
-.active-checkout-box a {
+.active-checkout-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.active-checkout-actions a,
+.active-checkout-actions button {
     min-height: 34px;
     padding: 0 12px;
     display: inline-flex;
@@ -593,6 +601,17 @@
     border-radius: 9px;
     font-size: 12px;
     font-weight: 900;
+}
+
+.active-checkout-actions button {
+    color: #172033;
+    background: #ffffff;
+    border: 1px solid #d7e5ff;
+}
+
+.active-checkout-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.52;
 }
 
 .ticket-options {
