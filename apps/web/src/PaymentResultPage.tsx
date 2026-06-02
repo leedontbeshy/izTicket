@@ -9,7 +9,10 @@ import {
     type PaymentStatus,
     type SepayPayment,
 } from './api/payments.api';
-import { clearCheckoutSession } from './checkoutSession';
+import {
+    clearCheckoutSession,
+    getActiveCheckoutSession,
+} from './checkoutSession';
 import './PaymentResultPage.css';
 
 type ResultView = {
@@ -59,14 +62,18 @@ export function PaymentResultPage() {
         };
     }, [paymentId]);
 
+    const currentStatus = payment?.status ?? statusParam;
+    const activeCheckout = getActiveCheckoutSession();
+
     useEffect(() => {
-        if (payment?.status === 'SUCCEEDED') {
+        if (currentStatus === 'SUCCEEDED') {
             clearCheckoutSession();
         }
-    }, [payment]);
+    }, [currentStatus]);
 
-    const view = getResultView(payment?.status ?? statusParam);
+    const view = getResultView(currentStatus);
     const displayOrderId = payment?.orderId ?? orderId;
+    const isSuccess = currentStatus === 'SUCCEEDED';
 
     return (
         <main className="payment-result-page">
@@ -92,19 +99,36 @@ export function PaymentResultPage() {
                 <div className="payment-result-meta">
                     <PaymentMeta label="Payment" value={payment?.paymentId ?? (paymentId || 'Đang cập nhật')} />
                     <PaymentMeta label="Order" value={displayOrderId || 'Đang cập nhật'} />
-                    <PaymentMeta label="Trạng thái" value={payment?.status ?? statusParam ?? 'Đang chờ webhook'} />
+                    <PaymentMeta label="Trạng thái" value={currentStatus ?? 'Đang chờ webhook'} />
                 </div>
 
                 <div className="payment-result-actions">
-                    <a className="primary" href="/my-tickets">
-                        <MaterialIcon>confirmation_number</MaterialIcon>
-                        Vé của tôi
-                    </a>
-                    {paymentId ? (
-                        <button type="button" onClick={() => window.location.reload()}>
+                    {isSuccess ? (
+                        <a className="primary" href="/my-tickets">
+                            <MaterialIcon>confirmation_number</MaterialIcon>
+                            Xem vé của tôi
+                        </a>
+                    ) : paymentId ? (
+                        <button
+                            className="primary"
+                            type="button"
+                            onClick={() => window.location.reload()}
+                        >
                             <MaterialIcon>refresh</MaterialIcon>
                             Kiểm tra lại
                         </button>
+                    ) : null}
+                    {!isSuccess && activeCheckout ? (
+                        <a href={`/checkout/${activeCheckout.reservationId}`}>
+                            <MaterialIcon>shopping_cart</MaterialIcon>
+                            Quay lại checkout
+                        </a>
+                    ) : null}
+                    {!isSuccess ? (
+                        <a href="/my-tickets">
+                            <MaterialIcon>confirmation_number</MaterialIcon>
+                            Vé của tôi
+                        </a>
                     ) : null}
                     <a href="/events">
                         <MaterialIcon>event</MaterialIcon>

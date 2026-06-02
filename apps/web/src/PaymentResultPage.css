@@ -167,7 +167,8 @@
     border: 1px solid #dfe5ee;
 }
 
-.payment-result-actions a.primary {
+.payment-result-actions a.primary,
+.payment-result-actions button.primary {
     color: #ffffff;
     background: #11161f;
     border-color: #11161f;
