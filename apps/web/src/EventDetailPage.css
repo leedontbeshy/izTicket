@@ -540,6 +540,61 @@
     color: #ef3124;
 }
 
+.active-checkout-box {
+    margin-bottom: 14px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    background: #eef4ff;
+    border: 1px solid #d7e5ff;
+    border-radius: 12px;
+}
+
+.active-checkout-box > span {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blue);
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+.active-checkout-box h3,
+.active-checkout-box p {
+    margin: 0;
+}
+
+.active-checkout-box h3 {
+    color: #172033;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.active-checkout-box p {
+    margin-top: 3px;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.active-checkout-box a {
+    min-height: 34px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background: #11161f;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
 .ticket-options {
     display: grid;
     gap: 12px;

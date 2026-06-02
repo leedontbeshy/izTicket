@@ -8,7 +8,13 @@ import {
     getPublicEvent,
     type PublicEventDetail,
 } from './api/events.api';
-import { createOrder, type Order } from './api/orders.api';
+import {
+    createOrder,
+    getOrder,
+    listMyOrders,
+    type Order,
+    type OrdersPageResponse,
+} from './api/orders.api';
 import {
     createSepayPayment,
     type SepayPayment,
@@ -18,6 +24,12 @@ import {
     type Reservation,
     type ReservationItem,
 } from './api/reservations.api';
+import {
+    clearCheckoutSession,
+    getCheckoutSession,
+    patchCheckoutSession,
+    saveCheckoutSession,
+} from './checkoutSession';
 import './CheckoutPage.css';
 
 export function CheckoutPage({ reservationId }: { reservationId: string }) {
@@ -44,10 +56,36 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
 
         getReservation(reservationId)
             .then(async (reservationDetail) => {
-                const eventDetail = await getPublicEvent(reservationDetail.eventId);
+                const [eventDetail, restoredOrder] = await Promise.all([
+                    getPublicEvent(reservationDetail.eventId),
+                    restoreOrder(reservationId),
+                ]);
+                const session = getCheckoutSession();
+                const matchingSession =
+                    session?.reservationId === reservationId &&
+                    new Date(session.expiresAt).getTime() > Date.now()
+                        ? session
+                        : null;
                 if (!active) return;
+                if (session?.reservationId === reservationId && !matchingSession) {
+                    clearCheckoutSession();
+                }
                 setReservation(reservationDetail);
                 setEvent(eventDetail);
+                setOrder(restoredOrder);
+                setPayment(matchingSession?.payment ?? null);
+                if (new Date(reservationDetail.expiresAt).getTime() > Date.now()) {
+                    saveCheckoutSession({
+                        eventId: reservationDetail.eventId,
+                        reservationId: reservationDetail.id,
+                        expiresAt: reservationDetail.expiresAt,
+                        orderId: restoredOrder?.id ?? matchingSession?.orderId,
+                        paymentId: matchingSession?.paymentId,
+                        payment: matchingSession?.payment,
+                    });
+                } else {
+                    clearCheckoutSession();
+                }
             })
             .catch((err: unknown) => {
                 if (!active) return;
@@ -89,7 +127,9 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
         setActionError('');
 
         try {
-            setOrder(await createOrder(reservation.id));
+            const createdOrder = await createOrder(reservation.id);
+            setOrder(createdOrder);
+            patchCheckoutSession({ orderId: createdOrder.id });
         } catch (err) {
             setActionError(
                 err instanceof Error
@@ -108,7 +148,12 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
         setActionError('');
 
         try {
-            setPayment(await createSepayPayment(order.id));
+            const createdPayment = await createSepayPayment(order.id);
+            setPayment(createdPayment);
+            patchCheckoutSession({
+                paymentId: createdPayment.paymentId,
+                payment: createdPayment,
+            });
         } catch (err) {
             setActionError(
                 err instanceof Error
@@ -250,6 +295,44 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
             <PublicFooter />
         </main>
     );
+}
+
+async function restoreOrder(reservationId: string) {
+    const session = getCheckoutSession();
+
+    if (
+        session?.reservationId === reservationId &&
+        new Date(session.expiresAt).getTime() <= Date.now()
+    ) {
+        clearCheckoutSession();
+        return null;
+    }
+
+    if (session?.reservationId === reservationId && session.orderId) {
+        try {
+            const order = await getOrder(session.orderId);
+            if (order.reservationId === reservationId) return order;
+        } catch {
+            // Fall back to /orders/my below.
+        }
+    }
+
+    try {
+        const ordersPage = await listMyOrders(1, 20);
+        return (
+            getPageOrders(ordersPage).find(
+                (order) => order.reservationId === reservationId,
+            ) ?? null
+        );
+    } catch {
+        return null;
+    }
+}
+
+function getPageOrders(page: OrdersPageResponse) {
+    if ('items' in page && Array.isArray(page.items)) return page.items;
+    if ('data' in page && Array.isArray(page.data)) return page.data;
+    return [];
 }
 
 function ReservationItemRow({

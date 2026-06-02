@@ -9,6 +9,7 @@ import {
     type PaymentStatus,
     type SepayPayment,
 } from './api/payments.api';
+import { clearCheckoutSession } from './checkoutSession';
 import './PaymentResultPage.css';
 
 type ResultView = {
@@ -57,6 +58,12 @@ export function PaymentResultPage() {
             active = false;
         };
     }, [paymentId]);
+
+    useEffect(() => {
+        if (payment?.status === 'SUCCEEDED') {
+            clearCheckoutSession();
+        }
+    }, [payment]);
 
     const view = getResultView(payment?.status ?? statusParam);
     const displayOrderId = payment?.orderId ?? orderId;

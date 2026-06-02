@@ -51,6 +51,18 @@ export type OrganizerOrder = {
     }>;
 };
 
+export type OrdersPageResponse = PageResponse<Order> | {
+    data: Order[];
+    meta: {
+        page: number;
+        limit: number;
+        totalItems: number;
+        totalPages: number;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+    };
+};
+
 export function listEventOrders(eventId: string, page = 1, limit = 20) {
     return apiGet<PageResponse<OrganizerOrder>>(
         `/organizer/events/${eventId}/orders?page=${page}&limit=${limit}`,
@@ -63,4 +75,8 @@ export function createOrder(reservationId: string) {
 
 export function getOrder(orderId: string) {
     return apiGet<Order>(`/orders/${orderId}`);
+}
+
+export function listMyOrders(page = 1, limit = 20) {
+    return apiGet<OrdersPageResponse>(`/orders/my?page=${page}&limit=${limit}`);
 }

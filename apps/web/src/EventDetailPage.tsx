@@ -18,6 +18,10 @@ import {
 } from './api/events.api';
 import { createReservation } from './api/reservations.api';
 import { getStoredAuthUser } from './authSession';
+import {
+    getActiveCheckoutSession,
+    saveCheckoutSession,
+} from './checkoutSession';
 import './EventDetailPage.css';
 
 const fallbackImage =
@@ -278,6 +282,7 @@ function TicketSidebar({
     const [reservationError, setReservationError] = useState('');
     const [showLoginPrompt, setShowLoginPrompt] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const activeSession = getActiveCheckoutSession(eventId);
 
     const selectedCount = useMemo(
         () =>
@@ -350,6 +355,11 @@ function TicketSidebar({
                     .filter((item) => item.quantity > 0),
             });
 
+            saveCheckoutSession({
+                eventId,
+                reservationId: reservation.id,
+                expiresAt: reservation.expiresAt,
+            });
             window.location.assign(`/checkout/${reservation.id}`);
         } catch (err) {
             setReservationError(
@@ -373,6 +383,21 @@ function TicketSidebar({
                         {tickets.length} hạng vé
                     </span>
                 </header>
+
+                {activeSession ? (
+                    <div className="active-checkout-box">
+                        <span>
+                            <MaterialIcon>timer</MaterialIcon>
+                        </span>
+                        <div>
+                            <h3>Bạn đang giữ vé</h3>
+                            <p>Reservation còn hiệu lực, bạn có thể tiếp tục checkout.</p>
+                        </div>
+                        <a href={`/checkout/${activeSession.reservationId}`}>
+                            Tiếp tục
+                        </a>
+                    </div>
+                ) : null}
 
                 {tickets.length === 0 ? (
                     <p className="ticket-empty">Sự kiện chưa cấu hình vé.</p>
