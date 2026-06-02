@@ -43,6 +43,43 @@
     align-items: start;
 }
 
+.detail-state {
+    max-width: var(--container);
+    min-height: 340px;
+    margin: 0 auto;
+    padding: 42px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 12px;
+    color: #667085;
+    background: #ffffff;
+    border: 1px solid #e3e9f2;
+    border-radius: 14px;
+    box-shadow: 0 14px 34px rgba(18, 23, 34, 0.06);
+    text-align: center;
+}
+
+.detail-state .material-symbols-outlined {
+    color: var(--blue);
+    font-size: 36px;
+}
+
+.detail-state h1 {
+    margin: 0;
+    color: #172033;
+    font-size: 24px;
+    letter-spacing: 0;
+}
+
+.detail-state p {
+    max-width: 520px;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
 .detail-main {
     display: grid;
     gap: 16px;
@@ -350,6 +387,21 @@
     font-weight: 800;
 }
 
+.location-card .map-link {
+    min-height: 42px;
+    margin-top: 8px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #111827;
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
 .map-preview {
     min-height: 170px;
     flex: 1 1 360px;
@@ -488,6 +540,80 @@
     color: #ef3124;
 }
 
+.active-checkout-box {
+    margin-bottom: 14px;
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    background: #eef4ff;
+    border: 1px solid #d7e5ff;
+    border-radius: 12px;
+}
+
+.active-checkout-box > span {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blue);
+    background: #ffffff;
+    border-radius: 50%;
+}
+
+.active-checkout-box h3,
+.active-checkout-box p {
+    margin: 0;
+}
+
+.active-checkout-box h3 {
+    color: #172033;
+    font-size: 13px;
+    font-weight: 900;
+}
+
+.active-checkout-box p {
+    margin-top: 3px;
+    color: #667085;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+
+.active-checkout-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.active-checkout-actions a,
+.active-checkout-actions button {
+    min-height: 34px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    background: #11161f;
+    border-radius: 9px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.active-checkout-actions button {
+    color: #172033;
+    background: #ffffff;
+    border: 1px solid #d7e5ff;
+}
+
+.active-checkout-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.52;
+}
+
 .ticket-options {
     display: grid;
     gap: 12px;
@@ -553,6 +679,43 @@
     line-height: 1.6;
 }
 
+.availability-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid #e8edf4;
+}
+
+.availability-row span {
+    color: #667085;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.availability-row strong {
+    color: #172033;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.availability-row + .quantity-row {
+    margin-top: 14px;
+}
+
+.ticket-empty {
+    margin: 0;
+    padding: 22px;
+    color: #667085;
+    background: #f8faff;
+    border: 1px dashed #d9e2f0;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+}
+
 .quantity-row {
     justify-content: space-between;
     gap: 12px;
@@ -567,13 +730,15 @@
 
 .quantity-row > div {
     overflow: hidden;
+    display: inline-flex;
+    align-items: center;
     border: 1px solid #dfe5ee;
-    border-radius: 8px;
+    border-radius: 12px;
 }
 
 .quantity-row button {
-    width: 34px;
-    height: 30px;
+    width: 36px;
+    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -582,16 +747,41 @@
     border: 0;
 }
 
-.quantity-row button .material-symbols-outlined {
-    font-size: 16px;
+.quantity-row button:disabled {
+    cursor: not-allowed;
+    opacity: 0.42;
 }
 
-.quantity-row > div span {
-    width: 38px;
+.quantity-row button .material-symbols-outlined {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    line-height: 1;
+    transform: translateY(1px);
+}
+
+.quantity-row > div span,
+.quantity-row > div input {
+    width: 44px;
+    height: 36px;
+    padding: 0;
+    background: #ffffff;
+    border: 0;
     text-align: center;
     color: #172033;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 800;
+}
+
+.quantity-row > div input {
+    outline: 0;
+}
+
+.quantity-row > div input::-webkit-outer-spin-button,
+.quantity-row > div input::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
 }
 
 .quantity-row small {
@@ -661,6 +851,96 @@
     color: #8a94a6;
     font-size: 12px;
     font-weight: 600;
+}
+
+.ticket-total .reservation-error {
+    justify-content: flex-start;
+    padding: 10px 12px;
+    color: #b42318;
+    background: #fff1f0;
+    border: 1px solid #ffd0cc;
+    border-radius: 10px;
+    text-align: left;
+}
+
+.reservation-login-prompt {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    padding: 20px;
+    display: grid;
+    place-items: center;
+    background: rgba(17, 22, 31, 0.42);
+}
+
+.reservation-login-prompt > div {
+    width: min(420px, 100%);
+    padding: 28px;
+    display: grid;
+    justify-items: center;
+    gap: 14px;
+    color: #172033;
+    background: #ffffff;
+    border: 1px solid #e3e9f2;
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(18, 23, 34, 0.2);
+    text-align: center;
+}
+
+.reservation-login-prompt > div > span {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--blue);
+    background: #eef4ff;
+    border-radius: 50%;
+}
+
+.reservation-login-prompt h2 {
+    margin: 0;
+    color: #172033;
+    font-size: 20px;
+    letter-spacing: 0;
+}
+
+.reservation-login-prompt p {
+    margin: 0;
+    color: #667085;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.reservation-login-prompt div div {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.reservation-login-prompt a,
+.reservation-login-prompt button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.reservation-login-prompt a {
+    color: #ffffff;
+    background: #11161f;
+}
+
+.reservation-login-prompt button {
+    color: #172033;
+    background: #ffffff;
+    border: 1px solid #dfe5ee;
 }
 
 .ticket-total p .material-symbols-outlined {

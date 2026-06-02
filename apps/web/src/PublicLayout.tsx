@@ -1,4 +1,5 @@
 import { getRoleLabel, getStoredAuthUser } from './authSession';
+import { getActiveCheckoutSession } from './checkoutSession';
 
 type PublicHeaderProps = {
     active: 'home' | 'events';
@@ -43,6 +44,8 @@ export function BrandMark() {
 
 export function PublicHeader({ active }: PublicHeaderProps) {
     const user = getStoredAuthUser();
+    const activeCheckout =
+        user?.role === 'CUSTOMER' ? getActiveCheckoutSession() : null;
 
     return (
         <header className="site-header">
@@ -69,18 +72,33 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                     VI
                     <MaterialIcon>expand_more</MaterialIcon>
                 </button>
-                <button className="cart-button" type="button" aria-label="Giỏ hàng">
-                    <MaterialIcon>shopping_cart</MaterialIcon>
-                    <span>2</span>
-                </button>
                 {user ? (
-                    <div className="user-chip">
-                        <span>{getInitials(user.name)}</span>
-                        <div>
-                            <strong>{user.name}</strong>
-                            <small>{getRoleLabel(user.role)}</small>
+                    <>
+                        {user.role === 'CUSTOMER' ? (
+                            <>
+                                {activeCheckout ? (
+                                    <a
+                                        className="header-icon-link"
+                                        href={`/checkout/${activeCheckout.reservationId}`}
+                                    >
+                                        <MaterialIcon>shopping_cart</MaterialIcon>
+                                        Vé đang giữ
+                                    </a>
+                                ) : null}
+                                <a className="header-icon-link" href="/my-tickets">
+                                    <MaterialIcon>confirmation_number</MaterialIcon>
+                                    Vé của tôi
+                                </a>
+                            </>
+                        ) : null}
+                        <div className="user-chip">
+                            <span>{getInitials(user.name)}</span>
+                            <div>
+                                <strong>{user.name}</strong>
+                                <small>{getRoleLabel(user.role)}</small>
+                            </div>
                         </div>
-                    </div>
+                    </>
                 ) : (
                     <a className="dark-button" href="/auth/login">
                         Đăng nhập

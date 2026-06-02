@@ -87,6 +87,7 @@ a {
 .language-button,
 .ghost-button,
 .dark-button,
+.header-icon-link,
 .user-chip,
 .header-logout-button,
 .search-panel,
@@ -183,6 +184,7 @@ a {
 .language-button,
 .ghost-button,
 .dark-button,
+.header-icon-link,
 .header-logout-button {
     height: 40px;
     justify-content: center;
@@ -193,6 +195,7 @@ a {
 
 .language-button,
 .ghost-button,
+.header-icon-link,
 .header-logout-button {
     color: #1e2533;
     background: #ffffff;
@@ -220,6 +223,17 @@ a {
 
 .header-logout-button .material-symbols-outlined {
     font-size: 19px;
+}
+
+.header-icon-link {
+    gap: 7px;
+    padding: 0 14px;
+    font-weight: 800;
+}
+
+.header-icon-link .material-symbols-outlined {
+    color: var(--blue);
+    font-size: 18px;
 }
 
 .dark-button {

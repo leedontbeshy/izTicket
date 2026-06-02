@@ -15,6 +15,11 @@ export function saveAuthSession(accessToken: string, user: StoredAuthUser) {
     sessionStorage.setItem(UserStorageKey, JSON.stringify(user));
 }
 
+export function clearAuthSession() {
+    sessionStorage.removeItem(AccessTokenStorageKey);
+    sessionStorage.removeItem(UserStorageKey);
+}
+
 export function getStoredAuthUser(): StoredAuthUser | null {
     const rawUser = sessionStorage.getItem(UserStorageKey);
 

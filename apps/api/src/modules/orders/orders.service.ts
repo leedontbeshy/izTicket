@@ -7,6 +7,8 @@ import {
 import type { PaginationQueryDto } from '../../common/pagination/pagination-query.dto';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateOrderDto } from './dto/create-order.dto';
+import type { AuthenticatedUser } from '../../common/decorators/current-user.decorator';
+import { UserRole } from '../../generated/prisma/enums';
 
 const orderSelect = {
     id: true,
@@ -19,6 +21,11 @@ const orderSelect = {
     paidAt: true,
     cancelledAt: true,
     createdAt: true,
+    event: {
+        select: {
+            organizerId: true,
+        },
+    },
     items: {
         select: {
             id: true,
@@ -94,6 +101,10 @@ export class OrdersService {
             throw AppException.conflict('Reservation is not active.');
         }
 
+        if (new Date() >= reservation.expiresAt) {
+            throw AppException.conflict('Reservation has expired.');
+        }
+
         const existingOrder = await this.prismaService.order.findUnique({
             where: { reservationId: dto.reservationId },
             select: { id: true },
@@ -134,21 +145,16 @@ export class OrdersService {
                 });
             }
 
-            await tx.reservation.update({
-                where: { id: reservation.id },
-                data: { status: 'CONFIRMED', confirmedAt: new Date() },
-            });
-
             return tx.order.findUnique({
                 where: { id: order.id },
                 select: orderSelect,
             });
         });
 
-        return result;
+        return result ? toOrderResponse(result) : result;
     }
 
-    async getOrder(customerId: string, orderId: string) {
+    async getOrder(user: AuthenticatedUser, orderId: string) {
         const order = await this.prismaService.order.findUnique({
             where: { id: orderId },
             select: orderSelect,
@@ -158,13 +164,13 @@ export class OrdersService {
             throw AppException.notFound('Order was not found.');
         }
 
-        if (order.customerId !== customerId) {
+        if (!canViewOrder(user, order)) {
             throw AppException.forbidden(
                 'You do not have permission to view this order.',
             );
         }
 
-        return order;
+        return toOrderResponse(order);
     }
 
     async listMyOrders(customerId: string, query: PaginationQueryDto) {
@@ -182,7 +188,7 @@ export class OrdersService {
             this.prismaService.order.count({ where }),
         ]);
 
-        return createPage(orders, totalItems, pagination);
+        return createPage(orders.map(toOrderResponse), totalItems, pagination);
     }
 
     async listEventOrders(
@@ -213,6 +219,68 @@ export class OrdersService {
             this.prismaService.order.count({ where }),
         ]);
 
-        return createPage(orders, totalItems, pagination);
+        return createPage(
+            orders.map((order) => ({
+                ...order,
+                customerName: order.customer.name,
+                totalAmount: order.totalAmountVnd,
+            })),
+            totalItems,
+            pagination,
+        );
     }
+}
+
+function canViewOrder(
+    user: AuthenticatedUser,
+    order: {
+        customerId: string;
+        event: { organizerId: string };
+    },
+) {
+    if (user.role === UserRole.ADMIN) return true;
+    if (user.role === UserRole.CUSTOMER) return order.customerId === user.id;
+    if (user.role === UserRole.ORGANIZER) {
+        return order.event.organizerId === user.id;
+    }
+    return false;
+}
+
+function toOrderResponse(order: {
+    id: string;
+    eventId: string;
+    customerId: string;
+    reservationId: string;
+    status: string;
+    totalAmountVnd: number;
+    expiresAt: Date;
+    paidAt: Date | null;
+    cancelledAt: Date | null;
+    createdAt: Date;
+    items: Array<{
+        id: string;
+        ticketTypeId: string;
+        quantity: number;
+        unitPriceVnd: number;
+        subtotalVnd: number;
+    }>;
+}) {
+    return {
+        id: order.id,
+        eventId: order.eventId,
+        customerId: order.customerId,
+        reservationId: order.reservationId,
+        status: order.status,
+        totalAmountVnd: order.totalAmountVnd,
+        totalAmount: order.totalAmountVnd,
+        expiresAt: order.expiresAt,
+        paidAt: order.paidAt,
+        cancelledAt: order.cancelledAt,
+        createdAt: order.createdAt,
+        items: order.items.map((item) => ({
+            ...item,
+            unitPrice: item.unitPriceVnd,
+            subtotal: item.subtotalVnd,
+        })),
+    };
 }

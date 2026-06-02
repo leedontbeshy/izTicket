@@ -46,6 +46,14 @@ export class ExpiryService {
                     });
                 }
 
+                await tx.order.updateMany({
+                    where: {
+                        reservationId: reservation.id,
+                        status: 'PENDING_PAYMENT',
+                    },
+                    data: { status: 'EXPIRED' },
+                });
+
                 count++;
             });
         }
@@ -58,9 +66,7 @@ export class ExpiryService {
             where: { status: 'PENDING_PAYMENT', expiresAt: { lt: now } },
             select: {
                 id: true,
-                items: {
-                    select: { ticketTypeId: true, quantity: true },
-                },
+                reservationId: true,
             },
         });
 
@@ -68,21 +74,43 @@ export class ExpiryService {
 
         for (const order of candidates) {
             await this.prismaService.$transaction(async (tx) => {
+                const reservation = await tx.reservation.findUnique({
+                    where: { id: order.reservationId },
+                    select: {
+                        id: true,
+                        status: true,
+                        items: {
+                            select: { ticketTypeId: true, quantity: true },
+                        },
+                    },
+                });
+
+                if (reservation?.status === 'ACTIVE') {
+                    const reservationResult = await tx.reservation.updateMany({
+                        where: { id: reservation.id, status: 'ACTIVE' },
+                        data: { status: 'EXPIRED' },
+                    });
+
+                    if (reservationResult.count === 0) return;
+
+                    for (const item of reservation.items) {
+                        await tx.ticketType.update({
+                            where: { id: item.ticketTypeId },
+                            data: {
+                                availableQuantity: {
+                                    increment: item.quantity,
+                                },
+                            },
+                        });
+                    }
+                }
+
                 const result = await tx.order.updateMany({
                     where: { id: order.id, status: 'PENDING_PAYMENT' },
                     data: { status: 'EXPIRED' },
                 });
 
                 if (result.count === 0) return;
-
-                for (const item of order.items) {
-                    await tx.ticketType.update({
-                        where: { id: item.ticketTypeId },
-                        data: {
-                            availableQuantity: { increment: item.quantity },
-                        },
-                    });
-                }
 
                 count++;
             });

@@ -47,6 +47,7 @@ const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
     PAID: 'Đã thanh toán',
     CANCELLED: 'Đã hủy',
     EXPIRED: 'Hết hạn',
+    PAYMENT_REVIEW: 'Cần đối soát',
 };
 
 export function OrganizerEventDetailPage({ eventId }: Props) {

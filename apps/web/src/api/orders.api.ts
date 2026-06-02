@@ -1,11 +1,37 @@
-import { apiGet } from './client';
+import { apiGet, apiPost } from './client';
 import type { PageResponse } from './events.api';
 
 export type OrderStatus =
     | 'PENDING_PAYMENT'
     | 'PAID'
     | 'CANCELLED'
-    | 'EXPIRED';
+    | 'EXPIRED'
+    | 'PAYMENT_REVIEW';
+
+export type OrderItem = {
+    id: string;
+    ticketTypeId: string;
+    quantity: number;
+    unitPriceVnd: number;
+    subtotalVnd: number;
+    unitPrice?: number;
+    subtotal?: number;
+};
+
+export type Order = {
+    id: string;
+    eventId: string;
+    customerId: string;
+    reservationId: string;
+    status: OrderStatus;
+    totalAmountVnd: number;
+    totalAmount?: number;
+    expiresAt: string;
+    paidAt: string | null;
+    cancelledAt: string | null;
+    createdAt: string;
+    items: OrderItem[];
+};
 
 export type OrganizerOrder = {
     id: string;
@@ -25,8 +51,32 @@ export type OrganizerOrder = {
     }>;
 };
 
+export type OrdersPageResponse = PageResponse<Order> | {
+    data: Order[];
+    meta: {
+        page: number;
+        limit: number;
+        totalItems: number;
+        totalPages: number;
+        hasNextPage: boolean;
+        hasPreviousPage: boolean;
+    };
+};
+
 export function listEventOrders(eventId: string, page = 1, limit = 20) {
     return apiGet<PageResponse<OrganizerOrder>>(
         `/organizer/events/${eventId}/orders?page=${page}&limit=${limit}`,
     );
+}
+
+export function createOrder(reservationId: string) {
+    return apiPost<Order>('/orders', { reservationId });
+}
+
+export function getOrder(orderId: string) {
+    return apiGet<Order>(`/orders/${orderId}`);
+}
+
+export function listMyOrders(page = 1, limit = 20) {
+    return apiGet<OrdersPageResponse>(`/orders/my?page=${page}&limit=${limit}`);
 }
