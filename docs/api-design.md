@@ -264,6 +264,12 @@ Lists events owned by the authenticated organizer.
 
 Auth: `ORGANIZER`.
 
+### `GET /organizer/events/:eventId`
+
+Returns one organizer-owned event by id.
+
+Auth: `ORGANIZER`.
+
 ### `POST /organizer/events`
 
 Creates an event in `DRAFT` state.
@@ -342,8 +348,10 @@ Request:
 ```json
 {
     "name": "Standard",
+    "description": "General admission",
     "price": 150000,
     "totalQuantity": 200,
+    "maxPerOrder": 4,
     "saleStartsAt": "2026-05-25T00:00:00.000Z",
     "saleEndsAt": "2026-06-19T23:59:59.000Z"
 }

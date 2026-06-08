@@ -1,6 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { getStoredAuthUser } from './authSession';
-import { listOrganizerEvents, type OrganizerEvent, type EventStatus } from './api/events.api';
+import { getOrganizerEvent, type OrganizerEvent, type EventStatus } from './api/events.api';
 import {
     listTicketTypes,
     createTicketType,
@@ -63,31 +63,27 @@ export function OrganizerEventDetailPage({ eventId }: Props) {
     const [formError, setFormError] = useState('');
 
     const user = getStoredAuthUser();
+    const isOrganizer = user?.role === 'ORGANIZER';
 
     useEffect(() => {
-        if (!user || user.role !== 'ORGANIZER') {
+        if (!isOrganizer) {
             window.location.href = '/auth/login';
             return;
         }
 
         Promise.all([
-            listOrganizerEvents(1, 100),
+            getOrganizerEvent(eventId),
             listTicketTypes(eventId),
             listEventOrders(eventId),
         ])
-            .then(([eventsPage, ttRes, ordersPage]) => {
-                const found = eventsPage.items.find((e) => e.id === eventId);
-                if (!found) {
-                    window.location.href = '/organizer/events';
-                    return;
-                }
-                setEvent(found);
+            .then(([eventDetail, ttRes, ordersPage]) => {
+                setEvent(eventDetail);
                 setTicketTypes(ttRes.items);
                 setOrders(ordersPage.items);
             })
             .catch(() => setError('Không thể tải dữ liệu.'))
             .finally(() => setLoading(false));
-    }, []);
+    }, [eventId, isOrganizer]);
 
     function setField(field: keyof TicketForm) {
         return (
@@ -137,7 +133,22 @@ export function OrganizerEventDetailPage({ eventId }: Props) {
         );
     }
 
-    if (!event) return null;
+    if (!event) {
+        return (
+            <div className="dash-shell">
+                <DashHeader userName={user?.name} activeNav="events" role="ORGANIZER" onLogout={logout} />
+                <main className="dash-main">
+                    <a className="ef-back-link" href="/organizer/events">
+                        <span className="material-symbols-outlined">arrow_back</span>
+                        Sự kiện của tôi
+                    </a>
+                    <div className="dash-error">
+                        {error || 'Không thể tải dữ liệu sự kiện.'}
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     const canEdit = event.status === 'DRAFT' || event.status === 'REJECTED';
     const statusClass = `status-${event.status.toLowerCase().replace(/_/g, '-')}`;

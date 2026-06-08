@@ -49,6 +49,7 @@ export function BrandMark() {
 
 export function PublicHeader({ active }: PublicHeaderProps) {
     const user = getStoredAuthUser();
+    const dashboardHref = user ? getDashboardHref(user.role) : null;
     const activeCheckout =
         user?.role === 'CUSTOMER' ? getActiveCheckoutSession() : null;
 
@@ -79,6 +80,11 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                 </button>
                 {user ? (
                     <>
+                        {dashboardHref ? (
+                            <a className="dark-button" href={dashboardHref}>
+                                Dashboard
+                            </a>
+                        ) : null}
                         {activeCheckout ? (
                             <a
                                 className="header-icon-link"
@@ -98,6 +104,12 @@ export function PublicHeader({ active }: PublicHeaderProps) {
             </div>
         </header>
     );
+}
+
+function getDashboardHref(role: StoredAuthUser['role']) {
+    if (role === 'ORGANIZER') return '/organizer/events';
+    if (role === 'ADMIN') return '/admin/events';
+    return null;
 }
 
 function UserAccountMenu({ user }: { user: StoredAuthUser }) {

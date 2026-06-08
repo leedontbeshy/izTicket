@@ -1,7 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { getStoredAuthUser } from './authSession';
 import {
-    listOrganizerEvents,
+    getOrganizerEvent,
     createEvent,
     updateEvent,
     submitEvent,
@@ -9,6 +9,10 @@ import {
     type CreateEventPayload,
     type EventStatus,
 } from './api/events.api';
+import {
+    createTicketType,
+    type CreateTicketTypePayload,
+} from './api/ticket-types.api';
 import { DashHeader } from './DashboardLayout';
 import { logout } from './dashboardLogout';
 import './EventFormPage.css';
@@ -31,6 +35,16 @@ type FormState = {
     venueMapUrl: string;
 };
 
+type TicketForm = {
+    name: string;
+    description: string;
+    price: string;
+    totalQuantity: string;
+    maxPerOrder: string;
+    saleStartsAt: string;
+    saleEndsAt: string;
+};
+
 const EMPTY_FORM: FormState = {
     title: '',
     description: '',
@@ -43,6 +57,16 @@ const EMPTY_FORM: FormState = {
     venueCity: '',
     venueDistrict: '',
     venueMapUrl: '',
+};
+
+const EMPTY_TICKET_FORM: TicketForm = {
+    name: '',
+    description: '',
+    price: '',
+    totalQuantity: '',
+    maxPerOrder: '',
+    saleStartsAt: '',
+    saleEndsAt: '',
 };
 
 const CATEGORIES: { value: string; label: string }[] = [
@@ -73,8 +97,12 @@ export function EventFormPage(props: Props) {
     const [saving, setSaving] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState('');
+    const [ticketForms, setTicketForms] = useState<TicketForm[]>(
+        props.mode === 'create' ? [createEmptyTicketForm()] : [],
+    );
 
     const user = getStoredAuthUser();
+    const isOrganizer = user?.role === 'ORGANIZER';
     const isEdit = props.mode === 'edit';
     const eventId = isEdit ? (props as { mode: 'edit'; eventId: string }).eventId : null;
     const canEdit =
@@ -86,28 +114,23 @@ export function EventFormPage(props: Props) {
         (eventStatus === 'DRAFT' || eventStatus === 'REJECTED');
 
     useEffect(() => {
-        if (!user || user.role !== 'ORGANIZER') {
+        if (!isOrganizer) {
             window.location.href = '/auth/login';
             return;
         }
 
         if (!isEdit || !eventId) return;
 
-        listOrganizerEvents(1, 100)
-            .then((page) => {
-                const found = page.items.find((e) => e.id === eventId);
-                if (!found) {
-                    window.location.href = '/organizer/events';
-                    return;
-                }
-                setEventStatus(found.status);
-                setForm(eventToForm(found));
+        getOrganizerEvent(eventId)
+            .then((event) => {
+                setEventStatus(event.status);
+                setForm(eventToForm(event));
             })
             .catch(() => {
                 window.location.href = '/organizer/events';
             })
             .finally(() => setLoading(false));
-    }, []);
+    }, [eventId, isEdit, isOrganizer]);
 
     function set(field: keyof FormState) {
         return (
@@ -117,6 +140,29 @@ export function EventFormPage(props: Props) {
         ) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
     }
 
+    function setTicketField(index: number, field: keyof TicketForm) {
+        return (
+            e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+        ) =>
+            setTicketForms((current) =>
+                current.map((ticket, ticketIndex) =>
+                    ticketIndex === index
+                        ? { ...ticket, [field]: e.target.value }
+                        : ticket,
+                ),
+            );
+    }
+
+    function addTicketForm() {
+        setTicketForms((current) => [...current, createEmptyTicketForm()]);
+    }
+
+    function removeTicketForm(index: number) {
+        setTicketForms((current) =>
+            current.filter((_, ticketIndex) => ticketIndex !== index),
+        );
+    }
+
     async function handleSave(e: FormEvent) {
         e.preventDefault();
         setError('');
@@ -124,12 +170,20 @@ export function EventFormPage(props: Props) {
 
         try {
             const payload = formToPayload(form);
+            const ticketPayloads = isEdit
+                ? []
+                : ticketFormsToPayloads(ticketForms);
+
             if (isEdit && eventId) {
                 await updateEvent(eventId, payload);
+                window.location.href = '/organizer/events';
             } else {
-                await createEvent(payload);
+                const created = await createEvent(payload);
+                for (const ticketPayload of ticketPayloads) {
+                    await createTicketType(created.id, ticketPayload);
+                }
+                window.location.href = `/organizer/events/${created.id}`;
             }
-            window.location.href = '/organizer/events';
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Đã xảy ra lỗi.');
         } finally {
@@ -403,6 +457,148 @@ export function EventFormPage(props: Props) {
                         </div>
                     </section>
 
+                    {!isEdit && (
+                        <section className="ef-section ef-ticket-section">
+                            <div className="ef-section-title-row">
+                                <div>
+                                    <h2>Loại vé ban đầu</h2>
+                                    <p>
+                                        API tạo event trước, sau đó tạo loại vé
+                                        theo mã event vừa sinh.
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="btn-outline"
+                                    onClick={addTicketForm}
+                                >
+                                    <span className="material-symbols-outlined">
+                                        add
+                                    </span>
+                                    Thêm loại vé
+                                </button>
+                            </div>
+
+                            {ticketForms.length === 0 ? (
+                                <div className="ef-ticket-empty">
+                                    Có thể tạo bản nháp trước và thêm vé sau.
+                                </div>
+                            ) : (
+                                ticketForms.map((ticket, index) => (
+                                    <div className="ef-ticket-block" key={index}>
+                                        <div className="ef-ticket-block-header">
+                                            <h3>Loại vé {index + 1}</h3>
+                                            <button
+                                                type="button"
+                                                onClick={() => removeTicketForm(index)}
+                                            >
+                                                Xóa
+                                            </button>
+                                        </div>
+
+                                        <div className="ef-row">
+                                            <div className="ef-field">
+                                                <label htmlFor={`ef-ticket-name-${index}`}>
+                                                    Tên loại vé
+                                                </label>
+                                                <input
+                                                    id={`ef-ticket-name-${index}`}
+                                                    type="text"
+                                                    value={ticket.name}
+                                                    onChange={setTicketField(index, 'name')}
+                                                    placeholder="VIP, Thường, Sinh viên..."
+                                                    maxLength={120}
+                                                />
+                                            </div>
+                                            <div className="ef-field">
+                                                <label htmlFor={`ef-ticket-price-${index}`}>
+                                                    Giá (VND)
+                                                </label>
+                                                <input
+                                                    id={`ef-ticket-price-${index}`}
+                                                    type="number"
+                                                    value={ticket.price}
+                                                    onChange={setTicketField(index, 'price')}
+                                                    placeholder="150000"
+                                                    min={0}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="ef-field">
+                                            <label htmlFor={`ef-ticket-desc-${index}`}>
+                                                Mô tả{' '}
+                                                <span className="ef-optional">(tùy chọn)</span>
+                                            </label>
+                                            <textarea
+                                                id={`ef-ticket-desc-${index}`}
+                                                value={ticket.description}
+                                                onChange={setTicketField(index, 'description')}
+                                                placeholder="Quyền lợi đi kèm..."
+                                                rows={2}
+                                            />
+                                        </div>
+
+                                        <div className="ef-row">
+                                            <div className="ef-field">
+                                                <label htmlFor={`ef-ticket-qty-${index}`}>
+                                                    Số lượng
+                                                </label>
+                                                <input
+                                                    id={`ef-ticket-qty-${index}`}
+                                                    type="number"
+                                                    value={ticket.totalQuantity}
+                                                    onChange={setTicketField(index, 'totalQuantity')}
+                                                    placeholder="200"
+                                                    min={1}
+                                                />
+                                            </div>
+                                            <div className="ef-field">
+                                                <label htmlFor={`ef-ticket-max-${index}`}>
+                                                    Tối đa / đơn{' '}
+                                                    <span className="ef-optional">(tùy chọn)</span>
+                                                </label>
+                                                <input
+                                                    id={`ef-ticket-max-${index}`}
+                                                    type="number"
+                                                    value={ticket.maxPerOrder}
+                                                    onChange={setTicketField(index, 'maxPerOrder')}
+                                                    placeholder="4"
+                                                    min={1}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="ef-row">
+                                            <div className="ef-field">
+                                                <label htmlFor={`ef-ticket-sale-start-${index}`}>
+                                                    Mở bán
+                                                </label>
+                                                <input
+                                                    id={`ef-ticket-sale-start-${index}`}
+                                                    type="datetime-local"
+                                                    value={ticket.saleStartsAt}
+                                                    onChange={setTicketField(index, 'saleStartsAt')}
+                                                />
+                                            </div>
+                                            <div className="ef-field">
+                                                <label htmlFor={`ef-ticket-sale-end-${index}`}>
+                                                    Kết thúc bán
+                                                </label>
+                                                <input
+                                                    id={`ef-ticket-sale-end-${index}`}
+                                                    type="datetime-local"
+                                                    value={ticket.saleEndsAt}
+                                                    onChange={setTicketField(index, 'saleEndsAt')}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </section>
+                    )}
+
                     {!canEdit && eventStatus && (
                         <div className="ef-readonly-note">
                             <span className="material-symbols-outlined">
@@ -473,6 +669,80 @@ function formToPayload(form: FormState): CreateEventPayload {
             ...(form.venueMapUrl ? { mapUrl: form.venueMapUrl } : {}),
         },
     };
+}
+
+function ticketFormsToPayloads(
+    ticketForms: TicketForm[],
+): CreateTicketTypePayload[] {
+    return ticketForms
+        .filter(hasTicketInput)
+        .map((ticket) => {
+            if (
+                !ticket.name ||
+                !ticket.price ||
+                !ticket.totalQuantity ||
+                !ticket.saleStartsAt ||
+                !ticket.saleEndsAt
+            ) {
+                throw new Error(
+                    'Vui lòng điền đủ tên, giá, số lượng và thời gian bán vé.',
+                );
+            }
+
+            const saleStartsAt = new Date(ticket.saleStartsAt);
+            const saleEndsAt = new Date(ticket.saleEndsAt);
+            const price = Number(ticket.price);
+            const totalQuantity = Number(ticket.totalQuantity);
+            const maxPerOrder = ticket.maxPerOrder
+                ? Number(ticket.maxPerOrder)
+                : null;
+
+            if (
+                Number.isNaN(saleStartsAt.getTime()) ||
+                Number.isNaN(saleEndsAt.getTime())
+            ) {
+                throw new Error('Thời gian bán vé không hợp lệ.');
+            }
+
+            if (!Number.isInteger(price) || price < 0) {
+                throw new Error('Giá vé phải là số nguyên không âm.');
+            }
+
+            if (!Number.isInteger(totalQuantity) || totalQuantity < 1) {
+                throw new Error('Số lượng vé phải là số nguyên từ 1 trở lên.');
+            }
+
+            if (
+                maxPerOrder !== null &&
+                (!Number.isInteger(maxPerOrder) || maxPerOrder < 1)
+            ) {
+                throw new Error('Số vé tối đa mỗi đơn phải là số nguyên từ 1 trở lên.');
+            }
+
+            if (saleEndsAt.getTime() <= saleStartsAt.getTime()) {
+                throw new Error('Thời gian kết thúc bán vé phải sau thời gian mở bán.');
+            }
+
+            return {
+                name: ticket.name.trim(),
+                ...(ticket.description
+                    ? { description: ticket.description.trim() }
+                    : {}),
+                price,
+                totalQuantity,
+                ...(maxPerOrder !== null ? { maxPerOrder } : {}),
+                saleStartsAt: saleStartsAt.toISOString(),
+                saleEndsAt: saleEndsAt.toISOString(),
+            };
+        });
+}
+
+function hasTicketInput(ticket: TicketForm) {
+    return Object.values(ticket).some((value) => value.trim() !== '');
+}
+
+function createEmptyTicketForm(): TicketForm {
+    return { ...EMPTY_TICKET_FORM };
 }
 
 function isoToDateTimeLocal(iso: string): string {
