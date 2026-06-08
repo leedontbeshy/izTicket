@@ -169,7 +169,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                 setError(
                     err instanceof Error
                         ? err.message
-                        : 'Không thể tải reservation.',
+                        : 'Không thể tải thông tin đặt vé.',
                 );
             })
             .finally(() => {
@@ -227,7 +227,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
             setActionError(
                 err instanceof Error
                     ? err.message
-                    : 'Không thể tạo thanh toán SePay. Vui lòng thử lại.',
+                    : 'Không thể khởi tạo thanh toán. Vui lòng thử lại.',
             );
         } finally {
             setCreatingOrder(false);
@@ -249,7 +249,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
             setActionError(
                 err instanceof Error
                     ? err.message
-                    : 'Không thể hủy reservation. Vui lòng thử lại.',
+                    : 'Không thể hủy đặt vé. Vui lòng thử lại.',
             );
         } finally {
             setCancelling(false);
@@ -263,14 +263,14 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
             {loading ? (
                 <CheckoutState
                     icon="hourglass_top"
-                    title="Đang tải checkout"
-                    text="Reservation của bạn sẽ hiển thị ngay khi API phản hồi."
+                    title="Đang tải trang thanh toán"
+                    text="Thông tin đặt vé của bạn đang được tải."
                 />
             ) : error || !reservation ? (
                 <CheckoutState
                     icon="error"
-                    title="Không thể tải checkout"
-                    text={error || 'Reservation không tồn tại hoặc không thuộc tài khoản này.'}
+                    title="Không thể tải trang thanh toán"
+                    text={error || 'Không tìm thấy thông tin đặt vé hoặc đặt vé không thuộc tài khoản này.'}
                 />
             ) : (
                 <section className="checkout-layout">
@@ -281,14 +281,14 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                 Quay lại sự kiện
                             </a>
                             <h1>Checkout</h1>
-                            <p>{event?.title ?? 'Reservation của bạn'}</p>
+                            <p>{event?.title ?? 'Đặt vé của bạn'}</p>
                         </div>
 
                         <section className="checkout-card">
                             <header>
                                 <div>
                                     <h2>Vé đã giữ</h2>
-                                    <p>Reservation #{reservation.id}</p>
+                                    <p>Mã đặt vé #{reservation.id}</p>
                                 </div>
                                 <StatusPill status={reservation.status} />
                             </header>
@@ -310,10 +310,10 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                     <MaterialIcon>task_alt</MaterialIcon>
                                 </span>
                                 <div>
-                                    <h2>Order đã được tạo</h2>
+                                    <h2>Đơn hàng đã được tạo</h2>
                                     <p>
-                                        Order #{order.id} đang chờ thanh toán. Mã SePay sẽ được
-                                        hiển thị ngay bên dưới khi khởi tạo thành công.
+                                        Đơn hàng #{order.id} đang chờ thanh toán. Thông tin chuyển khoản
+                                        sẽ hiển thị ngay bên dưới.
                                     </p>
                                 </div>
                             </section>
@@ -329,7 +329,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                 {formatRemaining(remainingMs)}
                             </strong>
                             <p>
-                                Hoàn tất tạo order trước khi reservation hết hạn.
+                                Hoàn tất thanh toán trước khi thời gian giữ vé hết hạn.
                             </p>
                         </section>
 
@@ -356,10 +356,10 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                             onClick={handleStartPayment}
                         >
                             {payment
-                                ? 'Đã tạo thanh toán'
+                                ? 'Đã khởi tạo thanh toán'
                                 : creatingOrder || creatingPayment
-                                  ? 'Đang tạo thanh toán...'
-                                  : 'Tạo thanh toán SePay'}
+                                  ? 'Đang khởi tạo...'
+                                  : 'Tiến hành thanh toán'}
                             <MaterialIcon>arrow_forward</MaterialIcon>
                         </button>
 
@@ -371,14 +371,14 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                 onClick={handleCancelReservation}
                             >
                                 <MaterialIcon>close</MaterialIcon>
-                                {cancelling ? 'Đang hủy reservation...' : 'Hủy giữ vé'}
+                                {cancelling ? 'Đang hủy...' : 'Hủy giữ vé'}
                             </button>
                         ) : null}
 
                         {isExpired ? (
                             <p className="checkout-error">
                                 <MaterialIcon>error</MaterialIcon>
-                                Reservation đã hết hạn. Vui lòng đặt lại vé.
+                                Thời gian giữ vé đã hết hạn. Vui lòng đặt vé lại.
                             </p>
                         ) : null}
                         {actionError ? (
@@ -499,7 +499,6 @@ function ReservationItemRow({
         <article className="checkout-item">
             <div>
                 <h3>{ticketType?.name ?? 'Hạng vé'}</h3>
-                <p>{item.ticketTypeId}</p>
             </div>
             <span>x{item.quantity}</span>
             <strong>{formatCurrency(getItemSubtotal(item))}</strong>
@@ -514,10 +513,10 @@ function PaymentInstructions({ payment }: { payment: SepayPayment }) {
         <section className="checkout-card payment-card">
             <header>
                 <div>
-                    <h2>Thanh toán SePay</h2>
-                    <p>Payment #{payment.paymentId}</p>
+                    <h2>Thông tin thanh toán</h2>
+                    <p>Mã thanh toán #{payment.paymentId}</p>
                 </div>
-                <span className="reservation-status active">{payment.status}</span>
+                <span className="reservation-status active">Chờ thanh toán</span>
             </header>
 
             <div className="payment-body">
@@ -582,8 +581,16 @@ function CheckoutState({
     );
 }
 
+const RESERVATION_STATUS_LABELS: Record<string, string> = {
+    ACTIVE: 'Đang giữ',
+    EXPIRED: 'Hết hạn',
+    CANCELLED: 'Đã hủy',
+    CONFIRMED: 'Đã xác nhận',
+};
+
 function StatusPill({ status }: { status: Reservation['status'] }) {
-    return <span className={`reservation-status ${status.toLowerCase()}`}>{status}</span>;
+    const label = RESERVATION_STATUS_LABELS[status] ?? status;
+    return <span className={`reservation-status ${status.toLowerCase()}`}>{label}</span>;
 }
 
 function getItemSubtotal(item: ReservationItem) {
@@ -595,8 +602,8 @@ function getTotalQuantity(items: ReservationItem[]) {
 }
 
 function getCheckoutSessionStatus(session: CheckoutSession) {
-    if (session.paymentId) return { label: 'Đã tạo mã SePay', tone: 'payment' };
-    if (session.orderId) return { label: 'Đã tạo order', tone: 'order' };
+    if (session.paymentId) return { label: 'Chờ thanh toán', tone: 'payment' };
+    if (session.orderId) return { label: 'Đã tạo đơn hàng', tone: 'order' };
     return { label: 'Đang giữ vé', tone: 'hold' };
 }
 
