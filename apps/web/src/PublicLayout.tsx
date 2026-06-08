@@ -88,7 +88,7 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                         {activeCheckout ? (
                             <a
                                 className="header-icon-link"
-                                href={`/checkout/${activeCheckout.reservationId}`}
+                                href="/checkout"
                             >
                                 <MaterialIcon>shopping_cart</MaterialIcon>
                                 Vé đang giữ

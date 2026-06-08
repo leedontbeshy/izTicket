@@ -4,6 +4,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateReservationDto } from './dto/create-reservation.dto';
 import { isSaleActive, validateMaxPerOrder } from './domain/reservation.rules';
 import { EventStatus } from '../../generated/prisma/enums';
+import { Prisma } from '../../generated/prisma/client';
 
 const reservationSelect = {
     id: true,
@@ -30,12 +31,18 @@ export class ReservationsService {
     async createReservation(customerId: string, dto: CreateReservationDto) {
         const event = await this.prismaService.event.findUnique({
             where: { id: dto.eventId },
-            select: { id: true, status: true },
+            select: { id: true, status: true, endsAt: true },
         });
 
         if (!event || event.status !== EventStatus.PUBLISHED) {
             throw AppException.conflict(
                 'Event is not available for reservations.',
+            );
+        }
+
+        if (event.endsAt.getTime() <= Date.now()) {
+            throw AppException.conflict(
+                'Event has already ended and cannot be reserved.',
             );
         }
 
@@ -81,53 +88,72 @@ export class ReservationsService {
 
         const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-        const result = await this.prismaService.$transaction(async (tx) => {
-            for (const item of dto.items) {
-                const updateResult = await tx.ticketType.updateMany({
+        const result = await this.prismaService.$transaction(
+            async (tx) => {
+                const activeReservation = await tx.reservation.findFirst({
                     where: {
-                        id: item.ticketTypeId,
-                        availableQuantity: { gte: item.quantity },
+                        customerId,
+                        eventId: dto.eventId,
+                        status: 'ACTIVE',
+                        expiresAt: { gt: new Date() },
                     },
-                    data: {
-                        availableQuantity: { decrement: item.quantity },
-                    },
+                    select: { id: true },
                 });
 
-                if (updateResult.count !== 1) {
+                if (activeReservation) {
                     throw AppException.conflict(
-                        'Not enough tickets available.',
+                        'You already have an active reservation for this event.',
                     );
                 }
-            }
 
-            const reservation = await tx.reservation.create({
-                data: {
-                    customerId,
-                    eventId: dto.eventId,
-                    status: 'ACTIVE',
-                    expiresAt,
-                },
-            });
+                for (const item of dto.items) {
+                    const updateResult = await tx.ticketType.updateMany({
+                        where: {
+                            id: item.ticketTypeId,
+                            availableQuantity: { gte: item.quantity },
+                        },
+                        data: {
+                            availableQuantity: { decrement: item.quantity },
+                        },
+                    });
 
-            for (const item of dto.items) {
-                const tt = ticketTypes.find((t) => t.id === item.ticketTypeId)!;
+                    if (updateResult.count !== 1) {
+                        throw AppException.conflict(
+                            'Not enough tickets available.',
+                        );
+                    }
+                }
 
-                await tx.reservationItem.create({
+                const reservation = await tx.reservation.create({
                     data: {
-                        reservationId: reservation.id,
-                        ticketTypeId: item.ticketTypeId,
-                        quantity: item.quantity,
-                        unitPriceVnd: tt.priceVnd,
-                        subtotalVnd: tt.priceVnd * item.quantity,
+                        customerId,
+                        eventId: dto.eventId,
+                        status: 'ACTIVE',
+                        expiresAt,
                     },
                 });
-            }
 
-            return tx.reservation.findUnique({
-                where: { id: reservation.id },
-                select: reservationSelect,
-            });
-        });
+                for (const item of dto.items) {
+                    const tt = ticketTypes.find((t) => t.id === item.ticketTypeId)!;
+
+                    await tx.reservationItem.create({
+                        data: {
+                            reservationId: reservation.id,
+                            ticketTypeId: item.ticketTypeId,
+                            quantity: item.quantity,
+                            unitPriceVnd: tt.priceVnd,
+                            subtotalVnd: tt.priceVnd * item.quantity,
+                        },
+                    });
+                }
+
+                return tx.reservation.findUnique({
+                    where: { id: reservation.id },
+                    select: reservationSelect,
+                });
+            },
+            { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+        );
 
         return result ? toReservationResponse(result) : result;
     }

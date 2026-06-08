@@ -20,6 +20,7 @@ const publicEventListSelect = {
     slug: true,
     status: true,
     startsAt: true,
+    endsAt: true,
     thumbnailUrl: true,
     venue: {
         select: {
@@ -108,6 +109,13 @@ export class EventsService {
                       },
                   }
                 : {}),
+            ...(query.activeOnly === 'true'
+                ? {
+                      endsAt: {
+                          gte: new Date(),
+                      },
+                  }
+                : {}),
         };
 
         const [events, total] = await Promise.all([
@@ -130,6 +138,7 @@ export class EventsService {
                 venueName: event.venue.name,
                 city: event.venue.city,
                 startsAt: event.startsAt,
+                endsAt: event.endsAt,
                 minPrice: event.ticketTypes[0]?.priceVnd ?? null,
                 thumbnailUrl: event.thumbnailUrl,
             })),

@@ -541,20 +541,21 @@
 }
 
 .active-checkout-box {
-    margin-bottom: 14px;
-    padding: 12px;
+    margin-bottom: 18px;
+    padding: 18px;
     display: grid;
-    grid-template-columns: 34px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 10px;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: flex-start;
+    gap: 14px;
     background: #eef4ff;
-    border: 1px solid #d7e5ff;
-    border-radius: 12px;
+    border: 1px solid #b8d2ff;
+    border-radius: 14px;
+    box-shadow: 0 12px 30px rgba(15, 92, 201, 0.12);
 }
 
 .active-checkout-box > span {
-    width: 34px;
-    height: 34px;
+    width: 44px;
+    height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -570,35 +571,79 @@
 
 .active-checkout-box h3 {
     color: #172033;
-    font-size: 13px;
+    font-size: 17px;
     font-weight: 900;
 }
 
 .active-checkout-box p {
-    margin-top: 3px;
+    margin-top: 6px;
     color: #667085;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 700;
-    line-height: 1.45;
+    line-height: 1.55;
+}
+
+.event-ended-box {
+    margin-bottom: 18px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    color: #7a2e0e;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 14px;
+}
+
+.event-ended-box > span {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #c2410c;
+    background: #ffedd5;
+    border-radius: 50%;
+}
+
+.event-ended-box h3,
+.event-ended-box p {
+    margin: 0;
+}
+
+.event-ended-box h3 {
+    color: #7a2e0e;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.event-ended-box p {
+    margin-top: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.55;
 }
 
 .active-checkout-actions {
+    grid-column: 1 / -1;
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: stretch;
     gap: 8px;
 }
 
 .active-checkout-actions a,
 .active-checkout-actions button {
-    min-height: 34px;
-    padding: 0 12px;
+    min-height: 42px;
+    flex: 1 1 130px;
+    padding: 0 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
     background: #11161f;
-    border-radius: 9px;
+    border-radius: 10px;
     font-size: 12px;
     font-weight: 900;
 }

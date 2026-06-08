@@ -1,4 +1,4 @@
-import { IsDateString, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBooleanString, IsDateString, IsOptional, IsString, MaxLength } from 'class-validator';
 import { PaginationQueryDto } from '../../../common/pagination/pagination-query.dto';
 
 export class ListPublicEventsQueryDto extends PaginationQueryDto {
@@ -24,4 +24,8 @@ export class ListPublicEventsQueryDto extends PaginationQueryDto {
     @IsOptional()
     @IsDateString()
     to?: string;
+
+    @IsOptional()
+    @IsBooleanString()
+    activeOnly?: string;
 }

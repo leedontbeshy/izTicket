@@ -12,6 +12,7 @@ import {
 import {
     clearCheckoutSession,
     getActiveCheckoutSession,
+    getCheckoutSessions,
 } from './checkoutSession';
 import './PaymentResultPage.css';
 
@@ -63,16 +64,23 @@ export function PaymentResultPage() {
     }, [paymentId]);
 
     const currentStatus = payment?.status ?? statusParam;
+    const displayOrderId = payment?.orderId ?? orderId;
     const activeCheckout = getActiveCheckoutSession();
 
     useEffect(() => {
         if (currentStatus === 'SUCCEEDED') {
-            clearCheckoutSession();
+            const matchingSession = getCheckoutSessions().find(
+                (session) =>
+                    (paymentId && session.paymentId === paymentId) ||
+                    (displayOrderId && session.orderId === displayOrderId),
+            );
+            if (matchingSession) {
+                clearCheckoutSession(matchingSession.reservationId);
+            }
         }
-    }, [currentStatus]);
+    }, [currentStatus, displayOrderId, paymentId]);
 
     const view = getResultView(currentStatus);
-    const displayOrderId = payment?.orderId ?? orderId;
     const isSuccess = currentStatus === 'SUCCEEDED';
 
     return (
