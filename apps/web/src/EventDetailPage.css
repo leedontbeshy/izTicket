@@ -749,6 +749,12 @@
     margin-top: 14px;
 }
 
+.ticket-options.expired article {
+    opacity: 0.45;
+    pointer-events: none;
+    filter: grayscale(0.4);
+}
+
 .ticket-empty {
     margin: 0;
     padding: 22px;
