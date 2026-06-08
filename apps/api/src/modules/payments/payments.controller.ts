@@ -52,7 +52,7 @@ export class PaymentsController {
             rawBody: request.rawBody ?? Buffer.alloc(0),
             body: request.body,
         });
-        return { received: true };
+        return { success: true };
     }
 
     @Get(':paymentId')
