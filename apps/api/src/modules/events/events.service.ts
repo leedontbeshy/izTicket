@@ -209,6 +209,22 @@ export class EventsService {
         return toPageResponse(events, total, pagination);
     }
 
+    async getOrganizerEvent(organizerId: string, eventId: string) {
+        const event = await this.prismaService.event.findFirst({
+            where: {
+                id: eventId,
+                organizerId,
+            },
+            select: organizerEventSelect,
+        });
+
+        if (!event) {
+            throw AppException.notFound('Event was not found.');
+        }
+
+        return event;
+    }
+
     async createOrganizerEvent(organizerId: string, dto: CreateEventDto) {
         validateEventDates(dto.startsAt, dto.endsAt);
         const slug = await this.createUniqueSlug(dto.title);

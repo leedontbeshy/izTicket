@@ -63,10 +63,32 @@ export type OrdersPageResponse = PageResponse<Order> | {
     };
 };
 
-export function listEventOrders(eventId: string, page = 1, limit = 20) {
-    return apiGet<PageResponse<OrganizerOrder>>(
+type OrganizerOrdersResponse =
+    | PageResponse<OrganizerOrder>
+    | {
+          data: OrganizerOrder[];
+          meta: {
+              page: number;
+              limit: number;
+              totalItems: number;
+          };
+      };
+
+export async function listEventOrders(eventId: string, page = 1, limit = 20) {
+    const response = await apiGet<OrganizerOrdersResponse>(
         `/organizer/events/${eventId}/orders?page=${page}&limit=${limit}`,
     );
+
+    if ('items' in response) {
+        return response;
+    }
+
+    return {
+        items: response.data,
+        page: response.meta.page,
+        limit: response.meta.limit,
+        total: response.meta.totalItems,
+    };
 }
 
 export function createOrder(reservationId: string) {

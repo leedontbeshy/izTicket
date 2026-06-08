@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { getStoredAuthUser } from './authSession';
 import { listOrganizerEvents, type OrganizerEvent } from './api/events.api';
-import { DashHeader } from './DashboardLayout';
-import { logout } from './dashboardLogout';
+import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
 import './OrganizerEventsPage.css';
+
+const fallbackImage =
+    'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=720&q=80';
 
 const STATUS_LABEL: Record<string, string> = {
     DRAFT: 'Bản nháp',
@@ -19,9 +21,10 @@ export function OrganizerEventsPage() {
     const [error, setError] = useState('');
 
     const user = getStoredAuthUser();
+    const isOrganizer = user?.role === 'ORGANIZER';
 
     useEffect(() => {
-        if (!user || user.role !== 'ORGANIZER') {
+        if (!isOrganizer) {
             window.location.href = '/auth/login';
             return;
         }
@@ -34,64 +37,123 @@ export function OrganizerEventsPage() {
                 ),
             )
             .finally(() => setLoading(false));
-    }, []);
+    }, [isOrganizer]);
+
+    const publishedCount = events.filter(
+        (event) => event.status === 'PUBLISHED',
+    ).length;
+    const draftCount = events.filter(
+        (event) => event.status === 'DRAFT' || event.status === 'REJECTED',
+    ).length;
+    const pendingCount = events.filter(
+        (event) => event.status === 'PENDING_REVIEW',
+    ).length;
 
     return (
-        <div className="dash-shell">
-            <DashHeader
-                userName={user?.name}
-                activeNav="events"
-                role="ORGANIZER"
-                onLogout={logout}
-            />
+        <main className="organizer-events-page">
+            <PublicHeader active="events" />
 
-            <main className="dash-main">
-                <div className="org-page-heading">
+            <section className="organizer-events-hero">
+                <div>
+                    <span className="organizer-eyebrow">
+                        <MaterialIcon>dashboard</MaterialIcon>
+                        Organizer dashboard
+                    </span>
+                    <h1>Sự kiện của tôi</h1>
+                    <p>
+                        Quản lý bản nháp, theo dõi trạng thái duyệt và mở trang
+                        chi tiết để cấu hình loại vé.
+                    </p>
+                </div>
+                <a className="organizer-create-button" href="/organizer/events/new">
+                    <MaterialIcon>add</MaterialIcon>
+                    Tạo sự kiện
+                </a>
+            </section>
+
+            <section className="organizer-stats" aria-label="Tổng quan sự kiện">
+                <StatCard icon="event" label="Tổng sự kiện" value={events.length} />
+                <StatCard icon="published_with_changes" label="Đã xuất bản" value={publishedCount} />
+                <StatCard icon="edit_calendar" label="Cần chỉnh sửa" value={draftCount} />
+                <StatCard icon="rate_review" label="Chờ duyệt" value={pendingCount} />
+            </section>
+
+            <section className="organizer-events-content">
+                <div className="organizer-section-title">
                     <div>
-                        <h1>Sự kiện của tôi</h1>
-                        <p className="org-page-sub">
-                            Quản lý và theo dõi các sự kiện bạn tổ chức.
+                        <h2>Danh sách sự kiện</h2>
+                        <p>
+                            {loading
+                                ? 'Đang tải dữ liệu...'
+                                : `${events.length} sự kiện`}
                         </p>
                     </div>
-                    <a className="btn-primary" href="/organizer/events/new">
-                        <span className="material-symbols-outlined">add</span>
-                        Tạo sự kiện
-                    </a>
                 </div>
 
-                {loading && (
-                    <div className="dash-loading">Đang tải...</div>
-                )}
+                {loading ? (
+                    <StateMessage
+                        icon="hourglass_top"
+                        title="Đang tải sự kiện"
+                        text="Danh sách sẽ hiển thị ngay khi API phản hồi."
+                    />
+                ) : null}
 
-                {error && <div className="dash-error">{error}</div>}
+                {error ? (
+                    <StateMessage
+                        icon="error"
+                        title="Không thể tải sự kiện"
+                        text={error}
+                    />
+                ) : null}
 
-                {!loading && !error && events.length === 0 && (
-                    <div className="dash-empty">
-                        <span className="material-symbols-outlined dash-empty-icon">
-                            event
-                        </span>
-                        <p>Bạn chưa có sự kiện nào.</p>
-                        <a
-                            className="btn-primary"
-                            href="/organizer/events/new"
-                        >
+                {!loading && !error && events.length === 0 ? (
+                    <section className="organizer-empty">
+                        <MaterialIcon>event</MaterialIcon>
+                        <h2>Bạn chưa có sự kiện nào</h2>
+                        <p>
+                            Tạo bản nháp đầu tiên, sau đó thêm loại vé và gửi xét
+                            duyệt.
+                        </p>
+                        <a className="organizer-create-button" href="/organizer/events/new">
+                            <MaterialIcon>add</MaterialIcon>
                             Tạo sự kiện đầu tiên
                         </a>
-                    </div>
-                )}
+                    </section>
+                ) : null}
 
-                {!loading && events.length > 0 && (
-                    <div className="org-events-grid">
+                {!loading && events.length > 0 ? (
+                    <div className="organizer-event-grid">
                         {events.map((event) => (
-                            <OrgEventCard
-                                key={event.id}
-                                event={event}
-                            />
+                            <OrgEventCard key={event.id} event={event} />
                         ))}
                     </div>
-                )}
-            </main>
-        </div>
+                ) : null}
+            </section>
+
+            <PublicFooter />
+        </main>
+    );
+}
+
+function StatCard({
+    icon,
+    label,
+    value,
+}: {
+    icon: string;
+    label: string;
+    value: number;
+}) {
+    return (
+        <article>
+            <span>
+                <MaterialIcon>{icon}</MaterialIcon>
+            </span>
+            <div>
+                <strong>{value}</strong>
+                <p>{label}</p>
+            </div>
+        </article>
     );
 }
 
@@ -101,48 +163,66 @@ function OrgEventCard({ event }: { event: OrganizerEvent }) {
     const statusClass = `status-${event.status.toLowerCase().replace(/_/g, '-')}`;
 
     return (
-        <div className="org-event-card">
-            <div className="org-event-card-top">
-                <span className={`status-badge ${statusClass}`}>
+        <article className="organizer-event-card">
+            <div className="organizer-event-image">
+                <img src={event.thumbnailUrl ?? fallbackImage} alt={event.title} />
+                <span className={`organizer-status ${statusClass}`}>
                     {STATUS_LABEL[event.status] ?? event.status}
                 </span>
-                <span className="org-event-category">{event.category}</span>
             </div>
 
-            <h3 className="org-event-title">{event.title}</h3>
+            <div className="organizer-event-body">
+                <span className="organizer-event-category">{event.category}</span>
+                <h3>{event.title}</h3>
 
-            <div className="org-event-meta">
-                <span>
-                    <span className="material-symbols-outlined">
-                        calendar_month
+                <div className="organizer-event-meta">
+                    <span>
+                        <MaterialIcon>calendar_month</MaterialIcon>
+                        {formatDate(event.startsAt)}
                     </span>
-                    {formatDate(event.startsAt)}
-                </span>
-                <span>
-                    <span className="material-symbols-outlined">
-                        location_on
+                    <span>
+                        <MaterialIcon>location_on</MaterialIcon>
+                        {event.venue.name}, {event.venue.city}
                     </span>
-                    {event.venue.city}
-                </span>
-            </div>
+                </div>
 
-            <div className="org-event-card-foot">
-                {canEdit && (
+                <div className="organizer-event-actions">
+                    {canEdit ? (
+                        <a
+                            className="organizer-secondary-action"
+                            href={`/organizer/events/${event.id}/edit`}
+                        >
+                            Chỉnh sửa
+                        </a>
+                    ) : null}
                     <a
-                        className="btn-outline-sm"
-                        href={`/organizer/events/${event.id}/edit`}
+                        className="organizer-primary-action"
+                        href={`/organizer/events/${event.id}`}
                     >
-                        Chỉnh sửa
+                        {canEdit ? 'Quản lý vé' : 'Xem chi tiết'}
+                        <MaterialIcon>arrow_forward</MaterialIcon>
                     </a>
-                )}
-                <a
-                    className="btn-ghost-sm"
-                    href={`/organizer/events/${event.id}`}
-                >
-                    {canEdit ? 'Quản lý vé' : 'Xem chi tiết'}
-                </a>
+                </div>
             </div>
-        </div>
+        </article>
+    );
+}
+
+function StateMessage({
+    icon,
+    text,
+    title,
+}: {
+    icon: string;
+    text: string;
+    title: string;
+}) {
+    return (
+        <section className="organizer-state">
+            <MaterialIcon>{icon}</MaterialIcon>
+            <h2>{title}</h2>
+            <p>{text}</p>
+        </section>
     );
 }
 

@@ -1,5 +1,10 @@
-import { getRoleLabel, getStoredAuthUser } from './authSession';
+import {
+    getRoleLabel,
+    getStoredAuthUser,
+    type StoredAuthUser,
+} from './authSession';
 import { getActiveCheckoutSession } from './checkoutSession';
+import { logout } from './dashboardLogout';
 
 type PublicHeaderProps = {
     active: 'home' | 'events';
@@ -44,6 +49,7 @@ export function BrandMark() {
 
 export function PublicHeader({ active }: PublicHeaderProps) {
     const user = getStoredAuthUser();
+    const dashboardHref = user ? getDashboardHref(user.role) : null;
     const activeCheckout =
         user?.role === 'CUSTOMER' ? getActiveCheckoutSession() : null;
 
@@ -74,30 +80,21 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                 </button>
                 {user ? (
                     <>
-                        {user.role === 'CUSTOMER' ? (
-                            <>
-                                {activeCheckout ? (
-                                    <a
-                                        className="header-icon-link"
-                                        href={`/checkout/${activeCheckout.reservationId}`}
-                                    >
-                                        <MaterialIcon>shopping_cart</MaterialIcon>
-                                        Vé đang giữ
-                                    </a>
-                                ) : null}
-                                <a className="header-icon-link" href="/my-tickets">
-                                    <MaterialIcon>confirmation_number</MaterialIcon>
-                                    Vé của tôi
-                                </a>
-                            </>
+                        {dashboardHref ? (
+                            <a className="dark-button" href={dashboardHref}>
+                                Dashboard
+                            </a>
                         ) : null}
-                        <div className="user-chip">
-                            <span>{getInitials(user.name)}</span>
-                            <div>
-                                <strong>{user.name}</strong>
-                                <small>{getRoleLabel(user.role)}</small>
-                            </div>
-                        </div>
+                        {activeCheckout ? (
+                            <a
+                                className="header-icon-link"
+                                href={`/checkout/${activeCheckout.reservationId}`}
+                            >
+                                <MaterialIcon>shopping_cart</MaterialIcon>
+                                Vé đang giữ
+                            </a>
+                        ) : null}
+                        <UserAccountMenu user={user} />
                     </>
                 ) : (
                     <a className="dark-button" href="/auth/login">
@@ -106,6 +103,39 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                 )}
             </div>
         </header>
+    );
+}
+
+function getDashboardHref(role: StoredAuthUser['role']) {
+    if (role === 'ORGANIZER') return '/organizer/events';
+    if (role === 'ADMIN') return '/admin/events';
+    return null;
+}
+
+function UserAccountMenu({ user }: { user: StoredAuthUser }) {
+    return (
+        <details className="user-menu">
+            <summary className="user-chip" aria-label="Mở menu tài khoản">
+                <span>{getInitials(user.name)}</span>
+                <div>
+                    <strong>{user.name}</strong>
+                    <small>{getRoleLabel(user.role)}</small>
+                </div>
+                <MaterialIcon className="user-menu-chevron">expand_more</MaterialIcon>
+            </summary>
+            <div className="user-menu-panel">
+                {user.role === 'CUSTOMER' ? (
+                    <a href="/my-tickets">
+                        <MaterialIcon>confirmation_number</MaterialIcon>
+                        Vé của tôi
+                    </a>
+                ) : null}
+                <button type="button" onClick={logout}>
+                    <MaterialIcon>logout</MaterialIcon>
+                    Đăng xuất
+                </button>
+            </div>
+        </details>
     );
 }
 

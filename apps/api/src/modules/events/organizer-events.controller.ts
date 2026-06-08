@@ -35,6 +35,14 @@ export class OrganizerEventsController {
         return this.eventsService.listOrganizerEvents(organizerId, query);
     }
 
+    @Get(':eventId')
+    getEvent(
+        @CurrentUser('id') organizerId: string,
+        @Param('eventId', ParseUUIDPipe) eventId: string,
+    ) {
+        return this.eventsService.getOrganizerEvent(organizerId, eventId);
+    }
+
     @Post()
     createEvent(
         @CurrentUser('id') organizerId: string,

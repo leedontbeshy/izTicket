@@ -101,6 +101,10 @@ export function listOrganizerEvents(page = 1, limit = 20) {
     );
 }
 
+export function getOrganizerEvent(eventId: string) {
+    return apiGet<OrganizerEvent>(`/organizer/events/${eventId}`);
+}
+
 export function listPublicEvents(params: {
     page?: number;
     limit?: number;
