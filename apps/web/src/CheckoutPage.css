@@ -29,6 +29,180 @@
     gap: 16px;
 }
 
+.checkout-list-shell {
+    max-width: var(--container);
+    margin: 22px auto 0;
+    display: grid;
+    gap: 18px;
+}
+
+.checkout-session-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.checkout-session-card {
+    min-height: 190px;
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr) 128px;
+    align-items: stretch;
+    color: #172033;
+    background: #ffffff;
+    border: 1px solid #e3e9f2;
+    border-radius: 16px;
+    box-shadow: 0 14px 34px rgba(18, 23, 34, 0.06);
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+.checkout-session-card:hover {
+    border-color: #bdd3ff;
+    box-shadow: 0 20px 42px rgba(18, 23, 34, 0.11);
+    transform: translateY(-2px);
+}
+
+.checkout-ticket-ribbon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    background:
+        linear-gradient(180deg, rgba(8, 91, 247, 0.08), rgba(8, 91, 247, 0.02)),
+        #f8faff;
+    border-right: 1px dashed #cbd8eb;
+}
+
+.checkout-ticket-ribbon::before,
+.checkout-ticket-ribbon::after {
+    width: 22px;
+    height: 22px;
+    position: absolute;
+    right: -12px;
+    content: '';
+    background: #f8faff;
+    border: 1px solid #e3e9f2;
+    border-radius: 50%;
+}
+
+.checkout-ticket-ribbon::before {
+    top: -11px;
+}
+
+.checkout-ticket-ribbon::after {
+    bottom: -11px;
+}
+
+.checkout-ticket-ribbon span {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #0f5cc9;
+    background: #eef4ff;
+    border-radius: 50%;
+}
+
+.checkout-session-body {
+    min-width: 0;
+    padding: 20px 18px;
+    display: grid;
+    align-content: center;
+    gap: 9px;
+}
+
+.checkout-session-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.checkout-session-status,
+.checkout-session-title-row small {
+    width: fit-content;
+    padding: 6px 9px;
+    display: inline-flex;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 900;
+}
+
+.checkout-session-status.hold {
+    color: #0f5cc9;
+    background: #eef4ff;
+}
+
+.checkout-session-status.order {
+    color: #9a3412;
+    background: #fff7ed;
+}
+
+.checkout-session-status.payment {
+    color: #0f7a3b;
+    background: #ecfdf3;
+}
+
+.checkout-session-title-row small {
+    color: #667085;
+    background: #f2f4f7;
+}
+
+.checkout-session-card h2,
+.checkout-session-card p {
+    margin: 0;
+}
+
+.checkout-session-card h2 {
+    color: #172033;
+    font-size: 20px;
+    line-height: 1.25;
+    letter-spacing: 0;
+}
+
+.checkout-session-card p {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    overflow-wrap: anywhere;
+    color: #667085;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.checkout-session-card p .material-symbols-outlined {
+    color: #0f5cc9;
+    font-size: 17px;
+}
+
+.checkout-session-countdown {
+    padding: 20px 18px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 8px;
+    border-left: 1px solid #edf1f7;
+    text-align: center;
+}
+
+.checkout-session-countdown span {
+    color: #667085;
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.checkout-session-countdown strong {
+    color: #111827;
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0;
+}
+
 .checkout-heading {
     display: grid;
     gap: 6px;
@@ -391,6 +565,10 @@
         grid-template-columns: 1fr;
     }
 
+    .checkout-session-grid {
+        grid-template-columns: 1fr;
+    }
+
     .checkout-summary {
         position: static;
     }
@@ -425,6 +603,27 @@
     .checkout-item {
         grid-template-columns: 1fr;
         justify-items: start;
+    }
+
+    .checkout-session-card {
+        grid-template-columns: 1fr;
+        align-items: start;
+    }
+
+    .checkout-ticket-ribbon {
+        min-height: 74px;
+        border-right: 0;
+        border-bottom: 1px dashed #cbd8eb;
+    }
+
+    .checkout-ticket-ribbon::before,
+    .checkout-ticket-ribbon::after {
+        display: none;
+    }
+
+    .checkout-session-countdown {
+        border-left: 0;
+        border-top: 1px solid #edf1f7;
     }
 
     .checkout-placeholder {

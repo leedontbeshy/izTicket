@@ -27,11 +27,86 @@ import {
 } from './api/reservations.api';
 import {
     clearCheckoutSession,
+    getCheckoutSessions,
     getCheckoutSession,
     patchCheckoutSession,
     saveCheckoutSession,
+    type CheckoutSession,
 } from './checkoutSession';
 import './CheckoutPage.css';
+
+export function CheckoutListPage() {
+    const sessions = useMemo(() => getCheckoutSessions(), []);
+    const [now, setNow] = useState(() => Date.now());
+    const [eventsById, setEventsById] = useState<Record<string, PublicEventDetail>>({});
+
+    useEffect(() => {
+        const timerId = window.setInterval(() => setNow(Date.now()), 1000);
+        return () => window.clearInterval(timerId);
+    }, []);
+
+    useEffect(() => {
+        let active = true;
+        const eventIds = Array.from(new Set(sessions.map((session) => session.eventId)));
+
+        Promise.all(
+            eventIds.map(async (eventId) => {
+                try {
+                    return [eventId, await getPublicEvent(eventId)] as const;
+                } catch {
+                    return null;
+                }
+            }),
+        ).then((entries) => {
+            if (!active) return;
+            setEventsById(
+                Object.fromEntries(entries.filter((entry): entry is readonly [string, PublicEventDetail] => Boolean(entry))),
+            );
+        });
+
+        return () => {
+            active = false;
+        };
+    }, [sessions]);
+
+    return (
+        <main className="checkout-page">
+            <PublicHeader active="events" />
+
+            <section className="checkout-list-shell">
+                <div className="checkout-heading">
+                    <a href="/events">
+                        <MaterialIcon>arrow_back</MaterialIcon>
+                        Quay lại sự kiện
+                    </a>
+                    <h1>Checkout đang giữ</h1>
+                    <p>Chọn một checkout để tiếp tục thanh toán hoặc hủy giữ vé.</p>
+                </div>
+
+                {sessions.length === 0 ? (
+                    <CheckoutState
+                        icon="shopping_cart"
+                        title="Chưa có checkout đang giữ"
+                        text="Khi bạn giữ vé thành công, checkout sẽ xuất hiện ở đây cho đến lúc hết hạn hoặc được hủy."
+                    />
+                ) : (
+                    <div className="checkout-session-grid">
+                        {sessions.map((session) => (
+                            <CheckoutSessionCard
+                                event={eventsById[session.eventId]}
+                                now={now}
+                                session={session}
+                                key={session.reservationId}
+                            />
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            <PublicFooter />
+        </main>
+    );
+}
 
 export function CheckoutPage({ reservationId }: { reservationId: string }) {
     const [reservation, setReservation] = useState<Reservation | null>(null);
@@ -62,15 +137,15 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                     getPublicEvent(reservationDetail.eventId),
                     restoreOrder(reservationId),
                 ]);
-                const session = getCheckoutSession();
+                const session = getCheckoutSession(reservationId);
                 const matchingSession =
-                    session?.reservationId === reservationId &&
+                    session &&
                     new Date(session.expiresAt).getTime() > Date.now()
                         ? session
                         : null;
                 if (!active) return;
-                if (session?.reservationId === reservationId && !matchingSession) {
-                    clearCheckoutSession();
+                if (session && !matchingSession) {
+                    clearCheckoutSession(reservationId);
                 }
                 setReservation(reservationDetail);
                 setEvent(eventDetail);
@@ -86,7 +161,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                         payment: matchingSession?.payment,
                     });
                 } else {
-                    clearCheckoutSession();
+                    clearCheckoutSession(reservationId);
                 }
             })
             .catch((err: unknown) => {
@@ -140,14 +215,14 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
         try {
             const checkoutOrder = order ?? await createOrder(reservation.id);
             setOrder(checkoutOrder);
-            patchCheckoutSession({ orderId: checkoutOrder.id });
+            patchCheckoutSession({ orderId: checkoutOrder.id }, reservation.id);
 
             const createdPayment = await createSepayPayment(checkoutOrder.id);
             setPayment(createdPayment);
             patchCheckoutSession({
                 paymentId: createdPayment.paymentId,
                 payment: createdPayment,
-            });
+            }, reservation.id);
         } catch (err) {
             setActionError(
                 err instanceof Error
@@ -169,7 +244,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
         try {
             const cancelledReservation = await cancelReservation(reservation.id);
             setReservation(cancelledReservation);
-            clearCheckoutSession();
+            clearCheckoutSession(reservation.id);
         } catch (err) {
             setActionError(
                 err instanceof Error
@@ -322,17 +397,17 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
 }
 
 async function restoreOrder(reservationId: string) {
-    const session = getCheckoutSession();
+    const session = getCheckoutSession(reservationId);
 
     if (
-        session?.reservationId === reservationId &&
+        session &&
         new Date(session.expiresAt).getTime() <= Date.now()
     ) {
-        clearCheckoutSession();
+        clearCheckoutSession(reservationId);
         return null;
     }
 
-    if (session?.reservationId === reservationId && session.orderId) {
+    if (session?.orderId) {
         try {
             const order = await getOrder(session.orderId);
             if (order.reservationId === reservationId) return order;
@@ -357,6 +432,56 @@ function getPageOrders(page: OrdersPageResponse) {
     if ('items' in page && Array.isArray(page.items)) return page.items;
     if ('data' in page && Array.isArray(page.data)) return page.data;
     return [];
+}
+
+function CheckoutSessionCard({
+    event,
+    now,
+    session,
+}: {
+    event?: PublicEventDetail;
+    now: number;
+    session: CheckoutSession;
+}) {
+    const remainingMs = Math.max(
+        0,
+        new Date(session.expiresAt).getTime() - now,
+    );
+    const status = getCheckoutSessionStatus(session);
+    const location = event
+        ? `${event.venue.name}, ${event.venue.city}`
+        : shortId(session.eventId);
+
+    return (
+        <a className="checkout-session-card" href={`/checkout/${session.reservationId}`}>
+            <div className="checkout-ticket-ribbon">
+                <span>
+                    <MaterialIcon>confirmation_number</MaterialIcon>
+                </span>
+            </div>
+            <div className="checkout-session-body">
+                <div className="checkout-session-title-row">
+                    <span className={`checkout-session-status ${status.tone}`}>
+                        {status.label}
+                    </span>
+                    <small>{shortId(session.reservationId)}</small>
+                </div>
+                <h2>{event?.title ?? 'Checkout đang giữ vé'}</h2>
+                <p>
+                    <MaterialIcon>calendar_today</MaterialIcon>
+                    {event ? formatCheckoutCardDate(event.startsAt) : 'Đang tải thời gian'}
+                </p>
+                <p>
+                    <MaterialIcon>location_on</MaterialIcon>
+                    {location}
+                </p>
+            </div>
+            <div className="checkout-session-countdown">
+                <span>Còn lại</span>
+                <strong>{formatRemaining(remainingMs)}</strong>
+            </div>
+        </a>
+    );
 }
 
 function ReservationItemRow({
@@ -467,6 +592,26 @@ function getItemSubtotal(item: ReservationItem) {
 
 function getTotalQuantity(items: ReservationItem[]) {
     return items.reduce((sum, item) => sum + item.quantity, 0);
+}
+
+function getCheckoutSessionStatus(session: CheckoutSession) {
+    if (session.paymentId) return { label: 'Đã tạo mã SePay', tone: 'payment' };
+    if (session.orderId) return { label: 'Đã tạo order', tone: 'order' };
+    return { label: 'Đang giữ vé', tone: 'hold' };
+}
+
+function shortId(value: string) {
+    return value.length > 12 ? `${value.slice(0, 8)}...${value.slice(-4)}` : value;
+}
+
+function formatCheckoutCardDate(value: string) {
+    return new Intl.DateTimeFormat('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    }).format(new Date(value));
 }
 
 function formatCurrency(value: number) {

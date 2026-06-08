@@ -1,6 +1,6 @@
 import AuthPage from './AuthPage';
 import { useEffect, useState } from 'react';
-import { CheckoutPage } from './CheckoutPage';
+import { CheckoutListPage, CheckoutPage } from './CheckoutPage';
 import EventDetailPage from './EventDetailPage';
 import EventsPage from './EventsPage';
 import { MyTicketDetailPage } from './MyTicketDetailPage';
@@ -355,6 +355,10 @@ function App() {
 
     if (path === '/events') {
         return <EventsPage />;
+    }
+
+    if (path === '/checkout') {
+        return <CheckoutListPage />;
     }
 
     if (path.startsWith('/checkout/')) {

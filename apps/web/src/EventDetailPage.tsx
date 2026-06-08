@@ -338,6 +338,11 @@ function TicketSidebar({
     }
 
     async function submitReservation() {
+        if (activeSession) {
+            setReservationError('Bạn đang giữ vé cho sự kiện này. Vui lòng tiếp tục thanh toán, hủy giữ vé hoặc chờ hết thời gian giữ vé trước khi tạo lượt mới.');
+            return;
+        }
+
         if (selectedCount === 0 || submitting) return;
 
         const user = getStoredAuthUser();
@@ -386,7 +391,7 @@ function TicketSidebar({
 
         try {
             await cancelReservation(activeSession.reservationId);
-            clearCheckoutSession();
+            clearCheckoutSession(activeSession.reservationId);
             setSessionRefresh((value) => value + 1);
         } catch (err) {
             setReservationError(
@@ -418,7 +423,19 @@ function TicketSidebar({
                         </span>
                         <div>
                             <h3>Bạn đang giữ vé</h3>
-                            <p>Reservation còn hiệu lực, bạn có thể tiếp tục checkout.</p>
+                            {activeSession.orderId ? (
+                                <p>
+                                    Sự kiện này đã có checkout đang chờ thanh toán. Hãy tiếp
+                                    tục thanh toán hoặc chờ hết thời gian trước khi tạo lượt
+                                    giữ vé mới.
+                                </p>
+                            ) : (
+                                <p>
+                                    Sự kiện này đã có reservation còn hiệu lực. Hãy tiếp tục
+                                    thanh toán, hủy giữ vé hoặc chờ hết thời gian trước khi tạo
+                                    lượt giữ vé mới.
+                                </p>
+                            )}
                         </div>
                         <div className="active-checkout-actions">
                             <a href={`/checkout/${activeSession.reservationId}`}>
@@ -520,10 +537,14 @@ function TicketSidebar({
                     </div>
                     <button
                         type="button"
-                        disabled={selectedCount === 0 || submitting}
+                        disabled={Boolean(activeSession) || selectedCount === 0 || submitting}
                         onClick={submitReservation}
                     >
-                        {submitting ? 'Đang giữ vé...' : 'Tiếp tục đặt vé'}
+                        {activeSession
+                            ? 'Đang có vé đang giữ'
+                            : submitting
+                              ? 'Đang giữ vé...'
+                              : 'Tiếp tục đặt vé'}
                         <MaterialIcon>arrow_forward</MaterialIcon>
                     </button>
                     {reservationError ? (
