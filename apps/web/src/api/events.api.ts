@@ -45,6 +45,7 @@ export type PublicEventListItem = {
     venueName: string;
     city: string;
     startsAt: string;
+    endsAt: string;
     minPrice: number | null;
     thumbnailUrl: string | null;
 };
@@ -113,6 +114,7 @@ export function listPublicEvents(params: {
     category?: string;
     from?: string;
     to?: string;
+    activeOnly?: boolean;
 } = {}) {
     const search = new URLSearchParams();
     search.set('page', String(params.page ?? 1));
@@ -122,6 +124,7 @@ export function listPublicEvents(params: {
     if (params.category?.trim()) search.set('category', params.category.trim());
     if (params.from) search.set('from', params.from);
     if (params.to) search.set('to', params.to);
+    if (params.activeOnly) search.set('activeOnly', 'true');
 
     return apiGet<PageResponse<PublicEventListItem>>(
         `/events?${search.toString()}`,

@@ -76,7 +76,7 @@ function EventsPage() {
 
         listPublicEvents({
             page: 1,
-            limit: 20,
+            limit: 100,
             q: submittedFilters.q,
             city: submittedFilters.city,
             category: submittedFilters.category,
@@ -109,6 +109,13 @@ function EventsPage() {
 
     const sortedEvents = useMemo(() => {
         return [...events].sort((first, second) => {
+            const firstExpired = isEventExpired(first);
+            const secondExpired = isEventExpired(second);
+
+            if (firstExpired !== secondExpired) {
+                return firstExpired ? 1 : -1;
+            }
+
             if (sortMode === 'latest') {
                 return getTime(second.startsAt) - getTime(first.startsAt);
             }
@@ -342,12 +349,15 @@ function FilterPanel({
 
 function EventListCard({ event }: { event: PublicEventListItem }) {
     const date = formatShortDate(event.startsAt);
+    const expired = isEventExpired(event);
 
     return (
         <article className="event-list-card">
             <div className="event-list-image">
                 <img src={event.thumbnailUrl ?? fallbackImage} alt={event.title} />
-                <span className="status-pill blue">Đang mở bán</span>
+                <span className={`status-pill ${expired ? 'red' : 'blue'}`}>
+                    {expired ? 'Đã kết thúc' : 'Đang mở bán'}
+                </span>
                 <button type="button" aria-label={`Lưu ${event.title}`}>
                     <MaterialIcon>favorite</MaterialIcon>
                 </button>
@@ -394,6 +404,10 @@ function StateMessage({
 
 function getTime(value: string) {
     return new Date(value).getTime();
+}
+
+function isEventExpired(event: PublicEventListItem) {
+    return new Date(event.endsAt).getTime() <= Date.now();
 }
 
 function getPrice(value: number | null) {

@@ -317,7 +317,7 @@ function App() {
         setHomeEventsLoading(true);
         setHomeEventsError('');
 
-        listPublicEvents({ page: 1, limit: 8 })
+        listPublicEvents({ page: 1, limit: 8, activeOnly: true })
             .then((page) => {
                 if (!active) return;
                 setHomeEvents(page.items);

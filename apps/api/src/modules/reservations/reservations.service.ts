@@ -31,12 +31,18 @@ export class ReservationsService {
     async createReservation(customerId: string, dto: CreateReservationDto) {
         const event = await this.prismaService.event.findUnique({
             where: { id: dto.eventId },
-            select: { id: true, status: true },
+            select: { id: true, status: true, endsAt: true },
         });
 
         if (!event || event.status !== EventStatus.PUBLISHED) {
             throw AppException.conflict(
                 'Event is not available for reservations.',
+            );
+        }
+
+        if (event.endsAt.getTime() <= Date.now()) {
+            throw AppException.conflict(
+                'Event has already ended and cannot be reserved.',
             );
         }
 

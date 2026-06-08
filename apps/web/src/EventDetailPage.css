@@ -583,6 +583,48 @@
     line-height: 1.55;
 }
 
+.event-ended-box {
+    margin-bottom: 18px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 12px;
+    align-items: start;
+    color: #7a2e0e;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    border-radius: 14px;
+}
+
+.event-ended-box > span {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #c2410c;
+    background: #ffedd5;
+    border-radius: 50%;
+}
+
+.event-ended-box h3,
+.event-ended-box p {
+    margin: 0;
+}
+
+.event-ended-box h3 {
+    color: #7a2e0e;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.event-ended-box p {
+    margin-top: 5px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.55;
+}
+
 .active-checkout-actions {
     grid-column: 1 / -1;
     display: flex;

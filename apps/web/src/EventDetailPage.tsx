@@ -211,7 +211,11 @@ function EventDetailPage({ eventId }: { eventId: string }) {
                     </section>
                 </div>
 
-                <TicketSidebar eventId={event.id} tickets={event.ticketTypes} />
+                <TicketSidebar
+                    eventEndsAt={event.endsAt}
+                    eventId={event.id}
+                    tickets={event.ticketTypes}
+                />
             </section>
 
             <PublicFooter />
@@ -276,9 +280,11 @@ function Fact({
 }
 
 function TicketSidebar({
+    eventEndsAt,
     eventId,
     tickets,
 }: {
+    eventEndsAt: string;
     eventId: string;
     tickets: PublicTicketType[];
 }) {
@@ -289,6 +295,7 @@ function TicketSidebar({
     const [cancelling, setCancelling] = useState(false);
     const [, setSessionRefresh] = useState(0);
     const activeSession = getActiveCheckoutSession(eventId);
+    const eventExpired = new Date(eventEndsAt).getTime() <= Date.now();
 
     const selectedCount = useMemo(
         () =>
@@ -338,6 +345,11 @@ function TicketSidebar({
     }
 
     async function submitReservation() {
+        if (eventExpired) {
+            setReservationError('Sự kiện đã kết thúc nên không thể đặt vé mới.');
+            return;
+        }
+
         if (activeSession) {
             setReservationError('Bạn đang giữ vé cho sự kiện này. Vui lòng tiếp tục thanh toán, hủy giữ vé hoặc chờ hết thời gian giữ vé trước khi tạo lượt mới.');
             return;
@@ -454,6 +466,18 @@ function TicketSidebar({
                     </div>
                 ) : null}
 
+                {eventExpired ? (
+                    <div className="event-ended-box">
+                        <span>
+                            <MaterialIcon>event_busy</MaterialIcon>
+                        </span>
+                        <div>
+                            <h3>Sự kiện đã kết thúc</h3>
+                            <p>Không thể giữ vé mới vì thời gian diễn ra sự kiện đã qua.</p>
+                        </div>
+                    </div>
+                ) : null}
+
                 {tickets.length === 0 ? (
                     <p className="ticket-empty">Sự kiện chưa cấu hình vé.</p>
                 ) : (
@@ -537,10 +561,17 @@ function TicketSidebar({
                     </div>
                     <button
                         type="button"
-                        disabled={Boolean(activeSession) || selectedCount === 0 || submitting}
+                        disabled={
+                            eventExpired ||
+                            Boolean(activeSession) ||
+                            selectedCount === 0 ||
+                            submitting
+                        }
                         onClick={submitReservation}
                     >
-                        {activeSession
+                        {eventExpired
+                            ? 'Sự kiện đã hết hạn đặt vé'
+                            : activeSession
                             ? 'Đang có vé đang giữ'
                             : submitting
                               ? 'Đang giữ vé...'
