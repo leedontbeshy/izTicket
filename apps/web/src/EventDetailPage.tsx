@@ -71,7 +71,7 @@ function EventDetailPage({ eventId }: { eventId: string }) {
                 <DetailState
                     icon="hourglass_top"
                     title="Đang tải sự kiện"
-                    text="Chi tiết sự kiện sẽ hiển thị ngay khi API phản hồi."
+                    text="Đang tải thông tin sự kiện."
                 />
             </DetailShell>
         );
@@ -202,9 +202,9 @@ function EventDetailPage({ eventId }: { eventId: string }) {
                             <div>
                                 <h3>Lưu ý</h3>
                                 <ul>
-                                    <li>Vé chỉ được giữ sau khi tạo reservation thành công.</li>
+                                    <li>Vé chỉ được giữ sau khi đặt thành công.</li>
                                     <li>Số lượng còn lại có thể thay đổi khi người khác đặt vé.</li>
-                                    <li>Hoàn tất thanh toán trước khi reservation hết hạn.</li>
+                                    <li>Hoàn tất thanh toán trước khi hết thời gian giữ vé.</li>
                                 </ul>
                             </div>
                         </div>
@@ -358,9 +358,13 @@ function TicketSidebar({
         if (selectedCount === 0 || submitting) return;
 
         const user = getStoredAuthUser();
-        if (!user || user.role !== 'CUSTOMER') {
+        if (!user) {
             setReservationError('');
             setShowLoginPrompt(true);
+            return;
+        }
+        if (user.role !== 'CUSTOMER') {
+            setReservationError('Tài khoản của bạn không có quyền đặt vé.');
             return;
         }
 
@@ -388,7 +392,7 @@ function TicketSidebar({
             setReservationError(
                 err instanceof Error
                     ? err.message
-                    : 'Không thể tạo reservation. Vui lòng thử lại.',
+                    : 'Không thể giữ vé. Vui lòng thử lại.',
             );
         } finally {
             setSubmitting(false);
@@ -409,7 +413,7 @@ function TicketSidebar({
             setReservationError(
                 err instanceof Error
                     ? err.message
-                    : 'Không thể hủy reservation. Vui lòng thử lại.',
+                    : 'Không thể hủy vé. Vui lòng thử lại.',
             );
         } finally {
             setCancelling(false);
@@ -443,7 +447,7 @@ function TicketSidebar({
                                 </p>
                             ) : (
                                 <p>
-                                    Sự kiện này đã có reservation còn hiệu lực. Hãy tiếp tục
+                                    Bạn đang có vé được giữ cho sự kiện này. Hãy tiếp tục
                                     thanh toán, hủy giữ vé hoặc chờ hết thời gian trước khi tạo
                                     lượt giữ vé mới.
                                 </p>
@@ -481,7 +485,7 @@ function TicketSidebar({
                 {tickets.length === 0 ? (
                     <p className="ticket-empty">Sự kiện chưa cấu hình vé.</p>
                 ) : (
-                    <div className="ticket-options">
+                    <div className={`ticket-options${eventExpired ? ' expired' : ''}`}>
                         {tickets.map((ticket, index) => {
                             const quantity = quantities[ticket.id] ?? 0;
                             const soldOut = ticket.availableQuantity === 0;
@@ -586,7 +590,7 @@ function TicketSidebar({
                     ) : null}
                     <p>
                         <MaterialIcon>shield</MaterialIcon>
-                        Reservation sẽ giữ vé trong 15 phút sau khi tạo thành công
+                        Vé sẽ được giữ trong 15 phút sau khi đặt thành công
                     </p>
                 </footer>
             </section>
@@ -595,7 +599,7 @@ function TicketSidebar({
                 {[
                     ['verified_user', 'Thanh toán an toàn', 'Được bảo mật bởi SePay'],
                     ['confirmation_number', 'Vé điện tử tiện lợi', 'Nhận vé qua tài khoản sau thanh toán'],
-                    ['support_agent', 'Hỗ trợ khi cần', 'API errors sẽ hiển thị trực tiếp trên giao diện'],
+                    ['support_agent', 'Hỗ trợ khi cần', 'Liên hệ hỗ trợ nếu gặp vấn đề khi đặt vé'],
                 ].map(([icon, title, text]) => (
                     <article key={title}>
                         <span>
