@@ -1,4 +1,5 @@
 import AuthPage from './AuthPage';
+import { useEffect, useState } from 'react';
 import { CheckoutPage } from './CheckoutPage';
 import EventDetailPage from './EventDetailPage';
 import EventsPage from './EventsPage';
@@ -10,19 +11,13 @@ import { EventFormPage } from './EventFormPage';
 import { AdminEventsPage } from './AdminEventsPage';
 import { AdminReviewPage } from './AdminReviewPage';
 import { OrganizerEventDetailPage } from './OrganizerEventDetailPage';
+import {
+    listPublicEvents,
+    type PublicEventListItem,
+} from './api/events.api';
 import { getRoleLabel, getStoredAuthUser } from './authSession';
 import { logout } from './dashboardLogout';
 import './App.css';
-
-type EventCard = {
-    title: string;
-    date: string;
-    location: string;
-    price: string;
-    image: string;
-    status: string;
-    statusTone?: 'blue' | 'red';
-};
 
 type TrustItem = {
     icon: string;
@@ -53,62 +48,8 @@ type FooterGroup = {
     links: string[];
 };
 
-const events: EventCard[] = [
-    {
-        title: 'Đen Vâu Live in Concert',
-        date: '10.06.2026',
-        location: 'TP. Hồ Chí Minh',
-        price: 'Từ 450.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'AMEE Show: Dreamy Night',
-        date: '18.06.2026',
-        location: 'Hà Nội',
-        price: 'Từ 390.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'V.League 2026 - Vòng 10',
-        date: '01.07.2026',
-        location: 'Hà Nội',
-        price: 'Từ 120.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'Tech Summit Vietnam 2026',
-        date: '15.07.2026',
-        location: 'TP. Hồ Chí Minh',
-        price: 'Từ 990.000đ',
-        status: 'Mở bán',
-        statusTone: 'blue',
-        image: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'Disney On Ice Vietnam',
-        date: '20.08.2026',
-        location: 'Đà Nẵng',
-        price: 'Từ 300.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1513889961551-628c1e5e2ee9?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'Hài Độc Thoại: Cười Xuyên Việt',
-        date: '05.09.2026',
-        location: 'Hà Nội',
-        price: 'Từ 250.000đ',
-        status: 'Sắp diễn ra',
-        statusTone: 'red',
-        image: 'https://images.unsplash.com/photo-1523580494863-6f3031224c94?auto=format&fit=crop&w=640&q=80',
-    },
-];
+const fallbackEventImage =
+    'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=720&q=80';
 
 const trustItems: TrustItem[] = [
     {
@@ -151,49 +92,13 @@ const metrics: Metric[] = [
     },
 ];
 
-const categoryTabs = ['Âm nhạc', 'Thể thao', 'Hội thảo', 'Giải trí', 'Workshop', 'Esports'];
-
-const categoryEvents: EventCard[] = [
-    {
-        title: 'Dalies Live 2026',
-        date: '22.06.2026',
-        location: 'Hà Nội',
-        price: 'Từ 550.000đ',
-        status: '',
-        image: 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'Hoàng Thùy Linh Vietnam Tour',
-        date: '28.06.2026',
-        location: 'TP. HCM',
-        price: 'Từ 480.000đ',
-        status: '',
-        image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'GENFest 2026',
-        date: '12.07.2026',
-        location: 'Hà Nội',
-        price: 'Từ 650.000đ',
-        status: '',
-        image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'Tùng Dương Live Concert',
-        date: '19.07.2026',
-        location: 'Hà Nội',
-        price: 'Từ 600.000đ',
-        status: '',
-        image: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=640&q=80',
-    },
-    {
-        title: 'Đêm Nhạc Acoustic Tháng 7',
-        date: '26.07.2026',
-        location: 'TP. HCM',
-        price: 'Từ 250.000đ',
-        status: '',
-        image: 'https://images.unsplash.com/photo-1510915361894-db8b60106cb1?auto=format&fit=crop&w=640&q=80',
-    },
+const categoryTabs = [
+    { label: 'Âm nhạc', value: 'music' },
+    { label: 'Thể thao', value: 'sports' },
+    { label: 'Hội thảo', value: 'conference' },
+    { label: 'Giải trí', value: 'entertainment' },
+    { label: 'Workshop', value: 'workshop' },
+    { label: 'Esports', value: 'esports' },
 ];
 
 const reviews: Review[] = [
@@ -272,29 +177,29 @@ function BrandMark() {
     );
 }
 
-function EventCard({ event }: { event: EventCard }) {
+function EventCard({ event }: { event: PublicEventListItem }) {
     return (
         <article className="event-card">
             <div className="event-image-wrap">
-                <img src={event.image} alt={event.title} />
-                <span className={`event-status ${event.statusTone ?? 'red'}`}>
-                    {event.status}
-                </span>
+                <img src={event.thumbnailUrl ?? fallbackEventImage} alt={event.title} />
+                <span className="event-status blue">Đang mở bán</span>
             </div>
             <div className="event-body">
-                <h3>{event.title}</h3>
+                <h3>
+                    <a href={`/events/${event.id}`}>{event.title}</a>
+                </h3>
                 <div className="event-meta-row">
                     <span>
                         <MaterialIcon>calendar_today</MaterialIcon>
-                        {event.date}
+                        {formatHomeDate(event.startsAt)}
                     </span>
                     <span>
                         <MaterialIcon>location_on</MaterialIcon>
-                        {event.location}
+                        {event.city}
                     </span>
                 </div>
                 <div className="event-price-row">
-                    <strong>{event.price}</strong>
+                    <strong>{formatHomePrice(event.minPrice)}</strong>
                     <button type="button" aria-label={`Lưu ${event.title}`}>
                         <MaterialIcon>favorite</MaterialIcon>
                     </button>
@@ -304,24 +209,26 @@ function EventCard({ event }: { event: EventCard }) {
     );
 }
 
-function CategoryEventCard({ event }: { event: EventCard }) {
+function CategoryEventCard({ event }: { event: PublicEventListItem }) {
     return (
         <article className="category-event-card">
-            <img src={event.image} alt={event.title} />
+            <img src={event.thumbnailUrl ?? fallbackEventImage} alt={event.title} />
             <div className="category-event-body">
-                <h3>{event.title}</h3>
+                <h3>
+                    <a href={`/events/${event.id}`}>{event.title}</a>
+                </h3>
                 <div className="event-meta-row">
                     <span>
                         <MaterialIcon>calendar_today</MaterialIcon>
-                        {event.date}
+                        {formatHomeDate(event.startsAt)}
                     </span>
                     <span>
                         <MaterialIcon>location_on</MaterialIcon>
-                        {event.location}
+                        {event.city}
                     </span>
                 </div>
                 <div className="event-price-row">
-                    <strong>{event.price}</strong>
+                    <strong>{formatHomePrice(event.minPrice)}</strong>
                     <button type="button" aria-label={`Lưu ${event.title}`}>
                         <MaterialIcon>favorite</MaterialIcon>
                     </button>
@@ -398,6 +305,44 @@ function HeaderAccountActions() {
 
 function App() {
     const path = window.location.pathname;
+    const [homeEvents, setHomeEvents] = useState<PublicEventListItem[]>([]);
+    const [homeEventsLoading, setHomeEventsLoading] = useState(false);
+    const [homeEventsError, setHomeEventsError] = useState('');
+    const [homeSearchQuery, setHomeSearchQuery] = useState('');
+
+    useEffect(() => {
+        if (path !== '/') return;
+
+        let active = true;
+        setHomeEventsLoading(true);
+        setHomeEventsError('');
+
+        listPublicEvents({ page: 1, limit: 8 })
+            .then((page) => {
+                if (!active) return;
+                setHomeEvents(page.items);
+            })
+            .catch((err: unknown) => {
+                if (!active) return;
+                setHomeEvents([]);
+                setHomeEventsError(
+                    err instanceof Error
+                        ? err.message
+                        : 'Không thể tải danh sách sự kiện.',
+                );
+            })
+            .finally(() => {
+                if (active) setHomeEventsLoading(false);
+            });
+
+        return () => {
+            active = false;
+        };
+    }, [path]);
+
+    const heroEvent = homeEvents[0];
+    const featuredEvents = homeEvents.slice(0, 6);
+    const upcomingEvents = homeEvents.slice(0, 5);
 
     if (path === '/auth/login' || path === '/auth/register') {
         if (getStoredAuthUser()) {
@@ -527,12 +472,20 @@ function App() {
                     <form
                         className="search-panel"
                         aria-label="Tìm kiếm sự kiện"
-                        onSubmit={(event) => event.preventDefault()}
+                        onSubmit={(event) => {
+                            event.preventDefault();
+                            const search = homeSearchQuery.trim();
+                            window.location.href = search
+                                ? `/events?q=${encodeURIComponent(search)}`
+                                : '/events';
+                        }}
                     >
                         <label className="search-field">
                             <MaterialIcon>search</MaterialIcon>
                             <span className="sr-only">Từ khóa sự kiện</span>
                             <input
+                                value={homeSearchQuery}
+                                onChange={(event) => setHomeSearchQuery(event.target.value)}
                                 type="search"
                                 placeholder="Tìm kiếm sự kiện, nghệ sĩ, địa điểm..."
                             />
@@ -569,18 +522,18 @@ function App() {
                     />
                     <div className="hero-event-card">
                         <span>Sắp diễn ra</span>
-                        <h2>Monsoon Music Festival 2026</h2>
+                        <h2>{heroEvent?.title ?? 'Sự kiện đang mở bán'}</h2>
                         <div className="hero-event-meta">
                             <span>
                                 <MaterialIcon>calendar_today</MaterialIcon>
-                                24 - 25.06.2026
+                                {heroEvent ? formatHomeDate(heroEvent.startsAt) : 'Đang cập nhật'}
                             </span>
                             <span>
                                 <MaterialIcon>location_on</MaterialIcon>
-                                Hà Nội
+                                {heroEvent?.city ?? 'izTicket'}
                             </span>
                         </div>
-                        <a href="#events">
+                        <a href={heroEvent ? `/events/${heroEvent.id}` : '/events'}>
                             Xem chi tiết
                             <MaterialIcon>arrow_forward</MaterialIcon>
                         </a>
@@ -605,15 +558,23 @@ function App() {
             <section className="events-section" id="events">
                 <div className="section-title-row">
                     <h2>Sự kiện nổi bật</h2>
-                    <a href="#events">
+                    <a href="/events">
                         Xem tất cả
                         <MaterialIcon>arrow_forward</MaterialIcon>
                     </a>
                 </div>
                 <div className="event-grid">
-                    {events.map((event) => (
-                        <EventCard key={event.title} event={event} />
-                    ))}
+                    {homeEventsLoading ? (
+                        <p className="landing-event-state">Đang tải sự kiện...</p>
+                    ) : homeEventsError ? (
+                        <p className="landing-event-state">{homeEventsError}</p>
+                    ) : featuredEvents.length === 0 ? (
+                        <p className="landing-event-state">Chưa có sự kiện đang mở bán.</p>
+                    ) : (
+                        featuredEvents.map((event) => (
+                            <EventCard key={event.id} event={event} />
+                        ))
+                    )}
                 </div>
             </section>
 
@@ -671,27 +632,38 @@ function App() {
                             {categoryTabs.map((tab, index) => (
                                 <button
                                     className={index === 0 ? 'active' : ''}
-                                    key={tab}
+                                    key={tab.value}
                                     type="button"
+                                    onClick={() => {
+                                        window.location.href = `/events?category=${encodeURIComponent(tab.value)}`;
+                                    }}
                                 >
-                                    {tab}
+                                    {tab.label}
                                 </button>
                             ))}
                         </div>
                     </div>
-                    <a href="#events">
+                    <a href="/events">
                         Xem tất cả
                         <MaterialIcon>arrow_forward</MaterialIcon>
                     </a>
                 </div>
 
                 <div className="category-event-row">
-                    {categoryEvents.map((event) => (
-                        <CategoryEventCard event={event} key={event.title} />
-                    ))}
-                    <button className="round-next-button" type="button" aria-label="Xem thêm sự kiện">
+                    {homeEventsLoading ? (
+                        <p className="landing-event-state">Đang tải sự kiện...</p>
+                    ) : homeEventsError ? (
+                        <p className="landing-event-state">{homeEventsError}</p>
+                    ) : upcomingEvents.length === 0 ? (
+                        <p className="landing-event-state">Chưa có sự kiện phù hợp.</p>
+                    ) : (
+                        upcomingEvents.map((event) => (
+                            <CategoryEventCard event={event} key={event.id} />
+                        ))
+                    )}
+                    <a className="round-next-button" href="/events" aria-label="Xem thêm sự kiện">
                         <MaterialIcon>chevron_right</MaterialIcon>
-                    </button>
+                    </a>
                 </div>
             </section>
 
@@ -813,6 +785,19 @@ function getInitials(name: string) {
         .map((part) => part[0])
         .join('')
         .toUpperCase();
+}
+
+function formatHomeDate(value: string) {
+    return new Intl.DateTimeFormat('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+    }).format(new Date(value));
+}
+
+function formatHomePrice(value: number | null) {
+    if (value === null) return 'Chưa mở bán';
+    return `Từ ${new Intl.NumberFormat('vi-VN').format(value)}đ`;
 }
 
 export default App;

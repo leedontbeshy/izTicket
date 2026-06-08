@@ -13,35 +13,59 @@ import './EventsPage.css';
 const fallbackImage =
     'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?auto=format&fit=crop&w=720&q=80';
 
-const categories = [
-    { icon: 'grid_view', label: 'Tất cả', active: true },
-    { icon: 'music_note', label: 'Âm nhạc' },
-    { icon: 'emoji_events', label: 'Thể thao' },
-    { icon: 'edit', label: 'Hội thảo' },
-    { icon: 'theater_comedy', label: 'Giải trí' },
-    { icon: 'handyman', label: 'Workshop' },
-    { icon: 'sports_esports', label: 'Esports' },
-    { icon: 'image', label: 'Triển lãm' },
+type CategoryOption = {
+    icon: string;
+    label: string;
+    value: string;
+};
+
+type SortMode = 'soonest' | 'latest' | 'priceAsc' | 'priceDesc';
+type TimeFilter = 'all' | 'today' | 'week' | 'month';
+
+const categories: CategoryOption[] = [
+    { icon: 'grid_view', label: 'Tất cả', value: '' },
+    { icon: 'music_note', label: 'Âm nhạc', value: 'music' },
+    { icon: 'emoji_events', label: 'Thể thao', value: 'sports' },
+    { icon: 'edit', label: 'Hội thảo', value: 'conference' },
+    { icon: 'theater_comedy', label: 'Giải trí', value: 'entertainment' },
+    { icon: 'handyman', label: 'Workshop', value: 'workshop' },
+    { icon: 'sports_esports', label: 'Esports', value: 'esports' },
+    { icon: 'image', label: 'Triển lãm', value: 'exhibition' },
 ];
 
-const sidebarCategories = [
-    ['Tất cả danh mục', ''],
-    ['Âm nhạc', ''],
-    ['Thể thao', ''],
-    ['Hội thảo', ''],
-    ['Giải trí', ''],
-    ['Workshop', ''],
-];
+const sortLabels: Record<SortMode, string> = {
+    soonest: 'Sớm nhất',
+    latest: 'Mới nhất',
+    priceAsc: 'Giá thấp',
+    priceDesc: 'Giá cao',
+};
+
+const timeLabels: Record<TimeFilter, string> = {
+    all: 'Tất cả thời gian',
+    today: 'Hôm nay',
+    week: '7 ngày tới',
+    month: '30 ngày tới',
+};
 
 function EventsPage() {
+    const initialSearch = new URLSearchParams(window.location.search);
+    const initialQuery = initialSearch.get('q') ?? '';
+    const initialCity = initialSearch.get('city') ?? '';
+    const initialCategory = initialSearch.get('category') ?? '';
     const [events, setEvents] = useState<PublicEventListItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [query, setQuery] = useState('');
-    const [city, setCity] = useState('');
+    const [query, setQuery] = useState(initialQuery);
+    const [city, setCity] = useState(initialCity);
+    const [category, setCategory] = useState(initialCategory);
+    const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
+    const [sortMode, setSortMode] = useState<SortMode>('soonest');
     const [submittedFilters, setSubmittedFilters] = useState({
-        q: '',
-        city: '',
+        q: initialQuery,
+        city: initialCity,
+        category: initialCategory,
+        from: '',
+        to: '',
     });
     const [total, setTotal] = useState(0);
 
@@ -55,6 +79,9 @@ function EventsPage() {
             limit: 20,
             q: submittedFilters.q,
             city: submittedFilters.city,
+            category: submittedFilters.category,
+            from: submittedFilters.from,
+            to: submittedFilters.to,
         })
             .then((page) => {
                 if (!active) return;
@@ -80,18 +107,75 @@ function EventsPage() {
         };
     }, [submittedFilters]);
 
+    const sortedEvents = useMemo(() => {
+        return [...events].sort((first, second) => {
+            if (sortMode === 'latest') {
+                return getTime(second.startsAt) - getTime(first.startsAt);
+            }
+
+            if (sortMode === 'priceAsc') {
+                return getPrice(first.minPrice) - getPrice(second.minPrice);
+            }
+
+            if (sortMode === 'priceDesc') {
+                return getPrice(second.minPrice) - getPrice(first.minPrice);
+            }
+
+            return getTime(first.startsAt) - getTime(second.startsAt);
+        });
+    }, [events, sortMode]);
+
     const resultLabel = useMemo(() => {
         if (loading) return 'Đang tải sự kiện...';
         if (error) return 'Chưa thể tải sự kiện';
         return `Hiển thị ${events.length}/${total} sự kiện`;
     }, [error, events.length, loading, total]);
 
+    function applyFilters(next = {
+        q: query,
+        city,
+        category,
+        timeFilter,
+    }) {
+        const range = getTimeRange(next.timeFilter);
+        setSubmittedFilters({
+            q: next.q,
+            city: next.city,
+            category: next.category,
+            from: range.from,
+            to: range.to,
+        });
+    }
+
     function submitFilters(event: FormEvent) {
         event.preventDefault();
-        setSubmittedFilters({
-            q: query,
-            city,
-        });
+        applyFilters();
+    }
+
+    function selectCategory(value: string) {
+        setCategory(value);
+        applyFilters({ q: query, city, category: value, timeFilter });
+    }
+
+    function cycleTimeFilter() {
+        const next = getNextTimeFilter(timeFilter);
+        setTimeFilter(next);
+        applyFilters({ q: query, city, category, timeFilter: next });
+    }
+
+    function cycleSortMode() {
+        const order: SortMode[] = ['soonest', 'latest', 'priceAsc', 'priceDesc'];
+        const currentIndex = order.indexOf(sortMode);
+        setSortMode(order[(currentIndex + 1) % order.length]);
+    }
+
+    function resetFilters() {
+        setQuery('');
+        setCity('');
+        setCategory('');
+        setTimeFilter('all');
+        setSortMode('soonest');
+        setSubmittedFilters({ q: '', city: '', category: '', from: '', to: '' });
     }
 
     return (
@@ -126,9 +210,9 @@ function EventsPage() {
                             placeholder="Thành phố"
                         />
                     </label>
-                    <button type="button">
+                    <button type="button" onClick={cycleTimeFilter}>
                         <MaterialIcon>calendar_today</MaterialIcon>
-                        Tất cả thời gian
+                        {timeLabels[timeFilter]}
                         <MaterialIcon>expand_more</MaterialIcon>
                     </button>
                     <button className="filter-button" type="submit">
@@ -138,24 +222,21 @@ function EventsPage() {
                 </form>
 
                 <div className="category-chip-row">
-                    {categories.map((category) => (
+                    {categories.map((item) => (
                         <button
-                            className={category.active ? 'active' : ''}
-                            key={category.label}
+                            className={category === item.value ? 'active' : ''}
+                            key={item.value || 'all'}
                             type="button"
+                            onClick={() => selectCategory(item.value)}
                         >
-                            <MaterialIcon>{category.icon}</MaterialIcon>
-                            {category.label}
+                            <MaterialIcon>{item.icon}</MaterialIcon>
+                            {item.label}
                         </button>
                     ))}
                     <button
                         className="link-chip"
                         type="button"
-                        onClick={() => {
-                            setQuery('');
-                            setCity('');
-                            setSubmittedFilters({ q: '', city: '' });
-                        }}
+                        onClick={resetFilters}
                     >
                         Xóa bộ lọc
                     </button>
@@ -165,11 +246,15 @@ function EventsPage() {
             <section className="events-content">
                 <aside className="events-sidebar" aria-label="Bộ lọc sự kiện">
                     <FilterPanel title="Danh mục" expanded>
-                        {sidebarCategories.map(([label, count], index) => (
-                            <label className="filter-check" key={label}>
-                                <input defaultChecked={index === 0} type="checkbox" />
-                                <span>{label}</span>
-                                <small>{count}</small>
+                        {categories.map((item) => (
+                            <label className="filter-check" key={item.value || 'all'}>
+                                <input
+                                    checked={category === item.value}
+                                    type="checkbox"
+                                    onChange={() => selectCategory(item.value)}
+                                />
+                                <span>{item.label === 'Tất cả' ? 'Tất cả danh mục' : item.label}</span>
+                                <small />
                             </label>
                         ))}
                     </FilterPanel>
@@ -190,8 +275,12 @@ function EventsPage() {
                     <div className="result-toolbar">
                         <p>{resultLabel}</p>
                         <div>
-                            <button className="sort-button" type="button">
-                                Sắp xếp: Sớm nhất
+                            <button
+                                className="sort-button"
+                                type="button"
+                                onClick={cycleSortMode}
+                            >
+                                Sắp xếp: {sortLabels[sortMode]}
                                 <MaterialIcon>expand_more</MaterialIcon>
                             </button>
                             <button className="view-button active" type="button">
@@ -211,7 +300,7 @@ function EventsPage() {
                             title="Đang tải sự kiện"
                             text="Danh sách sẽ hiển thị ngay khi API phản hồi."
                         />
-                    ) : events.length === 0 ? (
+                    ) : sortedEvents.length === 0 ? (
                         <StateMessage
                             icon="event_busy"
                             title="Chưa có sự kiện phù hợp"
@@ -219,7 +308,7 @@ function EventsPage() {
                         />
                     ) : (
                         <div className="event-list-grid">
-                            {events.map((event) => (
+                            {sortedEvents.map((event) => (
                                 <EventListCard event={event} key={event.id} />
                             ))}
                         </div>
@@ -301,6 +390,42 @@ function StateMessage({
             <p>{text}</p>
         </section>
     );
+}
+
+function getTime(value: string) {
+    return new Date(value).getTime();
+}
+
+function getPrice(value: number | null) {
+    return value ?? Number.MAX_SAFE_INTEGER;
+}
+
+function getNextTimeFilter(value: TimeFilter): TimeFilter {
+    if (value === 'all') return 'today';
+    if (value === 'today') return 'week';
+    if (value === 'week') return 'month';
+    return 'all';
+}
+
+function getTimeRange(value: TimeFilter) {
+    if (value === 'all') return { from: '', to: '' };
+
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(start);
+    if (value === 'today') {
+        end.setDate(end.getDate() + 1);
+    } else if (value === 'week') {
+        end.setDate(end.getDate() + 7);
+    } else {
+        end.setDate(end.getDate() + 30);
+    }
+
+    return {
+        from: start.toISOString(),
+        to: end.toISOString(),
+    };
 }
 
 function formatPrice(value: number | null) {

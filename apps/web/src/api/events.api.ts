@@ -110,12 +110,18 @@ export function listPublicEvents(params: {
     limit?: number;
     q?: string;
     city?: string;
+    category?: string;
+    from?: string;
+    to?: string;
 } = {}) {
     const search = new URLSearchParams();
     search.set('page', String(params.page ?? 1));
     search.set('limit', String(params.limit ?? 20));
     if (params.q?.trim()) search.set('q', params.q.trim());
     if (params.city?.trim()) search.set('city', params.city.trim());
+    if (params.category?.trim()) search.set('category', params.category.trim());
+    if (params.from) search.set('from', params.from);
+    if (params.to) search.set('to', params.to);
 
     return apiGet<PageResponse<PublicEventListItem>>(
         `/events?${search.toString()}`,

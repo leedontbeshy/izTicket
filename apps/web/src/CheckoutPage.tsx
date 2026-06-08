@@ -122,35 +122,27 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
         [reservation],
     );
 
-    async function handleCreateOrder() {
-        if (!reservation || creatingOrder || isExpired) return;
+    async function handleStartPayment() {
+        if (
+            !reservation ||
+            creatingOrder ||
+            creatingPayment ||
+            isExpired ||
+            payment
+        ) {
+            return;
+        }
 
         setCreatingOrder(true);
-        setActionError('');
-
-        try {
-            const createdOrder = await createOrder(reservation.id);
-            setOrder(createdOrder);
-            patchCheckoutSession({ orderId: createdOrder.id });
-        } catch (err) {
-            setActionError(
-                err instanceof Error
-                    ? err.message
-                    : 'Không thể tạo order. Vui lòng thử lại.',
-            );
-        } finally {
-            setCreatingOrder(false);
-        }
-    }
-
-    async function handleCreatePayment() {
-        if (!order || creatingPayment || isExpired) return;
-
         setCreatingPayment(true);
         setActionError('');
 
         try {
-            const createdPayment = await createSepayPayment(order.id);
+            const checkoutOrder = order ?? await createOrder(reservation.id);
+            setOrder(checkoutOrder);
+            patchCheckoutSession({ orderId: checkoutOrder.id });
+
+            const createdPayment = await createSepayPayment(checkoutOrder.id);
             setPayment(createdPayment);
             patchCheckoutSession({
                 paymentId: createdPayment.paymentId,
@@ -163,6 +155,7 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                     : 'Không thể tạo thanh toán SePay. Vui lòng thử lại.',
             );
         } finally {
+            setCreatingOrder(false);
             setCreatingPayment(false);
         }
     }
@@ -244,8 +237,8 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                 <div>
                                     <h2>Order đã được tạo</h2>
                                     <p>
-                                        Order #{order.id} đang chờ thanh toán. Phần tiếp theo
-                                        sẽ khởi tạo thanh toán SePay cho order này.
+                                        Order #{order.id} đang chờ thanh toán. Mã SePay sẽ được
+                                        hiển thị ngay bên dưới khi khởi tạo thành công.
                                     </p>
                                 </div>
                             </section>
@@ -285,17 +278,13 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                                 reservation.status !== 'ACTIVE' ||
                                 Boolean(payment)
                             }
-                            onClick={order ? handleCreatePayment : handleCreateOrder}
+                            onClick={handleStartPayment}
                         >
                             {payment
                                 ? 'Đã tạo thanh toán'
-                                : creatingPayment
+                                : creatingOrder || creatingPayment
                                   ? 'Đang tạo thanh toán...'
-                                  : order
-                                    ? 'Tạo thanh toán SePay'
-                                    : creatingOrder
-                                      ? 'Đang tạo order...'
-                                      : 'Tạo order'}
+                                  : 'Tạo thanh toán SePay'}
                             <MaterialIcon>arrow_forward</MaterialIcon>
                         </button>
 
