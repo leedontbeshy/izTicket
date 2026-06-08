@@ -245,6 +245,19 @@ a {
     box-shadow: 0 12px 26px rgba(17, 22, 31, 0.18);
 }
 
+.user-menu {
+    position: relative;
+    flex: 0 0 auto;
+}
+
+.user-menu summary {
+    list-style: none;
+}
+
+.user-menu summary::-webkit-details-marker {
+    display: none;
+}
+
 .user-chip {
     min-height: 44px;
     gap: 11px;
@@ -254,9 +267,10 @@ a {
     border: 1px solid var(--line);
     border-radius: 14px;
     box-shadow: 0 10px 24px rgba(18, 23, 34, 0.06);
+    cursor: pointer;
 }
 
-.user-chip > span {
+.user-chip > span:not(.material-symbols-outlined) {
     width: 32px;
     height: 32px;
     display: inline-flex;
@@ -294,6 +308,66 @@ a {
     font-size: 11px;
     font-weight: 800;
     text-transform: uppercase;
+}
+
+.user-menu-chevron {
+    color: #667085;
+    font-size: 18px;
+    transition: transform 160ms ease;
+}
+
+.user-menu[open] .user-menu-chevron {
+    transform: rotate(180deg);
+}
+
+.user-menu-panel {
+    min-width: 210px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    padding: 8px;
+    display: grid;
+    gap: 4px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 18px 42px rgba(18, 23, 34, 0.14);
+}
+
+.user-menu-panel a,
+.user-menu-panel button {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #1e2533;
+    background: transparent;
+    border: 0;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 800;
+    text-align: left;
+}
+
+.user-menu-panel a:hover,
+.user-menu-panel button:hover {
+    background: #f3f6fb;
+}
+
+.user-menu-panel .material-symbols-outlined {
+    color: var(--blue);
+    font-size: 19px;
+}
+
+.user-menu-panel button {
+    color: #b42318;
+}
+
+.user-menu-panel button .material-symbols-outlined {
+    color: #d92d20;
 }
 
 .hero-section {
@@ -1598,6 +1672,20 @@ a {
     .dark-button,
     .header-logout-button {
         flex: 1 1 130px;
+    }
+
+    .user-menu {
+        flex: 1 1 220px;
+    }
+
+    .user-menu .user-chip {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .user-menu-panel {
+        right: 50%;
+        transform: translateX(50%);
     }
 
     .hero-copy h1 {
