@@ -40,7 +40,12 @@ type Review = {
 
 type Sponsor = {
     name: string;
-    tone: 'green' | 'magenta' | 'red' | 'orange' | 'blue' | 'navy';
+};
+
+type Faq = {
+    id: string;
+    question: string;
+    answer: string;
 };
 
 type FooterGroup = {
@@ -120,24 +125,60 @@ const reviews: Review[] = [
         role: 'Khách hàng',
         avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80',
     },
+    {
+        quote: 'Tôi đặt vé cho cả nhóm rất nhanh, mã QR gửi về rõ ràng và dễ kiểm tra.',
+        name: 'Phạm Gia Huy',
+        role: 'Khách hàng',
+        avatar: 'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?auto=format&fit=crop&w=120&q=80',
+    },
+    {
+        quote: 'Trang quản trị giúp đội vận hành bán vé và soát vé trong ngày sự kiện nhẹ nhàng hơn.',
+        name: 'Đỗ Mai Chi',
+        role: 'BTC Music Night',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=120&q=80',
+    },
 ];
 
 const sponsors: Sponsor[] = [
-    { name: 'Vietcombank', tone: 'green' },
-    { name: 'momo', tone: 'magenta' },
-    { name: 'TECHCOMBANK', tone: 'red' },
-    { name: 'FPT', tone: 'orange' },
-    { name: 'VNG', tone: 'orange' },
-    { name: 'SePay', tone: 'blue' },
+    { name: 'Vietcombank' },
+    { name: 'momo' },
+    { name: 'TECHCOMBANK' },
+    { name: 'FPT' },
+    { name: 'VNG' },
+    { name: 'SePay' },
 ];
 
-const faqs = [
-    'Làm sao để nhận vé sau khi thanh toán?',
-    'izTicket có đảm bảo vé thật không?',
-    'Có hoàn tiền nếu không tham dự được không?',
-    'Thanh toán qua SePay có an toàn không?',
-    'Tôi có thể chuyển nhượng vé cho người khác không?',
-    'Tôi cần hỗ trợ, liên hệ ở đâu?',
+const faqs: Faq[] = [
+    {
+        id: 'receive-ticket',
+        question: 'Làm sao để nhận vé sau khi thanh toán?',
+        answer: 'Sau khi thanh toán thành công, vé điện tử sẽ được phát hành trong mục Vé của tôi. Bạn chỉ cần mở vé trên điện thoại và xuất trình mã QR khi check-in.',
+    },
+    {
+        id: 'verified-ticket',
+        question: 'izTicket có đảm bảo vé thật không?',
+        answer: 'Mỗi vé trên izTicket có mã định danh và mã QR riêng, được đối soát với dữ liệu đơn hàng khi vào cổng để hạn chế vé giả hoặc vé bị dùng lại.',
+    },
+    {
+        id: 'refund-policy',
+        question: 'Có hoàn tiền nếu không tham dự được không?',
+        answer: 'Chính sách hoàn tiền phụ thuộc vào quy định của từng sự kiện. Nếu sự kiện cho phép hoàn tiền, bạn có thể gửi yêu cầu hỗ trợ trước thời hạn được ban tổ chức công bố.',
+    },
+    {
+        id: 'sepay-safety',
+        question: 'Thanh toán qua SePay có an toàn không?',
+        answer: 'Có. izTicket chỉ xác nhận đơn hàng khi hệ thống nhận được thông báo thanh toán hợp lệ từ SePay, giúp giao dịch được ghi nhận rõ ràng và minh bạch.',
+    },
+    {
+        id: 'transfer-ticket',
+        question: 'Tôi có thể chuyển nhượng vé cho người khác không?',
+        answer: 'Bạn có thể gửi vé cho người đi thay nếu điều kiện của sự kiện cho phép. Hãy bảo mật mã QR, vì người xuất trình mã hợp lệ đầu tiên sẽ được ghi nhận check-in.',
+    },
+    {
+        id: 'contact-support',
+        question: 'Tôi cần hỗ trợ, liên hệ ở đâu?',
+        answer: 'Bạn có thể vào mục Hỗ trợ trên izTicket và cung cấp mã đơn hàng hoặc thông tin sự kiện để đội ngũ hỗ trợ kiểm tra nhanh hơn.',
+    },
 ];
 
 const footerGroups: FooterGroup[] = [
@@ -309,6 +350,7 @@ function App() {
     const [homeEventsLoading, setHomeEventsLoading] = useState(false);
     const [homeEventsError, setHomeEventsError] = useState('');
     const [homeSearchQuery, setHomeSearchQuery] = useState('');
+    const [openFaqId, setOpenFaqId] = useState<string | null>(null);
 
     useEffect(() => {
         if (path !== '/') return;
@@ -671,24 +713,33 @@ function App() {
                 </div>
             </section>
 
-            <section className="social-proof-section">
-                <div className="reviews-block">
-                    <h2>Khách hàng nói gì về izTicket</h2>
-                    <div className="review-grid">
-                        {reviews.map((review) => (
-                            <ReviewCard key={review.name} review={review} />
-                        ))}
-                    </div>
+            <section className="reviews-section">
+                <h2>Khách hàng nói gì về izTicket</h2>
+                <div className="review-grid">
+                    {reviews.map((review) => (
+                        <ReviewCard key={review.name} review={review} />
+                    ))}
                 </div>
+            </section>
 
-                <div className="sponsors-block">
-                    <h2>Được tin dùng bởi</h2>
-                    <div className="sponsor-grid">
-                        {sponsors.map((sponsor) => (
-                            <article className={`sponsor-card ${sponsor.tone}`} key={sponsor.name}>
-                                {sponsor.name}
-                            </article>
-                        ))}
+            <section className="sponsors-section" aria-label="Đối tác tin dùng izTicket">
+                <h2>Được tin dùng bởi các đối tác thanh toán và công nghệ</h2>
+                <div className="sponsor-marquee">
+                    <div className="sponsor-track">
+                        <div className="sponsor-list">
+                            {sponsors.map((sponsor) => (
+                                <span className="sponsor-logo" key={sponsor.name}>
+                                    {sponsor.name}
+                                </span>
+                            ))}
+                        </div>
+                        <div className="sponsor-list" aria-hidden="true">
+                            {sponsors.map((sponsor) => (
+                                <span className="sponsor-logo" key={sponsor.name}>
+                                    {sponsor.name}
+                                </span>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -696,18 +747,32 @@ function App() {
             <section className="faq-section">
                 <h2>Câu hỏi thường gặp</h2>
                 <div className="faq-grid">
-                    {faqs.map((question) => (
-                        <details className="faq-item" key={question}>
-                            <summary>
-                                {question}
-                                <MaterialIcon>expand_more</MaterialIcon>
-                            </summary>
-                            <p>
-                                Đội ngũ izTicket luôn sẵn sàng hỗ trợ để giao dịch
-                                của bạn diễn ra rõ ràng và an toàn.
-                            </p>
-                        </details>
-                    ))}
+                    {faqs.map((faq) => {
+                        const isOpen = openFaqId === faq.id;
+                        const answerId = `faq-answer-${faq.id}`;
+
+                        return (
+                            <article className={`faq-item ${isOpen ? 'open' : ''}`} key={faq.id}>
+                                <button
+                                    type="button"
+                                    className="faq-question"
+                                    aria-expanded={isOpen}
+                                    aria-controls={answerId}
+                                    onClick={() => {
+                                        setOpenFaqId(isOpen ? null : faq.id);
+                                    }}
+                                >
+                                    {faq.question}
+                                    <MaterialIcon>expand_more</MaterialIcon>
+                                </button>
+                                {isOpen && (
+                                    <p className="faq-answer" id={answerId}>
+                                        {faq.answer}
+                                    </p>
+                                )}
+                            </article>
+                        );
+                    })}
                 </div>
             </section>
 
