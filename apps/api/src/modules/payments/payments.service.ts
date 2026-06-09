@@ -182,16 +182,15 @@ export class PaymentsService {
 
         const cmd = mapSepayWebhookPayload(parsed.data);
 
-        const alreadyProcessed = await this.prismaService.paymentEvent.findFirst(
-            {
+        const alreadyProcessed =
+            await this.prismaService.paymentEvent.findFirst({
                 where: {
                     provider: SEPAY_PROVIDER,
                     providerEventId: cmd.providerEventId,
                     processedAt: { not: null },
                 },
                 select: { id: true },
-            },
-        );
+            });
         if (alreadyProcessed) return;
 
         if (!cmd.providerReference) {
@@ -272,8 +271,7 @@ export class PaymentsService {
         }
 
         const now = new Date();
-        const isLate =
-            order.status === 'EXPIRED' || now >= order.expiresAt;
+        const isLate = order.status === 'EXPIRED' || now >= order.expiresAt;
 
         await this.prismaService.$transaction(async (tx) => {
             if (!isLate) {
@@ -340,16 +338,15 @@ export class PaymentsService {
         const providerTransactionId = transaction.transaction_id;
         const transferAmount = transaction.transaction_amount;
 
-        const alreadyProcessed = await this.prismaService.paymentEvent.findFirst(
-            {
+        const alreadyProcessed =
+            await this.prismaService.paymentEvent.findFirst({
                 where: {
                     provider: SEPAY_PROVIDER,
                     providerEventId,
                     processedAt: { not: null },
                 },
                 select: { id: true },
-            },
-        );
+            });
         if (alreadyProcessed) return;
 
         if (!providerReference) {

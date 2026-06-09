@@ -34,8 +34,8 @@ Default URL: http://localhost:3000
 
 Health endpoints:
 
-- http://localhost:3000/health/live
-- http://localhost:3000/health/ready
+- http://localhost:3000/api/v1/health/live
+- http://localhost:3000/api/v1/health/ready
 
 ## Checks
 
