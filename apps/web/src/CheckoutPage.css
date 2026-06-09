@@ -21,10 +21,14 @@
 .checkout-layout {
     margin-top: 22px;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 380px;
-    gap: 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 426px);
+    gap: 18px 22px;
     align-items: start;
     flex: 1;
+}
+
+.checkout-layout > .checkout-heading {
+    grid-column: 1 / -1;
 }
 
 .checkout-page .site-footer {
@@ -33,6 +37,7 @@
 }
 
 .checkout-main {
+    min-width: 0;
     display: grid;
     gap: 16px;
 }

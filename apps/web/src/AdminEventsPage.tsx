@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { getStoredAuthUser } from './authSession';
 import { listPendingEvents, type PendingEvent } from './api/admin.api';
-import { DashHeader } from './DashboardLayout';
-import { logout } from './dashboardLogout';
+import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
+import './AdminEventsPage.css';
 
 export function AdminEventsPage() {
     const [events, setEvents] = useState<PendingEvent[]>([]);
@@ -10,9 +10,10 @@ export function AdminEventsPage() {
     const [error, setError] = useState('');
 
     const user = getStoredAuthUser();
+    const isAdmin = user?.role === 'ADMIN';
 
     useEffect(() => {
-        if (!user || user.role !== 'ADMIN') {
+        if (!isAdmin) {
             window.location.href = '/auth/login';
             return;
         }
@@ -21,89 +22,143 @@ export function AdminEventsPage() {
             .then((page) => setEvents(page.items))
             .catch(() => setError('Không thể tải danh sách sự kiện.'))
             .finally(() => setLoading(false));
-    }, []);
+    }, [isAdmin]);
 
     return (
-        <div className="dash-shell">
-            <DashHeader
-                userName={user?.name}
-                activeNav="events"
-                role="ADMIN"
-                onLogout={logout}
-            />
+        <main className="admin-events-page">
+            <PublicHeader active="events" />
 
-            <main className="dash-main">
-                <div style={{ marginBottom: 32 }}>
-                    <h1 style={{ fontSize: 24, fontWeight: 700, color: '#09090b', margin: '0 0 6px' }}>
-                        Duyệt sự kiện
-                    </h1>
-                    <p style={{ fontSize: 14, color: '#71717a', margin: 0 }}>
-                        Các sự kiện đang chờ phê duyệt.
-                    </p>
+            <section className="admin-events-shell">
+                <div className="admin-events-heading">
+                    <div>
+                        <span className="admin-events-eyebrow">
+                            <MaterialIcon>admin_panel_settings</MaterialIcon>
+                            Admin xét duyệt
+                        </span>
+                        <h1>
+                            Duyệt sự kiện
+                        </h1>
+                        <p>
+                            Kiểm tra các sự kiện organizer vừa gửi trước khi xuất bản.
+                        </p>
+                    </div>
+                    <div className="admin-events-count">
+                        <span>Đang chờ</span>
+                        <strong>{loading ? '--' : events.length}</strong>
+                    </div>
                 </div>
 
-                {loading && <div className="dash-loading">Đang tải...</div>}
-                {error && <div className="dash-error">{error}</div>}
-
-                {!loading && !error && events.length === 0 && (
-                    <div className="dash-empty">
-                        <span className="material-symbols-outlined dash-empty-icon">
-                            pending_actions
-                        </span>
-                        <p>Không có sự kiện nào chờ duyệt.</p>
+                <section className="admin-events-content">
+                    <div className="admin-events-section-title">
+                        <div>
+                            <h2>
+                                Hàng chờ duyệt
+                            </h2>
+                            <p>
+                                {loading
+                                    ? 'Đang tải dữ liệu...'
+                                    : `${events.length} sự kiện cần xem xét`}
+                            </p>
+                        </div>
                     </div>
-                )}
 
-                {!loading && events.length > 0 && (
-                    <div className="org-events-grid">
-                        {events.map((event) => (
-                            <PendingEventCard key={event.id} event={event} />
-                        ))}
-                    </div>
-                )}
-            </main>
-        </div>
+                    {loading ? (
+                        <StateMessage
+                            icon="hourglass_top"
+                            title="Đang tải sự kiện"
+                            text="Danh sách chờ duyệt sẽ hiển thị ngay khi API phản hồi."
+                        />
+                    ) : null}
+
+                    {error ? (
+                        <StateMessage
+                            icon="error"
+                            title="Không thể tải sự kiện"
+                            text={error}
+                        />
+                    ) : null}
+
+                    {!loading && !error && events.length === 0 ? (
+                        <StateMessage
+                            icon="task_alt"
+                            title="Không có sự kiện nào chờ duyệt"
+                            text="Khi organizer gửi sự kiện mới, hồ sơ xét duyệt sẽ xuất hiện tại đây."
+                        />
+                    ) : null}
+
+                    {!loading && events.length > 0 ? (
+                        <div className="admin-event-grid">
+                            {events.map((event) => (
+                                <PendingEventCard key={event.id} event={event} />
+                            ))}
+                        </div>
+                    ) : null}
+                </section>
+            </section>
+
+            <PublicFooter />
+        </main>
     );
 }
 
 function PendingEventCard({ event }: { event: PendingEvent }) {
     return (
-        <div className="org-event-card">
-            <div className="org-event-card-top">
-                <span className="status-badge status-pending-review">Chờ duyệt</span>
-                <span className="org-event-category">{event.category}</span>
+        <article className="admin-event-card">
+            <div className="admin-event-card-top">
+                <span className="admin-status-badge">Chờ duyệt</span>
+                <span className="admin-event-category">{event.category}</span>
             </div>
 
-            <h3 className="org-event-title">{event.title}</h3>
+            <h3>{event.title}</h3>
 
-            <div className="org-event-meta">
+            <div className="admin-event-meta">
                 <span>
-                    <span className="material-symbols-outlined">person</span>
+                    <MaterialIcon>person</MaterialIcon>
                     {event.organizer.name}
                 </span>
                 <span>
-                    <span className="material-symbols-outlined">calendar_month</span>
+                    <MaterialIcon>calendar_month</MaterialIcon>
                     {formatDate(event.startsAt)}
                 </span>
                 <span>
-                    <span className="material-symbols-outlined">location_on</span>
+                    <MaterialIcon>location_on</MaterialIcon>
                     {event.venue.city}
                 </span>
                 <span>
-                    <span className="material-symbols-outlined">schedule</span>
+                    <MaterialIcon>schedule</MaterialIcon>
                     Nộp: {formatDate(event.submittedAt)}
                 </span>
             </div>
 
-            <div className="org-event-card-foot">
+            <div className="admin-event-card-foot">
+                <span>{event.venue.name}</span>
                 <a
-                    className="btn-primary"
+                    className="admin-review-link"
                     href={`/admin/events/${event.id}/review`}
                 >
                     Xem xét
+                    <MaterialIcon>arrow_forward</MaterialIcon>
                 </a>
             </div>
-        </div>
+        </article>
+    );
+}
+
+function StateMessage({
+    icon,
+    text,
+    title,
+}: {
+    icon: string;
+    text: string;
+    title: string;
+}) {
+    return (
+        <section className="admin-events-state">
+            <MaterialIcon>{icon}</MaterialIcon>
+            <h2>{title}</h2>
+            <p>{text}</p>
+        </section>
     );
 }
 

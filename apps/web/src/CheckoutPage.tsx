@@ -274,16 +274,16 @@ export function CheckoutPage({ reservationId }: { reservationId: string }) {
                 />
             ) : (
                 <section className="checkout-layout">
-                    <div className="checkout-main">
-                        <div className="checkout-heading">
-                            <a href={`/events/${reservation.eventId}`}>
-                                <MaterialIcon>arrow_back</MaterialIcon>
-                                Quay lại sự kiện
-                            </a>
-                            <h1>Checkout</h1>
-                            <p>{event?.title ?? 'Đặt vé của bạn'}</p>
-                        </div>
+                    <div className="checkout-heading">
+                        <a href={`/events/${reservation.eventId}`}>
+                            <MaterialIcon>arrow_back</MaterialIcon>
+                            Quay lại sự kiện
+                        </a>
+                        <h1>Checkout</h1>
+                        <p>{event?.title ?? 'Đặt vé của bạn'}</p>
+                    </div>
 
+                    <div className="checkout-main">
                         <section className="checkout-card">
                             <header>
                                 <div>

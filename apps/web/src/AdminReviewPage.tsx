@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { getStoredAuthUser } from './authSession';
 import {
-    getAdminEventDetail,
     approveEvent,
+    getAdminEventDetail,
     rejectEvent,
     type AdminEventDetail,
 } from './api/admin.api';
-import { DashHeader } from './DashboardLayout';
-import { logout } from './dashboardLogout';
+import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
 import './AdminReviewPage.css';
 
 type Props = { eventId: string };
@@ -24,16 +23,16 @@ export function AdminReviewPage({ eventId }: Props) {
     const [event, setEvent] = useState<AdminEventDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-
     const [acting, setActing] = useState(false);
     const [actionError, setActionError] = useState('');
     const [showRejectForm, setShowRejectForm] = useState(false);
     const [rejectReason, setRejectReason] = useState('');
 
     const user = getStoredAuthUser();
+    const isAdmin = user?.role === 'ADMIN';
 
     useEffect(() => {
-        if (!user || user.role !== 'ADMIN') {
+        if (!isAdmin) {
             window.location.href = '/auth/login';
             return;
         }
@@ -42,11 +41,12 @@ export function AdminReviewPage({ eventId }: Props) {
             .then(setEvent)
             .catch(() => setError('Không thể tải thông tin sự kiện.'))
             .finally(() => setLoading(false));
-    }, []);
+    }, [eventId, isAdmin]);
 
     async function handleApprove() {
         setActionError('');
         setActing(true);
+
         try {
             await approveEvent(eventId);
             window.location.href = '/admin/events';
@@ -61,8 +61,10 @@ export function AdminReviewPage({ eventId }: Props) {
             setActionError('Vui lòng nhập lý do từ chối.');
             return;
         }
+
         setActionError('');
         setActing(true);
+
         try {
             await rejectEvent(eventId, rejectReason.trim());
             window.location.href = '/admin/events';
@@ -74,23 +76,25 @@ export function AdminReviewPage({ eventId }: Props) {
 
     if (loading) {
         return (
-            <div className="dash-shell">
-                <DashHeader userName={user?.name} activeNav="events" role="ADMIN" onLogout={logout} />
-                <main className="dash-main">
-                    <div className="dash-loading">Đang tải...</div>
-                </main>
-            </div>
+            <AdminReviewShell>
+                <ReviewState
+                    icon="hourglass_top"
+                    title="Đang tải hồ sơ sự kiện"
+                    text="Thông tin xét duyệt sẽ hiển thị ngay khi API phản hồi."
+                />
+            </AdminReviewShell>
         );
     }
 
     if (!event) {
         return (
-            <div className="dash-shell">
-                <DashHeader userName={user?.name} activeNav="events" role="ADMIN" onLogout={logout} />
-                <main className="dash-main">
-                    <div className="dash-error">{error || 'Sự kiện không tồn tại.'}</div>
-                </main>
-            </div>
+            <AdminReviewShell>
+                <ReviewState
+                    icon="error"
+                    title="Không thể tải hồ sơ"
+                    text={error || 'Sự kiện không tồn tại.'}
+                />
+            </AdminReviewShell>
         );
     }
 
@@ -98,32 +102,61 @@ export function AdminReviewPage({ eventId }: Props) {
     const isPending = event.status === 'PENDING_REVIEW';
 
     return (
-        <div className="dash-shell">
-            <DashHeader userName={user?.name} activeNav="events" role="ADMIN" onLogout={logout} />
+        <main className="admin-review-page">
+            <PublicHeader active="events" />
 
-            <main className="dash-main">
-                <a className="ef-back-link" href="/admin/events">
-                    <span className="material-symbols-outlined">arrow_back</span>
+            <section className="admin-review-shell">
+                <a className="admin-review-back-link" href="/admin/events">
+                    <MaterialIcon>arrow_back</MaterialIcon>
                     Danh sách chờ duyệt
                 </a>
 
-                <div className="ar-event-header">
-                    <div className="ar-title-group">
-                        <h1>{event.title}</h1>
-                        <span className={`status-badge ${statusClass}`}>
+                <section className="admin-review-hero">
+                    <div className="admin-review-hero-copy">
+                        <span className={`admin-review-status ${statusClass}`}>
                             {STATUS_LABEL[event.status] ?? event.status}
                         </span>
+                        <h1>{event.title}</h1>
+                        <p>
+                            {event.organizer.name} gửi sự kiện thuộc danh mục {event.category}.
+                            Kiểm tra thông tin trước khi đưa ra quyết định.
+                        </p>
+                        <div className="admin-review-hero-meta">
+                            <span>
+                                <MaterialIcon>calendar_month</MaterialIcon>
+                                {formatDateTime(event.startsAt)}
+                            </span>
+                            <span>
+                                <MaterialIcon>location_on</MaterialIcon>
+                                {event.venue.city}
+                            </span>
+                            <span>
+                                <MaterialIcon>confirmation_number</MaterialIcon>
+                                {event.ticketTypes.length} loại vé
+                            </span>
+                        </div>
                     </div>
-                </div>
 
-                <div className="ar-grid">
-                    <div className="ar-main-col">
-                        <section className="ar-card">
+                    {event.thumbnailUrl ? (
+                        <img
+                            className="admin-review-cover"
+                            src={event.thumbnailUrl}
+                            alt={event.title}
+                        />
+                    ) : null}
+                </section>
+
+                <div className="admin-review-grid">
+                    <div className="admin-review-main-col">
+                        <section className="admin-review-card">
                             <h2>Thông tin sự kiện</h2>
-                            <dl className="ar-dl">
+                            <dl className="admin-review-dl">
                                 <div>
                                     <dt>Ban tổ chức</dt>
-                                    <dd>{event.organizer.name} <span className="ar-muted">({event.organizer.email})</span></dd>
+                                    <dd>
+                                        {event.organizer.name}
+                                        <span>{event.organizer.email}</span>
+                                    </dd>
                                 </div>
                                 <div>
                                     <dt>Danh mục</dt>
@@ -131,7 +164,9 @@ export function AdminReviewPage({ eventId }: Props) {
                                 </div>
                                 <div>
                                     <dt>Thời gian</dt>
-                                    <dd>{formatDateTime(event.startsAt)} – {formatDateTime(event.endsAt)}</dd>
+                                    <dd>
+                                        {formatDateTime(event.startsAt)} - {formatDateTime(event.endsAt)}
+                                    </dd>
                                 </div>
                                 <div>
                                     <dt>Địa điểm</dt>
@@ -140,96 +175,94 @@ export function AdminReviewPage({ eventId }: Props) {
                                         {event.venue.district ? ` ${event.venue.district},` : ''} {event.venue.city}
                                     </dd>
                                 </div>
-                                {event.thumbnailUrl && (
-                                    <div>
-                                        <dt>Ảnh bìa</dt>
-                                        <dd>
-                                            <img
-                                                className="ar-thumbnail"
-                                                src={event.thumbnailUrl}
-                                                alt={event.title}
-                                            />
-                                        </dd>
-                                    </div>
-                                )}
                             </dl>
                         </section>
 
-                        <section className="ar-card">
+                        <section className="admin-review-card">
                             <h2>Mô tả</h2>
-                            <p className="ar-description">{event.description}</p>
+                            <p className="admin-review-description">{event.description}</p>
                         </section>
 
-                        {event.ticketTypes.length > 0 && (
-                            <section className="ar-card">
+                        {event.ticketTypes.length > 0 ? (
+                            <section className="admin-review-card">
                                 <h2>Loại vé ({event.ticketTypes.length})</h2>
-                                <div className="ar-ticket-list">
-                                    {event.ticketTypes.map((tt) => (
-                                        <div key={tt.id} className="ar-ticket-row">
-                                            <span className="ar-ticket-name">{tt.name}</span>
-                                            <span className="ar-ticket-price">
-                                                {tt.priceVnd === 0
+                                <div className="admin-review-ticket-list">
+                                    {event.ticketTypes.map((ticketType) => (
+                                        <article
+                                            className="admin-review-ticket-row"
+                                            key={ticketType.id}
+                                        >
+                                            <div>
+                                                <h3>{ticketType.name}</h3>
+                                                <p>
+                                                    {formatDate(ticketType.saleStartsAt)} - {formatDate(ticketType.saleEndsAt)}
+                                                </p>
+                                            </div>
+                                            <strong>
+                                                {ticketType.priceVnd === 0
                                                     ? 'Miễn phí'
-                                                    : tt.priceVnd.toLocaleString('vi-VN') + ' đ'}
-                                            </span>
-                                            <span className="ar-muted">
-                                                {tt.totalQuantity} vé · {formatDate(tt.saleStartsAt)} – {formatDate(tt.saleEndsAt)}
-                                            </span>
-                                        </div>
+                                                    : `${ticketType.priceVnd.toLocaleString('vi-VN')} đ`}
+                                            </strong>
+                                            <span>{ticketType.totalQuantity} vé</span>
+                                        </article>
                                     ))}
                                 </div>
                             </section>
-                        )}
+                        ) : null}
                     </div>
 
-                    <div className="ar-side-col">
-                        {isPending && (
-                            <section className="ar-card ar-action-card">
+                    <aside className="admin-review-side-col">
+                        {isPending ? (
+                            <section className="admin-review-card admin-review-action-card">
                                 <h2>Quyết định</h2>
+                                <p>
+                                    Duyệt nếu nội dung đã đầy đủ và phù hợp; từ chối kèm lý do để organizer chỉnh sửa.
+                                </p>
 
-                                {actionError && (
-                                    <div className="dash-error" style={{ marginBottom: 12 }}>
+                                {actionError ? (
+                                    <div className="admin-review-error">
+                                        <MaterialIcon>error</MaterialIcon>
                                         {actionError}
                                     </div>
-                                )}
+                                ) : null}
 
                                 <button
-                                    className="ar-approve-btn"
+                                    className="admin-review-approve-button"
                                     type="button"
                                     onClick={handleApprove}
                                     disabled={acting}
                                 >
-                                    <span className="material-symbols-outlined">check_circle</span>
+                                    <MaterialIcon>check_circle</MaterialIcon>
                                     {acting && !showRejectForm ? 'Đang duyệt...' : 'Duyệt sự kiện'}
                                 </button>
 
                                 {!showRejectForm ? (
                                     <button
-                                        className="ar-reject-btn"
+                                        className="admin-review-reject-button"
                                         type="button"
                                         onClick={() => setShowRejectForm(true)}
                                         disabled={acting}
                                     >
-                                        <span className="material-symbols-outlined">cancel</span>
+                                        <MaterialIcon>cancel</MaterialIcon>
                                         Từ chối
                                     </button>
                                 ) : (
-                                    <div className="ar-reject-form">
-                                        <label htmlFor="ar-reason" style={{ fontSize: 13, fontWeight: 500, color: '#3f3f46' }}>
+                                    <div className="admin-review-reject-form">
+                                        <label htmlFor="ar-reason">
                                             Lý do từ chối *
                                         </label>
                                         <textarea
                                             id="ar-reason"
-                                            className="ar-reason-input"
+                                            className="admin-review-reason-input"
                                             value={rejectReason}
                                             onChange={(e) => setRejectReason(e.target.value)}
                                             placeholder="Nêu rõ lý do để organizer có thể chỉnh sửa..."
                                             rows={4}
                                         />
-                                        <div style={{ display: 'flex', gap: 8 }}>
+                                        <div className="admin-review-reject-actions">
                                             <button
+                                                className="admin-review-secondary-button"
                                                 type="button"
-                                                className="btn-outline"
                                                 onClick={() => {
                                                     setShowRejectForm(false);
                                                     setRejectReason('');
@@ -240,8 +273,8 @@ export function AdminReviewPage({ eventId }: Props) {
                                                 Hủy
                                             </button>
                                             <button
+                                                className="admin-review-reject-confirm-button"
                                                 type="button"
-                                                className="ar-reject-confirm-btn"
                                                 onClick={handleReject}
                                                 disabled={acting || !rejectReason.trim()}
                                             >
@@ -251,37 +284,71 @@ export function AdminReviewPage({ eventId }: Props) {
                                     </div>
                                 )}
                             </section>
-                        )}
+                        ) : null}
 
-                        {event.reviews.length > 0 && (
-                            <section className="ar-card">
+                        {event.reviews.length > 0 ? (
+                            <section className="admin-review-card">
                                 <h2>Lịch sử duyệt</h2>
-                                <div className="ar-review-list">
+                                <div className="admin-review-history">
                                     {event.reviews.map((review) => (
-                                        <div key={review.id} className="ar-review-item">
-                                            <div className="ar-review-header">
+                                        <article className="admin-review-history-item" key={review.id}>
+                                            <div>
                                                 <span
-                                                    className={`ar-decision ${review.decision === 'APPROVED' ? 'ar-approved' : 'ar-rejected'}`}
+                                                    className={`admin-review-decision ${
+                                                        review.decision === 'APPROVED'
+                                                            ? 'approved'
+                                                            : 'rejected'
+                                                    }`}
                                                 >
                                                     {review.decision === 'APPROVED' ? 'Đã duyệt' : 'Từ chối'}
                                                 </span>
-                                                <span className="ar-muted">{formatDate(review.createdAt)}</span>
+                                                <time>{formatDate(review.createdAt)}</time>
                                             </div>
-                                            <span className="ar-muted" style={{ fontSize: 12 }}>
-                                                bởi {review.reviewer.name}
-                                            </span>
-                                            {review.reason && (
-                                                <p className="ar-review-reason">{review.reason}</p>
-                                            )}
-                                        </div>
+                                            <p>bởi {review.reviewer.name}</p>
+                                            {review.reason ? <p>{review.reason}</p> : null}
+                                        </article>
                                     ))}
                                 </div>
                             </section>
-                        )}
-                    </div>
+                        ) : null}
+                    </aside>
                 </div>
-            </main>
-        </div>
+            </section>
+
+            <PublicFooter />
+        </main>
+    );
+}
+
+function AdminReviewShell({ children }: { children: ReactNode }) {
+    return (
+        <main className="admin-review-page">
+            <PublicHeader active="events" />
+            <section className="admin-review-shell">{children}</section>
+            <PublicFooter />
+        </main>
+    );
+}
+
+function ReviewState({
+    icon,
+    text,
+    title,
+}: {
+    icon: string;
+    text: string;
+    title: string;
+}) {
+    return (
+        <section className="admin-review-state">
+            <MaterialIcon>{icon}</MaterialIcon>
+            <h1>{title}</h1>
+            <p>{text}</p>
+            <a href="/admin/events">
+                <MaterialIcon>arrow_back</MaterialIcon>
+                Danh sách chờ duyệt
+            </a>
+        </section>
     );
 }
 
