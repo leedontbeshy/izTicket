@@ -67,6 +67,23 @@ describe('AuthService', () => {
         expect(service).toBeDefined();
     });
 
+    it('uses cross-site refresh cookie options in production', () => {
+        const productionService = new AuthService(
+            userService as unknown as UserService,
+            passwordHasher as unknown as PasswordHasher,
+            jwtService as unknown as JwtService,
+            prismaService as unknown as PrismaService,
+            createConfigServiceMock('production') as unknown as ConfigService,
+        );
+
+        expect(productionService.getRefreshTokenClearCookieOptions()).toEqual({
+            httpOnly: true,
+            path: '/api/v1/auth',
+            sameSite: 'none',
+            secure: true,
+        });
+    });
+
     it('registers customers and stores a hashed password', async () => {
         passwordHasher.hash.mockResolvedValue('hashed-password');
         userService.createUser.mockResolvedValue({
@@ -422,10 +439,10 @@ function createPrismaServiceMock() {
     };
 }
 
-function createConfigServiceMock() {
+function createConfigServiceMock(nodeEnv = 'test') {
     return {
         get: jest.fn((key: string) =>
-            key === 'NODE_ENV' ? 'test' : undefined,
+            key === 'NODE_ENV' ? nodeEnv : undefined,
         ),
         getOrThrow: jest.fn((key: string) => {
             if (key === 'JWT_REFRESH_TOKEN_EXPIRES_IN') {

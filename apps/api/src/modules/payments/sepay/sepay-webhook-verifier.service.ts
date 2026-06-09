@@ -16,9 +16,8 @@ export class SepayWebhookVerifierService {
     private readonly apiKey: string | undefined;
 
     constructor(configService: ConfigService) {
-        this.authMode =
-            (configService.get<string>('SEPAY_WEBHOOK_AUTH_MODE') ??
-                'apikey') as 'hmac' | 'apikey' | 'pg';
+        this.authMode = (configService.get<string>('SEPAY_WEBHOOK_AUTH_MODE') ??
+            'apikey') as 'hmac' | 'apikey' | 'pg';
         this.secret = configService.get<string>('SEPAY_WEBHOOK_SECRET');
         this.apiKey = configService.get<string>('SEPAY_WEBHOOK_API_KEY');
     }
@@ -67,10 +66,7 @@ export class SepayWebhookVerifierService {
         const expected = `Apikey ${this.apiKey}`;
         if (expected.length !== authHeader.length) return false;
 
-        return timingSafeEqual(
-            Buffer.from(expected),
-            Buffer.from(authHeader),
-        );
+        return timingSafeEqual(Buffer.from(expected), Buffer.from(authHeader));
     }
 
     private getHeader(

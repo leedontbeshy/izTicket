@@ -134,7 +134,9 @@ export class ReservationsService {
                 });
 
                 for (const item of dto.items) {
-                    const tt = ticketTypes.find((t) => t.id === item.ticketTypeId)!;
+                    const tt = ticketTypes.find(
+                        (t) => t.id === item.ticketTypeId,
+                    )!;
 
                     await tx.reservationItem.create({
                         data: {

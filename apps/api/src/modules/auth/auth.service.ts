@@ -29,6 +29,7 @@ const refreshSessionUserSelect = {
 export class AuthService {
     private readonly refreshTokenExpiresInMs: number;
     private readonly refreshTokenCookieSecure: boolean;
+    private readonly refreshTokenCookieSameSite: CookieOptions['sameSite'];
 
     constructor(
         private readonly userService: UserService,
@@ -42,6 +43,9 @@ export class AuthService {
         );
         this.refreshTokenCookieSecure =
             configService.get<string>('NODE_ENV') === 'production';
+        this.refreshTokenCookieSameSite = this.refreshTokenCookieSecure
+            ? 'none'
+            : 'lax';
     }
 
     async register(dto: RegisterDto): Promise<PublicUser> {
@@ -235,7 +239,7 @@ export class AuthService {
     private getRefreshTokenCookieOptions(): CookieOptions {
         return {
             httpOnly: true,
-            sameSite: 'lax',
+            sameSite: this.refreshTokenCookieSameSite,
             secure: this.refreshTokenCookieSecure,
             path: REFRESH_TOKEN_COOKIE_PATH,
         };
