@@ -82,7 +82,7 @@ export function MyTicketsPage() {
                 <TicketsState
                     icon="confirmation_number"
                     title="Chưa có vé"
-                    text="Vé sẽ xuất hiện tại đây sau khi payment webhook xác nhận thanh toán."
+                    text="Vé sẽ xuất hiện tại đây sau khi được xác nhận thanh toán."
                     actionHref="/events"
                     actionLabel="Tìm sự kiện"
                 />
