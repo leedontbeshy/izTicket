@@ -35,7 +35,16 @@ describe('AppController (e2e)', () => {
         await app?.close();
     });
 
-    it('/ (GET)', () => {
+    it('/ (GET) redirects to the API root', () => {
+        const server = app.getHttpServer() as Server;
+
+        return request(server)
+            .get('/')
+            .expect(302)
+            .expect('Location', '/api/v1/');
+    });
+
+    it('/api/v1 (GET)', () => {
         const server = app.getHttpServer() as Server;
 
         return request(server)
