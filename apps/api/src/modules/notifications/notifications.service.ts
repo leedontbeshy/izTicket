@@ -10,6 +10,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import type {
     EventApproved,
     EventRejected,
+    EventSubmitted,
 } from '../events/domain/event-domain.events';
 import type { TicketIssuedEvent } from '../tickets/events/ticket-issued.event';
 
@@ -27,6 +28,13 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
 
     onModuleInit() {
         this.unsubscribers.push(
+            this.domainEventBus.subscribe(
+                'EventSubmitted',
+                (event: EventSubmitted) =>
+                    this.logEventSubmitted(event).catch((error: unknown) =>
+                        this.logHandlerError(event.name, error),
+                    ),
+            ),
             this.domainEventBus.subscribe(
                 'EventApproved',
                 (event: EventApproved) =>
@@ -55,6 +63,32 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
         for (const unsubscribe of this.unsubscribers) {
             unsubscribe();
         }
+    }
+
+    private async logEventSubmitted(event: EventSubmitted) {
+        const submittedEvent = await this.findEventForNotification(
+            event.payload.eventId,
+        );
+
+        if (!submittedEvent) {
+            return;
+        }
+
+        await this.prismaService.notificationLog.create({
+            data: {
+                userId: submittedEvent.organizerId,
+                type: 'EVENT_SUBMITTED',
+                channel: LOG_CHANNEL,
+                status: NotificationStatus.SENT,
+                recipient: submittedEvent.organizer.email,
+                sentAt: new Date(),
+                payload: {
+                    eventId: submittedEvent.id,
+                    title: submittedEvent.title,
+                    organizerId: event.payload.organizerId,
+                },
+            },
+        });
     }
 
     private async logEventApproved(event: EventApproved) {

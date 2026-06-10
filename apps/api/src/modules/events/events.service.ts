@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { AppException } from '../../common/errors/app.exception';
 import { DomainEventBus } from '../../common/events/domain-event-bus';
 import {
@@ -11,7 +11,11 @@ import { PrismaService } from '../../prisma/prisma.service';
 import type { CreateEventDto } from './dto/create-event.dto';
 import type { ListPublicEventsQueryDto } from './dto/list-public-events-query.dto';
 import type { UpdateEventDto } from './dto/update-event.dto';
-import { eventSubmitted } from './domain/event-domain.events';
+import {
+    eventSubmitted,
+    type EventApproved,
+    type EventRejected,
+} from './domain/event-domain.events';
 import { canEditEvent, canSubmitEvent } from './domain/event-state.rules';
 
 const publicEventListSelect = {
@@ -65,11 +69,32 @@ const organizerEventSelect = {
 } as const;
 
 @Injectable()
-export class EventsService {
+export class EventsService implements OnModuleInit {
     constructor(
         private readonly prismaService: PrismaService,
         private readonly domainEventBus: DomainEventBus,
     ) {}
+
+    onModuleInit() {
+        this.domainEventBus.subscribe(
+            'EventApproved',
+            async (event: EventApproved) => {
+                await this.prismaService.event.update({
+                    where: { id: event.payload.eventId },
+                    data: { status: EventStatus.PUBLISHED, publishedAt: new Date() },
+                });
+            },
+        );
+        this.domainEventBus.subscribe(
+            'EventRejected',
+            async (event: EventRejected) => {
+                await this.prismaService.event.update({
+                    where: { id: event.payload.eventId },
+                    data: { status: EventStatus.REJECTED },
+                });
+            },
+        );
+    }
 
     async listPublicEvents(query: ListPublicEventsQueryDto) {
         const pagination = getPaginationParams(query);
