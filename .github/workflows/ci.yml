@@ -7,9 +7,12 @@ on:
         branches: [main]
 
 jobs:
-    lint:
-        name: Lint
+    ci:
+        name: Lint, Type Check & Test
         runs-on: ubuntu-latest
+        env:
+            DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+            DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
         steps:
             - uses: actions/checkout@v4
             - uses: pnpm/action-setup@v4
@@ -19,29 +22,5 @@ jobs:
                   cache: pnpm
             - run: pnpm install --frozen-lockfile
             - run: pnpm run lint
-
-    check-types:
-        name: Type Check
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: pnpm/action-setup@v4
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 20
-                  cache: pnpm
-            - run: pnpm install --frozen-lockfile
             - run: pnpm run check-types
-
-    test:
-        name: Unit Tests
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: pnpm/action-setup@v4
-            - uses: actions/setup-node@v4
-              with:
-                  node-version: 20
-                  cache: pnpm
-            - run: pnpm install --frozen-lockfile
             - run: pnpm --filter api test
