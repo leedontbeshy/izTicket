@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { getStoredAuthUser } from './authSession';
+import { getStoredAuthUser } from '../auth/authSession';
 import {
     createEvent,
     getOrganizerEvent,
@@ -8,12 +8,12 @@ import {
     type CreateEventPayload,
     type EventStatus,
     type OrganizerEvent,
-} from './api/events.api';
+} from '../../api/events.api';
 import {
     createTicketType,
     type CreateTicketTypePayload,
-} from './api/ticket-types.api';
-import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
+} from '../../api/ticket-types.api';
+import { MaterialIcon, PublicFooter, PublicHeader } from '../../shared/PublicLayout';
 import './EventFormPage.css';
 
 type Props = { mode: 'create' } | { mode: 'edit'; eventId: string };

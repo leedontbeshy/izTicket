@@ -3,11 +3,11 @@ import {
     MaterialIcon,
     PublicFooter,
     PublicHeader,
-} from './PublicLayout';
+} from '../../shared/PublicLayout';
 import {
     listPublicEvents,
     type PublicEventListItem,
-} from './api/events.api';
+} from '../../api/events.api';
 import './EventsPage.css';
 
 const fallbackImage =

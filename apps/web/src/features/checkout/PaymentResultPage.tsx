@@ -3,12 +3,12 @@ import {
     MaterialIcon,
     PublicFooter,
     PublicHeader,
-} from './PublicLayout';
+} from '../../shared/PublicLayout';
 import {
     getPayment,
     type PaymentStatus,
     type SepayPayment,
-} from './api/payments.api';
+} from '../../api/payments.api';
 import {
     clearCheckoutSession,
     getActiveCheckoutSession,

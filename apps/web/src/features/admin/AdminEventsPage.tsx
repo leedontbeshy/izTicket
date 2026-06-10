@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { getStoredAuthUser } from './authSession';
-import { listPendingEvents, type PendingEvent } from './api/admin.api';
-import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
+import { getStoredAuthUser } from '../auth/authSession';
+import { listPendingEvents, type PendingEvent } from '../../api/admin.api';
+import { MaterialIcon, PublicFooter, PublicHeader } from '../../shared/PublicLayout';
 import './AdminEventsPage.css';
 
 export function AdminEventsPage() {

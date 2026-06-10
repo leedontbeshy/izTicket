@@ -1,22 +1,22 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { getStoredAuthUser } from './authSession';
+import { getStoredAuthUser } from '../auth/authSession';
 import {
     getOrganizerEvent,
     type EventStatus,
     type OrganizerEvent,
-} from './api/events.api';
+} from '../../api/events.api';
 import {
     listEventOrders,
     type OrderStatus,
     type OrganizerOrder,
-} from './api/orders.api';
+} from '../../api/orders.api';
 import {
     createTicketType,
     listTicketTypes,
     type CreateTicketTypePayload,
     type TicketType,
-} from './api/ticket-types.api';
-import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
+} from '../../api/ticket-types.api';
+import { MaterialIcon, PublicFooter, PublicHeader } from '../../shared/PublicLayout';
 import './OrganizerEventDetailPage.css';
 
 type Props = { eventId: string };

@@ -3,12 +3,12 @@ import {
     MaterialIcon,
     PublicFooter,
     PublicHeader,
-} from './PublicLayout';
-import { getStoredAuthUser } from './authSession';
+} from '../../shared/PublicLayout';
+import { getStoredAuthUser } from '../auth/authSession';
 import {
     getTicket,
     type TicketDetail,
-} from './api/tickets.api';
+} from '../../api/tickets.api';
 import './MyTicketsPage.css';
 
 export function MyTicketDetailPage({ ticketId }: { ticketId: string }) {

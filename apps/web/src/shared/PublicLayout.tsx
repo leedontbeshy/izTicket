@@ -2,9 +2,9 @@ import {
     getRoleLabel,
     getStoredAuthUser,
     type StoredAuthUser,
-} from './authSession';
-import { getActiveCheckoutSession } from './checkoutSession';
-import { logout } from './dashboardLogout';
+} from '../features/auth/authSession';
+import { getActiveCheckoutSession } from '../features/checkout/checkoutSession';
+import { logout } from '../features/auth/dashboardLogout';
 
 type PublicHeaderProps = {
     active: 'home' | 'events';

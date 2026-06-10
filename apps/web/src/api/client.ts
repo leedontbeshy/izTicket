@@ -2,8 +2,8 @@ import {
     clearAuthSession,
     saveAuthSession,
     type StoredAuthUser,
-} from '../authSession';
-import { clearCheckoutSession } from '../checkoutSession';
+} from '../features/auth/authSession';
+import { clearCheckoutSession } from '../features/checkout/checkoutSession';
 
 const API_BASE_URL =
     (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '') ??
