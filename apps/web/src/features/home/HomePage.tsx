@@ -3,8 +3,7 @@ import {
     listPublicEvents,
     type PublicEventListItem,
 } from '../../api/events.api';
-import { getRoleLabel, getStoredAuthUser } from '../auth/authSession';
-import { logout } from '../auth/dashboardLogout';
+import { PublicHeader } from '../../shared/PublicLayout';
 import './HomePage.css';
 
 type TrustItem = {
@@ -246,51 +245,6 @@ function ReviewCard({ review }: { review: Review }) {
     );
 }
 
-function HeaderAccountActions() {
-    const user = getStoredAuthUser();
-
-    if (!user) {
-        return (
-            <>
-                <a className="ghost-button" href="/auth/login">
-                    Đăng nhập
-                </a>
-                <a className="dark-button" href="/auth/register">
-                    Đăng ký
-                </a>
-            </>
-        );
-    }
-
-    const dashHref =
-        user.role === 'ORGANIZER'
-            ? '/organizer/events'
-            : user.role === 'ADMIN'
-              ? '/admin/events'
-              : null;
-
-    return (
-        <>
-            {dashHref && (
-                <a className="dark-button" href={dashHref}>
-                    Dashboard
-                </a>
-            )}
-            <div className="user-chip">
-                <span>{getInitials(user.name)}</span>
-                <div>
-                    <strong>{user.name}</strong>
-                    <small>{getRoleLabel(user.role)}</small>
-                </div>
-            </div>
-            <button className="header-logout-button" type="button" onClick={logout}>
-                <MaterialIcon>logout</MaterialIcon>
-                Đăng xuất
-            </button>
-        </>
-    );
-}
-
 function HomePage() {
     const [homeEvents, setHomeEvents] = useState<PublicEventListItem[]>([]);
     const [homeEventsLoading, setHomeEventsLoading] = useState(false);
@@ -331,31 +285,7 @@ function HomePage() {
 
     return (
         <main className="landing-shell">
-            <header className="site-header">
-                <a className="brand" href="/">
-                    <BrandMark />
-                    <span>izTicket</span>
-                </a>
-
-                <nav className="main-nav" aria-label="Điều hướng chính">
-                    <a className="active" href="#">
-                        Trang chủ
-                    </a>
-                    <a href="/events">Sự kiện</a>
-                    <a href="/#organizers">Dành cho tổ chức</a>
-                    <a href="#about">Giới thiệu</a>
-                    <a href="#support">Hỗ trợ</a>
-                </nav>
-
-                <div className="header-actions">
-                    <button className="language-button" type="button">
-                        <MaterialIcon>language</MaterialIcon>
-                        VI
-                        <MaterialIcon>expand_more</MaterialIcon>
-                    </button>
-                    <HeaderAccountActions />
-                </div>
-            </header>
+            <PublicHeader active="home" />
 
             <section className="hero-section">
                 <div className="hero-copy">
@@ -675,16 +605,6 @@ function HomePage() {
             </footer>
         </main>
     );
-}
-
-function getInitials(name: string) {
-    return name
-        .split(' ')
-        .filter(Boolean)
-        .slice(-2)
-        .map((part) => part[0])
-        .join('')
-        .toUpperCase();
 }
 
 function formatHomeDate(value: string) {

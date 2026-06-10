@@ -13,6 +13,7 @@
 .checkout-page .site-header,
 .checkout-placeholder,
 .checkout-layout {
+    width: 100%;
     max-width: var(--container);
     margin-right: auto;
     margin-left: auto;
@@ -32,6 +33,7 @@
 }
 
 .checkout-page .site-footer {
+    width: 100%;
     margin-top: 64px;
     padding-bottom: 48px;
 }
@@ -43,6 +45,7 @@
 }
 
 .checkout-list-shell {
+    width: 100%;
     max-width: var(--container);
     margin: 22px auto 0;
     display: grid;

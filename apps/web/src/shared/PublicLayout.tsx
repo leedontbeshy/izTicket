@@ -85,16 +85,10 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                                 Dashboard
                             </a>
                         ) : null}
-                        {activeCheckout ? (
-                            <a
-                                className="header-icon-link"
-                                href="/checkout"
-                            >
-                                <MaterialIcon>shopping_cart</MaterialIcon>
-                                Vé đang giữ
-                            </a>
-                        ) : null}
-                        <UserAccountMenu user={user} />
+                        <UserAccountMenu
+                            hasActiveCheckout={Boolean(activeCheckout)}
+                            user={user}
+                        />
                     </>
                 ) : (
                     <a className="dark-button" href="/auth/login">
@@ -112,7 +106,13 @@ function getDashboardHref(role: StoredAuthUser['role']) {
     return null;
 }
 
-function UserAccountMenu({ user }: { user: StoredAuthUser }) {
+function UserAccountMenu({
+    hasActiveCheckout,
+    user,
+}: {
+    hasActiveCheckout: boolean;
+    user: StoredAuthUser;
+}) {
     return (
         <details className="user-menu">
             <summary className="user-chip" aria-label="Mở menu tài khoản">
@@ -125,10 +125,18 @@ function UserAccountMenu({ user }: { user: StoredAuthUser }) {
             </summary>
             <div className="user-menu-panel">
                 {user.role === 'CUSTOMER' ? (
-                    <a href="/my-tickets">
-                        <MaterialIcon>confirmation_number</MaterialIcon>
-                        Vé của tôi
-                    </a>
+                    <>
+                        {hasActiveCheckout ? (
+                            <a href="/checkout">
+                                <MaterialIcon>shopping_cart</MaterialIcon>
+                                Vé đang giữ
+                            </a>
+                        ) : null}
+                        <a href="/my-tickets">
+                            <MaterialIcon>confirmation_number</MaterialIcon>
+                            Vé của tôi
+                        </a>
+                    </>
                 ) : null}
                 <button type="button" onClick={logout}>
                     <MaterialIcon>logout</MaterialIcon>
