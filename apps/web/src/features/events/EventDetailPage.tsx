@@ -10,22 +10,22 @@ import {
     MaterialIcon,
     PublicFooter,
     PublicHeader,
-} from './PublicLayout';
+} from '../../shared/PublicLayout';
 import {
     getPublicEvent,
     type PublicEventDetail,
     type PublicTicketType,
-} from './api/events.api';
+} from '../../api/events.api';
 import {
     cancelReservation,
     createReservation,
-} from './api/reservations.api';
-import { getStoredAuthUser } from './authSession';
+} from '../../api/reservations.api';
+import { getStoredAuthUser } from '../auth/authSession';
 import {
     clearCheckoutSession,
     getActiveCheckoutSession,
     saveCheckoutSession,
-} from './checkoutSession';
+} from '../checkout/checkoutSession';
 import './EventDetailPage.css';
 
 const fallbackImage =

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { getStoredAuthUser } from './authSession';
-import { listOrganizerEvents, type OrganizerEvent } from './api/events.api';
-import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
+import { getStoredAuthUser } from '../auth/authSession';
+import { listOrganizerEvents, type OrganizerEvent } from '../../api/events.api';
+import { MaterialIcon, PublicFooter, PublicHeader } from '../../shared/PublicLayout';
 import './OrganizerEventsPage.css';
 
 const fallbackImage =

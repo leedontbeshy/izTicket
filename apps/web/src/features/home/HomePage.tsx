@@ -1,23 +1,11 @@
-import AuthPage from './AuthPage';
 import { useEffect, useState } from 'react';
-import { CheckoutListPage, CheckoutPage } from './CheckoutPage';
-import EventDetailPage from './EventDetailPage';
-import EventsPage from './EventsPage';
-import { MyTicketDetailPage } from './MyTicketDetailPage';
-import { MyTicketsPage } from './MyTicketsPage';
-import { PaymentResultPage } from './PaymentResultPage';
-import { OrganizerEventsPage } from './OrganizerEventsPage';
-import { EventFormPage } from './EventFormPage';
-import { AdminEventsPage } from './AdminEventsPage';
-import { AdminReviewPage } from './AdminReviewPage';
-import { OrganizerEventDetailPage } from './OrganizerEventDetailPage';
 import {
     listPublicEvents,
     type PublicEventListItem,
-} from './api/events.api';
-import { getRoleLabel, getStoredAuthUser } from './authSession';
-import { logout } from './dashboardLogout';
-import './App.css';
+} from '../../api/events.api';
+import { getRoleLabel, getStoredAuthUser } from '../auth/authSession';
+import { logout } from '../auth/dashboardLogout';
+import './HomePage.css';
 
 type TrustItem = {
     icon: string;
@@ -303,16 +291,13 @@ function HeaderAccountActions() {
     );
 }
 
-function App() {
-    const path = window.location.pathname;
+function HomePage() {
     const [homeEvents, setHomeEvents] = useState<PublicEventListItem[]>([]);
     const [homeEventsLoading, setHomeEventsLoading] = useState(false);
     const [homeEventsError, setHomeEventsError] = useState('');
     const [homeSearchQuery, setHomeSearchQuery] = useState('');
 
     useEffect(() => {
-        if (path !== '/') return;
-
         let active = true;
         setHomeEventsLoading(true);
         setHomeEventsError('');
@@ -338,100 +323,11 @@ function App() {
         return () => {
             active = false;
         };
-    }, [path]);
+    }, []);
 
     const heroEvent = homeEvents[0];
     const featuredEvents = homeEvents.slice(0, 6);
     const upcomingEvents = homeEvents.slice(0, 5);
-
-    if (path === '/auth/login' || path === '/auth/register') {
-        if (getStoredAuthUser()) {
-            window.location.replace('/');
-            return null;
-        }
-
-        return <AuthPage mode={path === '/auth/login' ? 'login' : 'register'} />;
-    }
-
-    if (path === '/events') {
-        return <EventsPage />;
-    }
-
-    if (path === '/checkout') {
-        return <CheckoutListPage />;
-    }
-
-    if (path.startsWith('/checkout/')) {
-        return (
-            <CheckoutPage
-                reservationId={decodeURIComponent(path.replace('/checkout/', ''))}
-            />
-        );
-    }
-
-    if (path === '/payment-result') {
-        return <PaymentResultPage />;
-    }
-
-    if (path === '/my-tickets') {
-        return <MyTicketsPage />;
-    }
-
-    if (path.startsWith('/my-tickets/')) {
-        return (
-            <MyTicketDetailPage
-                ticketId={decodeURIComponent(path.replace('/my-tickets/', ''))}
-            />
-        );
-    }
-
-    if (path.startsWith('/events/')) {
-        return (
-            <EventDetailPage
-                eventId={decodeURIComponent(path.replace('/events/', ''))}
-            />
-        );
-    }
-
-    if (path === '/organizer/events') {
-        return <OrganizerEventsPage />;
-    }
-
-    if (path === '/organizer/events/new') {
-        return <EventFormPage mode="create" />;
-    }
-
-    if (
-        path.startsWith('/organizer/events/') &&
-        path.endsWith('/edit')
-    ) {
-        const eventId = path
-            .replace('/organizer/events/', '')
-            .replace('/edit', '');
-        return <EventFormPage mode="edit" eventId={eventId} />;
-    }
-
-    if (path === '/admin/events') {
-        return <AdminEventsPage />;
-    }
-
-    if (
-        path.startsWith('/admin/events/') &&
-        path.endsWith('/review')
-    ) {
-        const eventId = path
-            .replace('/admin/events/', '')
-            .replace('/review', '');
-        return <AdminReviewPage eventId={eventId} />;
-    }
-
-    if (
-        path.startsWith('/organizer/events/') &&
-        !path.endsWith('/edit')
-    ) {
-        const eventId = path.replace('/organizer/events/', '');
-        return <OrganizerEventDetailPage eventId={eventId} />;
-    }
 
     return (
         <main className="landing-shell">
@@ -804,4 +700,4 @@ function formatHomePrice(value: number | null) {
     return `Từ ${new Intl.NumberFormat('vi-VN').format(value)}đ`;
 }
 
-export default App;
+export default HomePage;

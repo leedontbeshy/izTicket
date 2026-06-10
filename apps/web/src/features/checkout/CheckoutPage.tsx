@@ -3,28 +3,28 @@ import {
     MaterialIcon,
     PublicFooter,
     PublicHeader,
-} from './PublicLayout';
+} from '../../shared/PublicLayout';
 import {
     getPublicEvent,
     type PublicEventDetail,
-} from './api/events.api';
+} from '../../api/events.api';
 import {
     createOrder,
     getOrder,
     listMyOrders,
     type Order,
     type OrdersPageResponse,
-} from './api/orders.api';
+} from '../../api/orders.api';
 import {
     createSepayPayment,
     type SepayPayment,
-} from './api/payments.api';
+} from '../../api/payments.api';
 import {
     cancelReservation,
     getReservation,
     type Reservation,
     type ReservationItem,
-} from './api/reservations.api';
+} from '../../api/reservations.api';
 import {
     clearCheckoutSession,
     getCheckoutSessions,

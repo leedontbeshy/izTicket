@@ -1,12 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { getStoredAuthUser } from './authSession';
+import { getStoredAuthUser } from '../auth/authSession';
 import {
     approveEvent,
     getAdminEventDetail,
     rejectEvent,
     type AdminEventDetail,
-} from './api/admin.api';
-import { MaterialIcon, PublicFooter, PublicHeader } from './PublicLayout';
+} from '../../api/admin.api';
+import { MaterialIcon, PublicFooter, PublicHeader } from '../../shared/PublicLayout';
 import './AdminReviewPage.css';
 
 type Props = { eventId: string };

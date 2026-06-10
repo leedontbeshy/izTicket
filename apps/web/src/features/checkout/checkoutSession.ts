@@ -1,4 +1,4 @@
-import type { SepayPayment } from './api/payments.api';
+import type { SepayPayment } from '../../api/payments.api';
 
 const CheckoutSessionKey = 'izticket_checkout_sessions';
 const LegacyCheckoutSessionKey = 'izticket_checkout_session';

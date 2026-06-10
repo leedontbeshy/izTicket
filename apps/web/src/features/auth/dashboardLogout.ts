@@ -1,4 +1,4 @@
-import { apiPostVoid } from './api/client';
+import { apiPostVoid } from '../../api/client';
 
 export async function logout() {
     try {
