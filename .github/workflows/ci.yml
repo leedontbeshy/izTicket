@@ -10,9 +10,6 @@ jobs:
     ci:
         name: Lint, Type Check & Test
         runs-on: ubuntu-latest
-        env:
-            DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-            DIRECT_URL: postgresql://ci:ci@localhost:5432/ci
         steps:
             - uses: actions/checkout@v4
             - uses: pnpm/action-setup@v4
@@ -20,7 +17,12 @@ jobs:
               with:
                   node-version: 20
                   cache: pnpm
-            - run: pnpm install --frozen-lockfile
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+            - name: Create CI env
+              run: |
+                  printf 'DATABASE_URL=postgresql://ci:ci@localhost:5432/ci\n' >> apps/api/.env
+                  printf 'JWT_SECRET=ci-secret-key-minimum-32-characters-long\n' >> apps/api/.env
             - run: pnpm run lint
             - run: pnpm run check-types
             - run: pnpm --filter api test
