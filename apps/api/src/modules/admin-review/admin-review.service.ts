@@ -140,12 +140,7 @@ export class AdminReviewService {
     }
 
     async approveEvent(adminId: string, eventId: string) {
-        await this.recordDecision(
-            adminId,
-            eventId,
-            EventStatus.PUBLISHED,
-            'APPROVED',
-        );
+        await this.recordDecision(adminId, eventId, 'APPROVED');
         await this.domainEventBus.publish(
             eventApproved({
                 eventId,
@@ -166,13 +161,7 @@ export class AdminReviewService {
             throw AppException.conflict('A rejection reason is required.');
         }
 
-        await this.recordDecision(
-            adminId,
-            eventId,
-            EventStatus.REJECTED,
-            'REJECTED',
-            trimmedReason,
-        );
+        await this.recordDecision(adminId, eventId, 'REJECTED', trimmedReason);
         await this.domainEventBus.publish(
             eventRejected({
                 eventId,
@@ -190,41 +179,23 @@ export class AdminReviewService {
     private async recordDecision(
         adminId: string,
         eventId: string,
-        nextStatus: EventStatus,
         decision: 'APPROVED' | 'REJECTED',
         reason?: string,
     ) {
         await this.prismaService.$transaction(async (transaction) => {
-            const updateResult = await transaction.event.updateMany({
-                where: {
-                    id: eventId,
-                    status: EventStatus.PENDING_REVIEW,
-                },
-                data: {
-                    status: nextStatus,
-                    ...(nextStatus === EventStatus.PUBLISHED
-                        ? { publishedAt: new Date() }
-                        : {}),
-                },
+            const existingEvent = await transaction.event.findUnique({
+                where: { id: eventId },
+                select: { id: true, status: true },
             });
 
-            if (updateResult.count !== 1) {
-                const existingEvent = await transaction.event.findUnique({
-                    where: { id: eventId },
-                    select: { id: true, status: true },
-                });
+            if (!existingEvent) {
+                throw AppException.notFound('Event was not found.');
+            }
 
-                if (!existingEvent) {
-                    throw AppException.notFound('Event was not found.');
-                }
-
-                if (!canReviewEvent(existingEvent.status)) {
-                    throw AppException.conflict(
-                        'Only pending review events can be reviewed.',
-                    );
-                }
-
-                throw AppException.conflict('Event review could not be saved.');
+            if (!canReviewEvent(existingEvent.status)) {
+                throw AppException.conflict(
+                    'Only pending review events can be reviewed.',
+                );
             }
 
             await transaction.eventReview.create({
