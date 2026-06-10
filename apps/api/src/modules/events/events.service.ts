@@ -81,7 +81,10 @@ export class EventsService implements OnModuleInit {
             async (event: EventApproved) => {
                 await this.prismaService.event.update({
                     where: { id: event.payload.eventId },
-                    data: { status: EventStatus.PUBLISHED, publishedAt: new Date() },
+                    data: {
+                        status: EventStatus.PUBLISHED,
+                        publishedAt: new Date(),
+                    },
                 });
             },
         );
