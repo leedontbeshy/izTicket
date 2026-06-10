@@ -19,3 +19,29 @@ jobs:
                   fi
 
                   curl --fail --silent --show-error --max-time 20 --retry 2 --retry-delay 5 "$RENDER_HEALTHCHECK_URL"
+
+            - name: Process expired reservations and orders
+              env:
+                  RENDER_API_URL: ${{ vars.RENDER_API_URL || secrets.RENDER_API_URL }}
+                  ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+                  ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+              run: |
+                  if [ -z "$RENDER_API_URL" ] || [ -z "$ADMIN_EMAIL" ] || [ -z "$ADMIN_PASSWORD" ]; then
+                    echo "Expiry secrets not configured, skipping."
+                    exit 0
+                  fi
+
+                  TOKEN=$(curl --fail --silent --show-error --max-time 20 \
+                    -X POST "$RENDER_API_URL/auth/login" \
+                    -H "Content-Type: application/json" \
+                    -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"$ADMIN_PASSWORD\"}" \
+                    | jq -r '.accessToken')
+
+                  if [ -z "$TOKEN" ] || [ "$TOKEN" = "null" ]; then
+                    echo "Failed to obtain admin token."
+                    exit 1
+                  fi
+
+                  curl --fail --silent --show-error --max-time 20 \
+                    -X POST "$RENDER_API_URL/admin/expiry/process" \
+                    -H "Authorization: Bearer $TOKEN"
