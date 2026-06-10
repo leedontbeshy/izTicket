@@ -12,6 +12,7 @@ they become public .
 - `apps/web`: Vite, React, and TypeScript frontend.
 - `packages/`: workspace for future shared packages.
 - Tooling: pnpm, Turborepo, Prettier, ESLint, TypeScript.
+- Hosting: Frontend on Vercel, Backend on Render, Neon for PostgreSQL database.
 
 ## Requirements
 
